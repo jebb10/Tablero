@@ -1,12 +1,8 @@
 import * as XLSX from "xlsx";
 
-const SHEET_ID = process.env.DASHBOARD_SHEET_ID;
+const SHEET_ID = "1J08Zow6iEb1BZC5ny90gpvma1JtWcYC2";
 
 export async function loadWorkbook(): Promise<XLSX.WorkBook> {
-  if (!SHEET_ID) {
-    throw new Error("Falta la variable de entorno DASHBOARD_SHEET_ID");
-  }
-
   const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=xlsx`;
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 10_000);

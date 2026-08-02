@@ -27,11 +27,18 @@ compartido como "cualquiera con el enlace puede ver". `src/lib/excel/workbook.ts
 descarga el export público en cada `loadWorkbook()`:
 
 ```
-https://docs.google.com/spreadsheets/d/${DASHBOARD_SHEET_ID}/export?format=xlsx
+https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=xlsx
 ```
 
-`DASHBOARD_SHEET_ID` es una variable de entorno obligatoria (solo el ID, no
-la URL completa) — requerida tanto en local (`.env.local`) como en Vercel.
+El `SHEET_ID` está **hardcodeado como constante** en `workbook.ts` (no es
+una variable de entorno) — decisión del PO: el plan original usaba
+`DASHBOARD_SHEET_ID` como env var, pero configurar env vars por ambiente
+(Production/Preview/Development) requiere un plan de pago en Vercel. Como
+el ID del Sheet no es un secreto (el documento ya es público, "cualquiera
+con el enlace puede ver"), hardcodearlo no introduce un problema de
+seguridad nuevo. Si el ID cambia (ej. el PO mueve el archivo a otro Sheet),
+hay que actualizar la constante en el código y hacer deploy — no hay forma
+de cambiarlo sin tocar código.
 La descarga usa `next: { revalidate: 30 }` (ventana corta de revalidación,
 no `no-store` estricto — amortigua picos entre clicks del botón
 "Sincronizar", sin convertir RN-05 en polling) y un timeout de 10s vía
@@ -252,13 +259,12 @@ el orden original con el que arrancó el proyecto.
 - **Fase 3a — Conectar Drive como fuente de datos:** ✅ completa. Arregla el
   banner de error en producción (Vercel no tenía acceso al xlsx local).
   `loadWorkbook()` pasa a `async` y descarga el export xlsx público de
-  Google Drive (`DASHBOARD_SHEET_ID`), con `revalidate: 30` y timeout de
-  10s, un solo intento sin reintentos (ver "Fuente de datos" arriba). El
-  `async` se propagó por `dashboard-sheet.ts`/`detalle-sheet.ts` (sin
-  default en `wb`), `dashboard-data.ts`, `page.tsx` y
-  `requerimiento/[item]/page.tsx`. Banner de error genérico ("problema de
-  conexión con la fuente de datos"), mismo mensaje para cualquier falla
-  incluida la env var faltante. El xlsx local y `scripts/` (Python de Fase
+  Google Drive, con `revalidate: 30` y timeout de 10s, un solo intento sin
+  reintentos (ver "Fuente de datos" arriba). El `async` se propagó por
+  `dashboard-sheet.ts`/`detalle-sheet.ts` (sin default en `wb`),
+  `dashboard-data.ts`, `page.tsx` y `requerimiento/[item]/page.tsx`. Banner
+  de error genérico ("problema de conexión con la fuente de datos"), mismo
+  mensaje para cualquier falla. El xlsx local y `scripts/` (Python de Fase
   0/0.1) se archivaron en `legado/`, un nivel arriba de este repo — ya no
   se usan pero no se borraron. La sección "Convenciones al tocar el Excel
   fuente" que vivía aquí se eliminó por completo: ya no aplica, nadie va a
@@ -266,10 +272,14 @@ el orden original con el que arrancó el proyecto.
   de fórmulas sin valor cacheado (openpyxl nunca las calcula, documentado en
   Fase 0.1) ya no debería repetirse — Google Sheets sí recalcula y cachea
   fórmulas automáticamente al editar desde su UI web.
-  - Configurar `DASHBOARD_SHEET_ID` en Vercel (Settings → Environment
-    Variables) y hacer redeploy es una **acción manual del PO**, no
-    automatizada desde el código — ver plan original si hace falta repetir
-    el instructivo.
+  - **Ajuste post-implementación (2026-08-01)**: el diseño original usaba
+    `DASHBOARD_SHEET_ID` como variable de entorno, pero configurar env vars
+    por ambiente en Vercel (Production/Preview/Development) requiere un
+    plan de pago que el PO no tiene. Se cambió a un ID **hardcodeado** como
+    constante en `workbook.ts` — no requiere ninguna acción manual del PO
+    en Vercel, el deploy normal ya lo incluye. Sin problema de seguridad
+    nuevo porque el Sheet ya era público. Si el ID cambia en el futuro, hay
+    que editar la constante en código y hacer deploy.
   - Fuera de alcance de esta sub-fase (queda para la Fase 3 real): login.
     Restringir el Sheet o migrar a cuenta de servicio de Google, e
     indicador de "última sincronización", quedan diferidos indefinidamente

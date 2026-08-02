@@ -18,10 +18,3 @@ npm run dev
 ```
 
 Abre [http://localhost:3000](http://localhost:3000).
-
-## Variables de entorno
-
-- `DASHBOARD_SHEET_ID`: ID del Google Sheet que sirve como fuente de datos
-  (ver CLAUDE.md, sección "Fuente de datos"). Requerido tanto en desarrollo
-  local (`.env.local`) como en producción (Vercel → Project Settings →
-  Environment Variables).
