@@ -86,10 +86,11 @@ openpyxl), nunca desde la app Next.js.
 - **`lucide-react`** para íconos (mapeo por palabra clave en
   `src/lib/icons.tsx`).
 - Sin base de datos, sin autenticación, sin API externa.
-- **Control de versiones**: repo git local, rama `master`, remoto
-  `https://github.com/jebb10/Tablero.git` (rama remota `main` — al hacer
-  push por primera vez, resolver la divergencia de historia con el commit
-  inicial que ya existe ahí, sin forzar sin confirmar antes).
+- **Control de versiones**: repo git local, rama `master` (tracking
+  `origin/main`), remoto `https://github.com/jebb10/Tablero.git`. Un solo
+  commit con todo el historial real del proyecto (el commit inicial de
+  `create-next-app` y el placeholder que traía el repo remoto quedaron
+  reemplazados con confirmación explícita del PO — ver punto de control MVP).
 
 ### Archivos clave
 
