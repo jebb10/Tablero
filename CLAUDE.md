@@ -12,9 +12,9 @@ consulta siempre "Estado actual" abajo antes de proponer cambios grandes.
 
 - Desplegado en Vercel (`https://github.com/jebb10/Tablero.git`), sin
   autenticación todavía (login es la Fase 3 pendiente).
-- Lee un Google Sheet público (export xlsx) vía `DASHBOARD_SHEET_ID` — ver
-  "Fuente de datos" abajo. El xlsx local quedó archivado en `legado/`, ya no
-  es la fuente activa.
+- Lee un Google Sheet público (export xlsx), con el ID hardcodeado en
+  `workbook.ts` — ver "Fuente de datos" abajo. El xlsx local quedó
+  archivado en `legado/`, ya no es la fuente activa.
 - Cubre: vista principal con KPIs, búsqueda/filtros y 4 bloques de estado;
   drill-down por requerimiento con línea de tiempo de fases.
 - **Sigue faltando bastante** (ver Roadmap) — falta login (Fase 3), datos
@@ -107,7 +107,7 @@ restringe el acceso, hay que migrar a una cuenta de servicio de Google
 
 | Archivo | Responsabilidad |
 | --- | --- |
-| `src/lib/excel/workbook.ts` | Carga del workbook (`loadWorkbook()`, `async`, hace `fetch` al export xlsx de Google Drive vía `DASHBOARD_SHEET_ID`) + helpers genéricos de parseo (`sheetRows`, `toNumber`, `toText`, `toDate`, `parseEtiquetaValor`, `slugify`). Sin lógica de negocio. |
+| `src/lib/excel/workbook.ts` | Carga del workbook (`loadWorkbook()`, `async`, hace `fetch` al export xlsx de Google Drive usando el `SHEET_ID` hardcodeado) + helpers genéricos de parseo (`sheetRows`, `toNumber`, `toText`, `toDate`, `parseEtiquetaValor`, `slugify`). Sin lógica de negocio. |
 | `src/lib/excel/dashboard-sheet.ts` | `getRequerimientos(wb)` — parsea `Dashboard Principal`. Contiene `ESTADO_HEURISTICO` (los 21 ítems sin hoja de detalle). Recibe el workbook ya cargado por el caller (`wb` es requerido, sin default — no puede hacer `await` en un default param). |
 | `src/lib/excel/detalle-sheet.ts` | `getDetalle(hoja, wb)` — parsea una hoja de detalle (fases/tareas). Mismo patrón de `wb` requerido. |
 | `src/lib/kpis.ts` | `getKPIs()`, `getCalidadDatos()` — puramente sobre el array de `Requerimiento[]` ya parseado, sin tocar el Excel. |
@@ -122,7 +122,7 @@ restringe el acceso, hay que migrar a una cuenta de servicio de Google
 | `src/components/archivo-bloqueado-banner.tsx` | Banner de error + botón Reintentar (llama a `sincronizar()`), usado standalone (sin datos previos) o embebido en `dashboard-client.tsx` (con datos previos atenuados). |
 | `src/components/pdf-report.tsx` | Reporte para impresión (`hidden print:block`), incluye los 28 requerimientos, sin el panel de calidad, sin numeración de página. |
 | `src/components/fase-stepper.tsx` | Línea de tiempo vertical de fases en el drill-down. |
-| `src/app/requerimiento/[item]/page.tsx` | Página de drill-down por requerimiento (RN-04/05). Carga el workbook una sola vez (`loadWorkbook()`) y lo pasa a `getRequerimientos`/`getDetalle`; envuelto en try/catch propio → `<ArchivoBloqueadoBanner soloBanner />` si falla (mismo mecanismo de resiliencia que la página principal, corregido en el punto de control MVP). |
+| `src/app/requerimiento/[item]/page.tsx` | Página de drill-down por requerimiento (RN-04/05). Carga el workbook una sola vez (`await loadWorkbook()`) y lo pasa a `getRequerimientos`/`getDetalle`; envuelto en try/catch propio → `<ArchivoBloqueadoBanner soloBanner />` si falla (mismo mecanismo de resiliencia que la página principal, corregido en el punto de control MVP). |
 | `src/app/actions.ts` | Server Action del botón Sincronizar (`refresh()`). |
 | `public/fonts/montserrat-{400,500,600,700}.woff2` | Montserrat auto-hospedada (no `next/font/google`) — cargada vía `next/font/local` en `layout.tsx`. |
 
