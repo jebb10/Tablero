@@ -1,4 +1,5 @@
 import { AlertCircle, AlertTriangle, Clock, ListChecks, Timer } from "lucide-react";
+import { cn } from "@/lib/utils";
 import type { KPIs } from "@/lib/types";
 
 function Kpi({
@@ -16,25 +17,28 @@ function Kpi({
 }) {
   const contenido = (
     <div
-      className={`flex flex-1 items-center gap-3 rounded-lg border bg-card p-3 min-w-[10rem] ${
-        acento === "atencion" ? "border-status-atencion/40 bg-status-atencion/5" : ""
-      }`}
+      className={cn(
+        "flex flex-1 items-center gap-3 rounded-lg border bg-card p-3 min-w-[10rem]",
+        acento === "atencion" && "border-status-atencion/40 bg-status-atencion/5",
+      )}
     >
       <Icono
-        className={`h-5 w-5 shrink-0 ${
+        className={cn(
+          "h-5 w-5 shrink-0",
           acento === "atencion"
             ? "text-status-atencion"
             : acento
               ? "text-status-bloqueo"
-              : "text-primary"
-        }`}
+              : "text-primary",
+        )}
       />
       <div>
         <p className="text-xs text-muted-foreground">{etiqueta}</p>
         <p
-          className={`text-lg font-semibold leading-tight ${
-            acento === "atencion" ? "text-status-atencion" : ""
-          }`}
+          className={cn(
+            "text-lg font-semibold leading-tight",
+            acento === "atencion" && "text-status-atencion",
+          )}
         >
           {valor}
         </p>

@@ -10,8 +10,9 @@ consulta siempre "Estado actual" abajo antes de proponer cambios grandes.
 
 ## Estado actual: Fase 3a (Drive como fuente de datos) — completa
 
-- Desplegado en Vercel (`https://github.com/jebb10/Tablero.git`), sin
-  autenticación todavía (login es la Fase 3 pendiente).
+- Desplegado en Vercel: [tablero-pi.vercel.app](https://tablero-pi.vercel.app/)
+  (repo: `https://github.com/jebb10/Tablero.git`), sin autenticación
+  todavía (login es la Fase 3 pendiente).
 - Lee un Google Sheet público (export xlsx), con el ID hardcodeado en
   `workbook.ts` — ver "Fuente de datos" abajo. El xlsx local quedó
   archivado en `legado/`, ya no es la fuente activa.
