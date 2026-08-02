@@ -16,9 +16,9 @@ export default async function RequerimientoPage({
   const { item: slug } = await params;
 
   let requerimientos: Requerimiento[];
-  let wb: ReturnType<typeof loadWorkbook>;
+  let wb: Awaited<ReturnType<typeof loadWorkbook>>;
   try {
-    wb = loadWorkbook();
+    wb = await loadWorkbook();
     requerimientos = getRequerimientos(wb);
   } catch {
     return (

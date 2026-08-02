@@ -12,8 +12,8 @@ export function ArchivoBloqueadoBanner({ soloBanner }: { soloBanner?: boolean })
     <div className="flex items-center gap-3 rounded-xl border border-destructive/30 bg-destructive/5 p-3.5">
       <AlertTriangle className="h-4 w-4 shrink-0 text-destructive" />
       <p className="flex-1 text-sm text-destructive">
-        No se pudo leer <code>REQUERIMIENTOS BOLSAS DE HORAS 414.xlsx</code> —
-        probablemente está abierto en otro programa.
+        No se pudo cargar la información. Hubo un problema de conexión con la
+        fuente de datos.
         {!soloBanner && " Mostrando los últimos datos sincronizados."}
       </p>
       <Button

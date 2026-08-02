@@ -3,7 +3,7 @@ import { DashboardClient } from "@/components/dashboard-client";
 import { getDashboardData } from "@/lib/dashboard-data";
 
 export default async function Home() {
-  const { requerimientos, kpis, error, ultimoResultadoNulo } = getDashboardData();
+  const { requerimientos, kpis, error, ultimoResultadoNulo } = await getDashboardData();
 
   return (
     <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6 p-6">

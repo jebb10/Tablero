@@ -1,6 +1,6 @@
 import type * as XLSX from "xlsx";
 import type { Estado, Requerimiento } from "../types";
-import { loadWorkbook, sheetRows, slugify, toDate, toNumber, toText } from "./workbook";
+import { sheetRows, slugify, toDate, toNumber, toText } from "./workbook";
 
 const DASHBOARD_SHEET = "Dashboard Principal";
 
@@ -56,11 +56,11 @@ function hojaSinTareas(wb: XLSX.WorkBook, hojaNombre: string): boolean {
 }
 
 /**
- * @param wb workbook ya cargado, opcional — si no se pasa, se carga uno
- * nuevo. Pásalo cuando el caller también necesite leer otra hoja del mismo
- * archivo en la misma request (evita leer el Excel dos veces).
+ * @param wb workbook ya cargado. Pásalo cuando el caller también necesite
+ * leer otra hoja del mismo archivo en la misma request (evita leer el Excel
+ * dos veces).
  */
-export function getRequerimientos(wb: XLSX.WorkBook = loadWorkbook()): Requerimiento[] {
+export function getRequerimientos(wb: XLSX.WorkBook): Requerimiento[] {
   const rows = sheetRows(wb, DASHBOARD_SHEET);
   const result: Requerimiento[] = [];
 

@@ -1,16 +1,29 @@
 import * as XLSX from "xlsx";
-import fs from "node:fs";
-import path from "node:path";
 
-const WORKBOOK_PATH = path.resolve(
-  process.cwd(),
-  "..",
-  "REQUERIMIENTOS BOLSAS DE HORAS 414.xlsx"
-);
+const SHEET_ID = process.env.DASHBOARD_SHEET_ID;
 
-export function loadWorkbook(): XLSX.WorkBook {
-  const buffer = fs.readFileSync(WORKBOOK_PATH);
-  return XLSX.read(buffer, { type: "buffer", cellDates: true });
+export async function loadWorkbook(): Promise<XLSX.WorkBook> {
+  if (!SHEET_ID) {
+    throw new Error("Falta la variable de entorno DASHBOARD_SHEET_ID");
+  }
+
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=xlsx`;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10_000);
+
+  try {
+    const res = await fetch(url, {
+      signal: controller.signal,
+      next: { revalidate: 30 },
+    });
+    if (!res.ok) {
+      throw new Error(`No se pudo descargar el Google Sheet (status ${res.status})`);
+    }
+    const buffer = Buffer.from(await res.arrayBuffer());
+    return XLSX.read(buffer, { type: "buffer", cellDates: true });
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 export function sheetRows(wb: XLSX.WorkBook, name: string): unknown[][] {

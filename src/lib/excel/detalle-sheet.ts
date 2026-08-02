@@ -1,6 +1,6 @@
 import type * as XLSX from "xlsx";
 import type { DetalleRequerimiento, Fase } from "../types";
-import { loadWorkbook, parseEtiquetaValor, sheetRows, toDate, toNumber, toText } from "./workbook";
+import { parseEtiquetaValor, sheetRows, toDate, toNumber, toText } from "./workbook";
 
 const FASES_ORDEN = ["Requerimientos", "Diseño", "Desarrollo", "QA", "Producción"];
 
@@ -15,13 +15,13 @@ function normalizarFase(raw: string): string {
 }
 
 /**
- * @param wb workbook ya cargado, opcional — si no se pasa, se carga uno
- * nuevo. Pásalo cuando el caller también necesite leer otra hoja del mismo
- * archivo en la misma request (evita leer el Excel dos veces).
+ * @param wb workbook ya cargado. Pásalo cuando el caller también necesite
+ * leer otra hoja del mismo archivo en la misma request (evita leer el Excel
+ * dos veces).
  */
 export function getDetalle(
   hojaNombre: string,
-  wb: XLSX.WorkBook = loadWorkbook()
+  wb: XLSX.WorkBook
 ): DetalleRequerimiento | null {
   if (!wb.Sheets[hojaNombre]) return null;
   const rows = sheetRows(wb, hojaNombre);

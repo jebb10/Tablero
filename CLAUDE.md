@@ -8,40 +8,45 @@ el detalle de tareas por fase al hacer drill-down. Este es un proyecto **vivo,
 construido por fases** — no asumas que la fase actual es la versión final;
 consulta siempre "Estado actual" abajo antes de proponer cambios grandes.
 
-## Estado actual: Fase 1 (MVP local) — completa
+## Estado actual: Fase 3a (Drive como fuente de datos) — completa
 
-- Corre solo local (`npm run dev`), sin autenticación, sin despliegue.
-- Lee el Excel **local** directamente (no hay integración con Google Sheets
-  todavía — está deliberadamente pospuesta).
+- Desplegado en Vercel (`https://github.com/jebb10/Tablero.git`), sin
+  autenticación todavía (login es la Fase 3 pendiente).
+- Lee un Google Sheet público (export xlsx) vía `DASHBOARD_SHEET_ID` — ver
+  "Fuente de datos" abajo. El xlsx local quedó archivado en `legado/`, ya no
+  es la fuente activa.
 - Cubre: vista principal con KPIs, búsqueda/filtros y 4 bloques de estado;
   drill-down por requerimiento con línea de tiempo de fases.
-- **Sigue faltando bastante** (ver Roadmap) — este resultado es la primera
-  fase funcional, no el alcance completo.
+- **Sigue faltando bastante** (ver Roadmap) — falta login (Fase 3), datos
+  del Gantt (Fase 4) y validar a escala (Fase 5).
 
 ## Fuente de datos
 
-El Excel real vive **fuera** de este proyecto, un nivel arriba:
+La fuente de datos es un Google Sheet (que conserva formato Excel original)
+compartido como "cualquiera con el enlace puede ver". `src/lib/excel/workbook.ts`
+descarga el export público en cada `loadWorkbook()`:
 
 ```
-../REQUERIMIENTOS BOLSAS DE HORAS 414.xlsx
+https://docs.google.com/spreadsheets/d/${DASHBOARD_SHEET_ID}/export?format=xlsx
 ```
 
-`src/lib/excel/workbook.ts` lo resuelve con `path.resolve(process.cwd(), "..", "REQUERIMIENTOS BOLSAS DE HORAS 414.xlsx")`.
-No hay base de datos: cada request al servidor vuelve a leer el archivo del
-disco (sin caché), porque la regla de negocio RN-05 pide sincronización
-manual, sin polling. El botón "Sincronizar" solo fuerza un refetch.
+`DASHBOARD_SHEET_ID` es una variable de entorno obligatoria (solo el ID, no
+la URL completa) — requerida tanto en local (`.env.local`) como en Vercel.
+La descarga usa `next: { revalidate: 30 }` (ventana corta de revalidación,
+no `no-store` estricto — amortigua picos entre clicks del botón
+"Sincronizar", sin convertir RN-05 en polling) y un timeout de 10s vía
+`AbortController`, con un solo intento, sin reintentos automáticos.
 
-**Limitación conocida, a resolver en la Fase 3 (no antes)**: la lectura es
-síncrona (`fs.readFileSync`) y la caché de resiliencia de
-`src/lib/dashboard-data.ts` (ver abajo) es un `let` a nivel de módulo — vive
-mientras el proceso Node esté arriba. Esto funciona bien en `next dev`/`next
-start`, pero es frágil en un entorno serverless (Vercel, Fase 3), donde no
-hay garantía de que el mismo proceso atienda dos requests seguidos. No lo
-resuelvas antes de que llegue esa fase.
+No hay base de datos ni caché de servidor más allá de esos 30s, porque la
+regla de negocio RN-05 pide sincronización manual, sin polling. El botón
+"Sincronizar" fuerza un refetch (`refresh()` de `next/cache`).
 
-**Este proyecto solo LEE el Excel, nunca escribe en él.** Cualquier
-reorganización de hojas/columnas se hace con un script aparte (Python +
-openpyxl), nunca desde la app Next.js.
+**Limitación conocida**: esto depende de que el link de Drive siga siendo
+público indefinidamente (decisión explícita del PO). Si algún día se
+restringe el acceso, hay que migrar a una cuenta de servicio de Google
+(Sheets/Drive API) — no está planeado, pero es la salida si hace falta.
+
+**Este proyecto solo LEE el Sheet, nunca escribe en él.**
 
 ### Estructura del Excel (relevante para la app)
 
@@ -78,14 +83,13 @@ openpyxl), nunca desde la app Next.js.
 - **Tailwind CSS v4 + shadcn/ui**, variante **Base UI** (no Radix) — el
   preset elegido en `npx shadcn init` fue "Nova". Los componentes en
   `src/components/ui/` usan `@base-ui/react/*`, no `@radix-ui/react-*`.
-- **`xlsx` (SheetJS)** para leer el Excel. Importante: usar siempre
-  `fs.readFileSync(path)` + `XLSX.read(buffer, { type: "buffer" })`, **nunca**
-  `XLSX.readFile(path)` — esta última lanza `"Cannot access file"` en este
-  proyecto porque la detección interna de `fs` de la librería falla bajo
-  Turbopack/el bundler.
+- **`xlsx` (SheetJS)** para leer el workbook descargado. `loadWorkbook()`
+  hace `fetch` del export xlsx de Google Drive y lo pasa a
+  `XLSX.read(buffer, { type: "buffer", cellDates: true })`.
 - **`lucide-react`** para íconos (mapeo por palabra clave en
   `src/lib/icons.tsx`).
-- Sin base de datos, sin autenticación, sin API externa.
+- Sin base de datos, sin autenticación, sin API externa (más allá del fetch
+  a Drive para el workbook).
 - **Control de versiones**: repo git local, rama `master` (tracking
   `origin/main`), remoto `https://github.com/jebb10/Tablero.git`. Un solo
   commit con todo el historial real del proyecto (el commit inicial de
@@ -96,11 +100,11 @@ openpyxl), nunca desde la app Next.js.
 
 | Archivo | Responsabilidad |
 | --- | --- |
-| `src/lib/excel/workbook.ts` | Carga del workbook (`loadWorkbook()`, síncrono vía `fs.readFileSync`) + helpers genéricos de parseo (`sheetRows`, `toNumber`, `toText`, `toDate`, `parseEtiquetaValor`, `slugify`). Sin lógica de negocio. |
-| `src/lib/excel/dashboard-sheet.ts` | `getRequerimientos(wb?)` — parsea `Dashboard Principal`. Contiene `ESTADO_HEURISTICO` (los 21 ítems sin hoja de detalle). Acepta un workbook ya cargado opcional para no releer el archivo si el caller ya tiene uno (ver `requerimiento/[item]/page.tsx`). |
-| `src/lib/excel/detalle-sheet.ts` | `getDetalle(hoja, wb?)` — parsea una hoja de detalle (fases/tareas). Mismo patrón de workbook opcional. |
+| `src/lib/excel/workbook.ts` | Carga del workbook (`loadWorkbook()`, `async`, hace `fetch` al export xlsx de Google Drive vía `DASHBOARD_SHEET_ID`) + helpers genéricos de parseo (`sheetRows`, `toNumber`, `toText`, `toDate`, `parseEtiquetaValor`, `slugify`). Sin lógica de negocio. |
+| `src/lib/excel/dashboard-sheet.ts` | `getRequerimientos(wb)` — parsea `Dashboard Principal`. Contiene `ESTADO_HEURISTICO` (los 21 ítems sin hoja de detalle). Recibe el workbook ya cargado por el caller (`wb` es requerido, sin default — no puede hacer `await` en un default param). |
+| `src/lib/excel/detalle-sheet.ts` | `getDetalle(hoja, wb)` — parsea una hoja de detalle (fases/tareas). Mismo patrón de `wb` requerido. |
 | `src/lib/kpis.ts` | `getKPIs()`, `getCalidadDatos()` — puramente sobre el array de `Requerimiento[]` ya parseado, sin tocar el Excel. |
-| `src/lib/dashboard-data.ts` | `getDashboardData()` — envuelve la lectura completa en try/catch + caché in-memory del último resultado bueno (ver limitación serverless arriba). Único punto de entrada que usa `src/app/page.tsx`. |
+| `src/lib/dashboard-data.ts` | `getDashboardData()` — `async`, envuelve la lectura completa (incluida la descarga del workbook) en try/catch + caché in-memory del último resultado bueno, ahora también cubre fallos de red/timeout hacia Drive. Único punto de entrada que usa `src/app/page.tsx`. |
 | `src/lib/types.ts` | Tipos compartidos (`Requerimiento`, `Fase`, `Tarea`, `KPIs`, `CalidadDatos`, etc.). No tiene un campo `estadoFuente` — se eliminó por no tener ningún consumidor en la UI (ver Roadmap, punto de control MVP). |
 | `src/lib/icons.tsx` | `RequerimientoIcono` (componente, no una función que devuelve un componente — así lo exige la regla `react-hooks/static-components` de eslint) que mapea el ícono por patrón en el nombre del requerimiento. |
 | `src/app/page.tsx` | Server Component: llama `getDashboardData()`, muestra solo el banner de error si no hay ningún dato previo bueno. |
@@ -245,10 +249,34 @@ el orden original con el que arrancó el proyecto.
     del Excel y el rediseño de la caché para entorno serverless — se
     resuelven específicamente en la Fase 3 (ver limitación documentada
     arriba, en "Fuente de datos").
-- **Fase 3 — Despliegue y acceso (pendiente, diseño ya definido):**
-  - Vercel + Vercel Blob para el Excel (el PO sube el archivo manualmente,
-    ~diario, `addRandomSuffix: false` para URL estable) — sin formulario de
-    subida dentro de la app.
+- **Fase 3a — Conectar Drive como fuente de datos:** ✅ completa. Arregla el
+  banner de error en producción (Vercel no tenía acceso al xlsx local).
+  `loadWorkbook()` pasa a `async` y descarga el export xlsx público de
+  Google Drive (`DASHBOARD_SHEET_ID`), con `revalidate: 30` y timeout de
+  10s, un solo intento sin reintentos (ver "Fuente de datos" arriba). El
+  `async` se propagó por `dashboard-sheet.ts`/`detalle-sheet.ts` (sin
+  default en `wb`), `dashboard-data.ts`, `page.tsx` y
+  `requerimiento/[item]/page.tsx`. Banner de error genérico ("problema de
+  conexión con la fuente de datos"), mismo mensaje para cualquier falla
+  incluida la env var faltante. El xlsx local y `scripts/` (Python de Fase
+  0/0.1) se archivaron en `legado/`, un nivel arriba de este repo — ya no
+  se usan pero no se borraron. La sección "Convenciones al tocar el Excel
+  fuente" que vivía aquí se eliminó por completo: ya no aplica, nadie va a
+  volver a tocar el xlsx local con scripts. Mejora incidental: el problema
+  de fórmulas sin valor cacheado (openpyxl nunca las calcula, documentado en
+  Fase 0.1) ya no debería repetirse — Google Sheets sí recalcula y cachea
+  fórmulas automáticamente al editar desde su UI web.
+  - Configurar `DASHBOARD_SHEET_ID` en Vercel (Settings → Environment
+    Variables) y hacer redeploy es una **acción manual del PO**, no
+    automatizada desde el código — ver plan original si hace falta repetir
+    el instructivo.
+  - Fuera de alcance de esta sub-fase (queda para la Fase 3 real): login.
+    Restringir el Sheet o migrar a cuenta de servicio de Google, e
+    indicador de "última sincronización", quedan diferidos indefinidamente
+    salvo que el PO los pida.
+- **Fase 3 — Acceso (pendiente, diseño ya definido, alcance recortado):**
+  - **Descartado**: Vercel Blob para el Excel — Drive (Fase 3a) reemplazó
+    esa idea, ya no aplica.
   - Auth.js (next-auth v5) con proveedor Google, sesión JWT, **sin
     restricción de dominio** (cualquier cuenta de Google entra — confirmado
     explícitamente por el PO, equipo <5 personas, todos con el mismo acceso
@@ -257,7 +285,7 @@ el orden original con el que arrancó el proyecto.
     compatibilidad de Auth.js v5 con ese rename antes de asumir la API (ver
     `node_modules/next/dist/docs/01-app/01-getting-started/16-proxy.md`).
   - Retomar el indicador de frescura pospuesto en la Fase 2 (ajustarlo para
-    leer la fecha desde Vercel Blob en vez de `fs.statSync`).
+    leer la fecha del último fetch exitoso a Drive, no `fs.statSync`).
 - **Fase 4 — Datos más completos (pendiente, diseño ya definido):**
   - Integrar las 4 hojas Gantt mensuales ocultas en una vista
     `/planeacion` tipo timeline por mes.
@@ -274,24 +302,3 @@ el orden original con el que arrancó el proyecto.
 Plan detallado (fuera de este repo, contexto completo de las decisiones
 tomadas con el PO — Fase 0, Fase 2 rediseñada, y este punto de control MVP):
 `.claude/plans/c-users-usuario-1-documents-tablero-req-lively-russell.md`.
-
-## Convenciones al tocar el Excel fuente
-
-Si una tarea requiere modificar `../REQUERIMIENTOS BOLSAS DE HORAS
-414.xlsx` (fuera de este repo Next.js), sigue estas reglas aprendidas por las
-malas:
-
-- Nunca borres hojas/columnas/filas. Para "eliminar" una hoja del uso
-  activo: ocúltala (`sheet_state = "hidden"`) y renómbrala con el prefijo
-  `NO USAR - `.
-- Si la hoja tiene una Tabla de Excel definida (`ws.tables`), al renombrar un
-  header o agregar una columna hay que actualizar también los metadatos de
-  la tabla (`table.tableColumns[i].name`, `table.ref`) — si no, Excel pide
-  reparar el archivo al abrirlo.
-- Para vaciar una celda dentro del rango de una Tabla, usar `value = ""`,
-  **no** `value = None` — con este archivo, escribir `None` no persiste de
-  forma confiable al guardar con openpyxl (bug observado, sin causa raíz
-  confirmada). Siempre verificar el resultado reabriendo el archivo en un
-  proceso nuevo (o inspeccionando el XML crudo del zip) antes de dar por
-  buena una edición.
-- Guarda una copia de respaldo fechada antes de cualquier cambio estructural.

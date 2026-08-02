@@ -1,4 +1,5 @@
 import { getRequerimientos } from "./excel/dashboard-sheet";
+import { loadWorkbook } from "./excel/workbook";
 import { getKPIs } from "./kpis";
 import type { KPIs, Requerimiento } from "./types";
 
@@ -18,9 +19,12 @@ interface DashboardData {
  */
 let ultimoResultadoBueno: DashboardData | null = null;
 
-export function getDashboardData(): DashboardData & { error: boolean; ultimoResultadoNulo: boolean } {
+export async function getDashboardData(): Promise<
+  DashboardData & { error: boolean; ultimoResultadoNulo: boolean }
+> {
   try {
-    const requerimientos = getRequerimientos();
+    const wb = await loadWorkbook();
+    const requerimientos = getRequerimientos(wb);
     const kpis = getKPIs(requerimientos);
     ultimoResultadoBueno = { requerimientos, kpis };
     return { requerimientos, kpis, error: false, ultimoResultadoNulo: false };
