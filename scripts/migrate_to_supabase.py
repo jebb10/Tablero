@@ -13,6 +13,14 @@ viable (nombres genericos, no coinciden con task_name de las hojas de
 detalle) -- ver ROADMAP_SUPABASE.md SS4.4. El Gantt (/planeacion) usa
 due_date como fallback.
 
+ADVERTENCIA (desde Fase C): --reset hace DELETE FROM requirements, y eso
+CASCADEA a activity_logs y document_versions. Esas tablas contienen datos
+que a partir de Fase C no existen en ninguna otra parte (bitacora de horas,
+documentos). NO usar --reset salvo que se acepte perder ese historial.
+Nota aparte: el .xlsx fuente de este script fue borrado (ver CLAUDE.md), asi
+que --reset ya no es re-ejecutable de todas formas -- no hay de donde volver
+a leer los datos.
+
 Uso:
     pip install openpyxl supabase
     $env:SUPABASE_URL = "https://<project-ref>.supabase.co"

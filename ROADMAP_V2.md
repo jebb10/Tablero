@@ -147,6 +147,35 @@ y **cascadea a `activity_logs` y `document_versions`**; desde la Fase C esas tab
 que no existen en ninguna otra parte. NO usar `--reset`.* (Solo comentario; el script ya no es
 re-ejecutable porque su `.xlsx` fuente fue borrado.)
 
+### ✅ Unidad 0.0 completada (2026-08-07)
+
+Las 10 queries se corrieron contra la BD real. Divergencias encontradas frente a lo que este documento
+y `schema.sql` asumían:
+
+- **Conteo real: 28 `requirements` / 164 `requirement_tasks`** (no 185 — el número "185" que circulaba
+  en `CLAUDE.md`/memoria venía de la migración original y **nunca se había verificado en vivo**; no se
+  investiga la diferencia porque el `.xlsx` fuente ya no existe, pero **164 es el número a usar de
+  aquí en adelante** en 0.5, B.4 y C3.3, no 185).
+- **Estados reales de `requirement_tasks` (bloqueante para C2.1, ya resuelto): 4 valores exhaustivos** —
+  `Completada` (148), `En curso` (9), `Pendiente` (4), `No iniciada` (3). No hay un 5º estado oculto.
+- Confirma contradicción **#1**: `document_versions` solo tiene `file_url` + `version` — nada de
+  `is_latest`/`storage_path`/`uploaded_by`.
+- Confirma contradicción **#4**: `activity_logs` no tiene columna de autor.
+- Confirma contradicción **#3**: `activity_logs` y `document_versions` tienen RLS habilitado con
+  **cero policies** (ni siquiera lectura pública) — hoy son ilegibles vía API aunque existan.
+- Confirma contradicción **#2**: no existe ningún trigger de `updated_at` en las tablas de negocio; los
+  únicos triggers no internos son de `storage.*`/`realtime.*` (infraestructura de Supabase, no tocar).
+- Confirma que `milestone` ya es `text` (contradicción #5, era del baseline que se escribe en 0.1).
+- Contradicción **#8** (`CERRADO_POR_CAMBIO_ALCANCE`): 0 requerimientos en ese estado hoy — el bug
+  sigue latente pero no está afectando datos reales todavía.
+- `planned_start_date` en 0 filas, `activity_logs`/`document_versions` en 0 filas, sin buckets de
+  Storage: los tres, como se esperaba.
+- Fixture de 28 `{code, slug}` guardado para el test de `slugify()` de la Unidad 0.6 — incluye 5 códigos
+  con espacios/comas/paréntesis (`Accesibilidad, Portal Web`, `Wompi (FR14)...`, etc.) que son el caso
+  de prueba más útil para verificar el port.
+
+Ninguna divergencia bloquea continuar. Queries archivadas en `supabase/verificacion.sql`.
+
 ---
 
 ## Unidad 0.1 — Credenciales de BD + Supabase CLI y migraciones versionadas
