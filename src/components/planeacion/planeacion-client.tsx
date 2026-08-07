@@ -31,7 +31,7 @@ export function PlaneacionClient({
   if (requerimientos.length === 0) {
     return (
       <p className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
-        Ningún requerimiento con hoja de detalle tiene tareas registradas todavía.
+        Ningún requerimiento con seguimiento de detalle tiene tareas registradas todavía.
       </p>
     );
   }

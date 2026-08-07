@@ -390,6 +390,25 @@ Modificar `planeacion-data.ts`, `types.ts`, `requerimiento/[item]/page.tsx`, `pa
 pantalla en blanco ni 500) — revertir la URL. `/requerimiento/no-existe` renderiza el `not-found` con
 la nav. Grep de `ArchivoBloqueado`, `DetalleRequerimiento`, `hojaDetalle`, `sincroniz` → cero.
 
+### ✅ Unidad 0.4 completada (2026-08-07)
+
+`error.tsx`/`global-error.tsx`/`loading.tsx`/`not-found.tsx` escritos según la firma real de Next
+16.2 leída en los docs locales (**`unstable_retry`, no el clásico `reset`** — añadido en v16.2.0,
+`reset` sigue existiendo pero ya no es el recomendado). `getPlaneacionData()` ahora tiene paridad de
+try/catch con `getDashboardData()` y devuelve `{ requerimientos, error }`; `/planeacion` muestra
+`ErrorDatosBanner` igual que `/` y `/requerimiento/[item]`. Queries de
+`requerimiento/[item]/page.tsx` extraídas a `src/lib/requerimiento-data.ts` →
+`getRequerimientoDetalle(slug)` (nota: el bug de la 3ª query fuera de cobertura de error sigue
+igual a propósito — es alcance de C2.4, no de esta unidad). `DetalleRequerimiento` borrado de
+`types.ts`. `ArchivoBloqueadoBanner` → `ErrorDatosBanner`, copy reescrito, y corregido el
+"hoja de detalle" de `planeacion-client.tsx`.
+
+Las 3 pruebas de aceptación se corrieron de verdad, no solo por inspección: con `npm run dev` y la
+`SUPABASE_URL` de `server.ts` temporalmente apuntada a un host inexistente, las 3 rutas devolvieron
+`200` con el banner de error (nunca blanco ni 500); revertida la URL, `/requerimiento/no-existe`
+devolvió el `not-found` con la nav del layout. Grep de los 4 términos de la era Excel → cero.
+`typecheck`/`lint`/`test`/`build` limpios.
+
 ---
 
 ## Unidad 0.5 — Backup de Supabase

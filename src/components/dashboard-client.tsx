@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/select";
 import { KpiStrip } from "@/components/kpi-strip";
 import { DataQualityPanel } from "@/components/data-quality-panel";
-import { ArchivoBloqueadoBanner } from "@/components/archivo-bloqueado-banner";
+import { ErrorDatosBanner } from "@/components/error-datos-banner";
 import { PdfReport } from "@/components/pdf-report";
 import { RequerimientoCard } from "@/components/requerimiento-card";
 import { cn } from "@/lib/utils";
@@ -80,7 +80,7 @@ export function DashboardClient({
 
   return (
     <div className="flex flex-col gap-6">
-      {error && <ArchivoBloqueadoBanner />}
+      {error && <ErrorDatosBanner />}
 
       <div
         className={cn(

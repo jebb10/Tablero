@@ -1,4 +1,4 @@
-import { ArchivoBloqueadoBanner } from "@/components/archivo-bloqueado-banner";
+import { ErrorDatosBanner } from "@/components/error-datos-banner";
 import { DashboardClient } from "@/components/dashboard-client";
 import { getDashboardData } from "@/lib/dashboard-data";
 
@@ -20,7 +20,7 @@ export default async function Home() {
         </p>
       </header>
       {ultimoResultadoNulo ? (
-        <ArchivoBloqueadoBanner soloBanner />
+        <ErrorDatosBanner soloBanner />
       ) : (
         <DashboardClient requerimientos={requerimientos} kpis={kpis} error={error} />
       )}

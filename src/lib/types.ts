@@ -62,14 +62,3 @@ export interface Fase {
   tareas: Tarea[];
   estado: EstadoFase;
 }
-
-export interface DetalleRequerimiento {
-  hoja: string;
-  mes: string | null;
-  complejidad: string | null;
-  prioridad: string | null;
-  horasTotalesEstimadas: number | null;
-  horasTotalesConsumidas: number | null;
-  fases: Fase[];
-  totalesTexto: string | null;
-}

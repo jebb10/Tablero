@@ -1,10 +1,11 @@
+import { ErrorDatosBanner } from "@/components/error-datos-banner";
 import { PlaneacionClient } from "@/components/planeacion/planeacion-client";
 import { getPlaneacionData } from "@/lib/planeacion-data";
 
 export const dynamic = "force-dynamic";
 
 export default async function PlaneacionPage() {
-  const requerimientos = await getPlaneacionData();
+  const { requerimientos, error } = await getPlaneacionData();
 
   return (
     <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6 p-6">
@@ -14,7 +15,11 @@ export default async function PlaneacionPage() {
           Vista Gantt por requerimiento — fases y tareas con fecha límite.
         </p>
       </header>
-      <PlaneacionClient requerimientos={requerimientos} />
+      {error ? (
+        <ErrorDatosBanner soloBanner />
+      ) : (
+        <PlaneacionClient requerimientos={requerimientos} />
+      )}
     </main>
   );
 }

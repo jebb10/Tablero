@@ -1,26 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { ArchivoBloqueadoBanner } from "@/components/archivo-bloqueado-banner";
+import { ErrorDatosBanner } from "@/components/error-datos-banner";
 import { FaseStepper } from "@/components/fase-stepper";
-import { agruparPorFase } from "@/lib/fases";
-import { PROJECT_SLUG } from "@/lib/project";
-import { getSupabaseClient } from "@/lib/supabase/server";
-import type { Database } from "@/lib/supabase/database.types";
+import { getRequerimientoDetalle } from "@/lib/requerimiento-data";
 
 export const dynamic = "force-dynamic";
-
-type RequerimientoDetalle = Pick<
-  Database["public"]["Tables"]["requirements"]["Row"],
-  | "id"
-  | "code"
-  | "title"
-  | "month_label"
-  | "complexity"
-  | "has_detail_tracking"
-  | "estimated_hours"
-  | "executed_hours"
->;
 
 export default async function RequerimientoPage({
   params,
@@ -28,49 +13,18 @@ export default async function RequerimientoPage({
   params: Promise<{ item: string }>;
 }) {
   const { item: slug } = await params;
-  const supabase = getSupabaseClient();
+  const { error, requerimiento, fases } = await getRequerimientoDetalle(slug);
 
-  let requerimiento: RequerimientoDetalle | null;
-
-  try {
-    const { data: proyecto, error: errorProyecto } = await supabase
-      .from("projects")
-      .select("id")
-      .eq("slug", PROJECT_SLUG)
-      .single();
-    if (errorProyecto || !proyecto) throw errorProyecto ?? new Error("Proyecto no encontrado");
-
-    const { data, error } = await supabase
-      .from("requirements")
-      .select(
-        "id, code, title, month_label, complexity, has_detail_tracking, estimated_hours, executed_hours"
-      )
-      .eq("project_id", proyecto.id)
-      .eq("slug", slug)
-      .maybeSingle();
-    if (error) throw error;
-    requerimiento = data;
-  } catch {
+  if (error) {
     return (
       <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 p-6">
-        <ArchivoBloqueadoBanner soloBanner />
+        <ErrorDatosBanner soloBanner />
       </main>
     );
   }
 
   if (!requerimiento) {
     notFound();
-  }
-
-  let fases = null;
-  if (requerimiento.has_detail_tracking) {
-    const { data: tareas } = await supabase
-      .from("requirement_tasks")
-      .select(
-        "phase_number, phase_name, task_name, detail, status, estimated_hours, due_date, completed_date, milestone, blockers, notes, sort_order"
-      )
-      .eq("requirement_id", requerimiento.id);
-    fases = agruparPorFase(tareas ?? []);
   }
 
   return (
