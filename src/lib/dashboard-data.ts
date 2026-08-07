@@ -2,6 +2,7 @@ import { calcularSemaforo } from "./semaforo";
 import { getKPIs } from "./kpis";
 import { PROJECT_SLUG } from "./project";
 import { getSupabaseClient } from "./supabase/server";
+import type { Database } from "./supabase/database.types";
 import type { Estado, KPIs, Requerimiento } from "./types";
 
 interface DashboardData {
@@ -22,21 +23,22 @@ function contieneBloqueo(notas: string | null): boolean {
   return n.includes("actividad bloqueante") || n.includes("espera de ws");
 }
 
-interface RequirementRow {
-  id: string;
-  code: string;
-  slug: string;
-  title: string;
-  month_label: string | null;
-  complexity: string | null;
-  status: string;
-  has_detail_tracking: boolean;
-  estimated_hours: number | null;
-  executed_hours: number | null;
-  billing_date: string | null;
-  notes: string | null;
-  deadline: string | null;
-}
+type RequirementRow = Pick<
+  Database["public"]["Tables"]["requirements"]["Row"],
+  | "id"
+  | "code"
+  | "slug"
+  | "title"
+  | "month_label"
+  | "complexity"
+  | "status"
+  | "has_detail_tracking"
+  | "estimated_hours"
+  | "executed_hours"
+  | "billing_date"
+  | "notes"
+  | "deadline"
+>;
 
 function adaptar(row: RequirementRow, idsConTareas: Set<string>): Requerimiento {
   const horasEstimadas = row.estimated_hours;
@@ -115,9 +117,9 @@ export async function getDashboardData(): Promise<
       .in("requirement_id", idsConDetalle.length > 0 ? idsConDetalle : [""]);
     if (errorTareas) throw errorTareas;
 
-    const idsConTareas = new Set((tareas ?? []).map((t) => t.requirement_id as string));
+    const idsConTareas = new Set((tareas ?? []).map((t) => t.requirement_id));
 
-    const requerimientos = (filas ?? []).map((r) => adaptar(r as RequirementRow, idsConTareas));
+    const requerimientos = (filas ?? []).map((r) => adaptar(r, idsConTareas));
     const kpis = getKPIs(requerimientos);
     ultimoResultadoBueno = { requerimientos, kpis };
     return { requerimientos, kpis, error: false, ultimoResultadoNulo: false };

@@ -292,6 +292,27 @@ está activo) — revertir.
 
 **Rollback.** `git checkout -- src/`. Cambio puramente local.
 
+### ✅ Unidad 0.2 completada (2026-08-07)
+
+Igual que en 0.1, el flujo feliz de la unidad no funcionó tal cual y hubo que desviarse — documentado
+en el propio `supabase/MIGRACIONES.md`:
+
+- `supabase gen types typescript --db-url ...` **requiere Docker/Podman** (`LegacyContainerRuntimeNotFoundError`),
+  y esta máquina no tiene ninguno instalado. Como ya se sabía que `--linked` está roto (Unidad 0.1), se
+  usó la tercera vía: **`--project-id nllqrrmxwtmwwxzopzix`**, que pasa por la Management API en vez de
+  introspección directa — no necesita Docker ni el `link` roto. Script `types:db` en `package.json`
+  actualizado para usar `--project-id`, no `--db-url` como decía el paso 1 original.
+- Sin el problema de encoding anticipado ([VERIFICAR EN VIVO] de PowerShell/UTF-16): se generó vía
+  `cmd /c "... > archivo"`, UTF-8 limpio, sin BOM.
+- Las tres definiciones duplicadas (`dashboard-data.ts`, `fases.ts`, inline en
+  `requerimiento/[item]/page.tsx`) reemplazadas por `Pick<Database[...]["Row"], ...>`; **cero `as` sobre
+  resultados de Supabase quedan en `src/`** (incluyendo unos que no estaban en el alcance original de
+  esta unidad: `planeacion-data.ts` tenía 4 casts `as string` sobre filas de Supabase, cubiertos por el
+  criterio de aceptación aunque el archivo no estaba en la lista de "Archivos" de arriba).
+- Prueba de la aserción: `"code"` → `"codee"` en el `select()` de `dashboard-data.ts` sí produce error
+  de tipo (`SelectQueryError`) — confirma que el genérico de `createClient<Database>` está activo.
+  Revertido. `tsc --noEmit`, `lint` y `npm run build` limpios.
+
 ---
 
 ## Unidad 0.3 — Puerta de calidad: typecheck, Vitest y CI

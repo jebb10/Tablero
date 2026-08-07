@@ -81,9 +81,9 @@ export async function getPlaneacionData(): Promise<PlaneacionRequerimiento[]> {
               ? new Date(t.due_date)
               : null;
           return {
-            id: t.id as string,
-            taskName: t.task_name as string,
-            status: t.status as string,
+            id: t.id,
+            taskName: t.task_name,
+            status: t.status,
             start,
             end,
             semaforo: calcularSemaforo(end),
@@ -92,6 +92,6 @@ export async function getPlaneacionData(): Promise<PlaneacionRequerimiento[]> {
       return { phaseNumber: numero, phaseName: nombre, tareas: tareasFase };
     });
 
-    return { id: req.id as string, code: req.code as string, title: req.title as string, fases };
+    return { id: req.id, code: req.code, title: req.title, fases };
   });
 }

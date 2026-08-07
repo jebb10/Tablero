@@ -1,3 +1,4 @@
+import type { Database } from "./supabase/database.types";
 import type { EstadoFase, Fase, Tarea } from "./types";
 
 const FASES_ORDEN: { numero: number; nombre: string }[] = [
@@ -8,20 +9,21 @@ const FASES_ORDEN: { numero: number; nombre: string }[] = [
   { numero: 5, nombre: "Producción" },
 ];
 
-export interface RequirementTaskRow {
-  phase_number: number;
-  phase_name: string;
-  task_name: string;
-  detail: string | null;
-  status: string;
-  estimated_hours: number | null;
-  due_date: string | null;
-  completed_date: string | null;
-  milestone: string | null;
-  blockers: string | null;
-  notes: string | null;
-  sort_order: number;
-}
+export type RequirementTaskRow = Pick<
+  Database["public"]["Tables"]["requirement_tasks"]["Row"],
+  | "phase_number"
+  | "phase_name"
+  | "task_name"
+  | "detail"
+  | "status"
+  | "estimated_hours"
+  | "due_date"
+  | "completed_date"
+  | "milestone"
+  | "blockers"
+  | "notes"
+  | "sort_order"
+>;
 
 function toDate(v: string | null): Date | null {
   return v ? new Date(v) : null;

@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import type { Database } from "./database.types";
 
 /**
  * Hardcodeadas como constantes (no env vars) — mismo caso que el antiguo
@@ -14,5 +15,5 @@ const SUPABASE_URL = "https://nllqrrmxwtmwwxzopzix.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_8uaiC0n3MJ2nTojAFNFE8A_gBsJ2lyT";
 
 export function getSupabaseClient() {
-  return createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  return createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY);
 }

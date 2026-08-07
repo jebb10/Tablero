@@ -3,11 +3,24 @@ import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { ArchivoBloqueadoBanner } from "@/components/archivo-bloqueado-banner";
 import { FaseStepper } from "@/components/fase-stepper";
-import { agruparPorFase, type RequirementTaskRow } from "@/lib/fases";
+import { agruparPorFase } from "@/lib/fases";
 import { PROJECT_SLUG } from "@/lib/project";
 import { getSupabaseClient } from "@/lib/supabase/server";
+import type { Database } from "@/lib/supabase/database.types";
 
 export const dynamic = "force-dynamic";
+
+type RequerimientoDetalle = Pick<
+  Database["public"]["Tables"]["requirements"]["Row"],
+  | "id"
+  | "code"
+  | "title"
+  | "month_label"
+  | "complexity"
+  | "has_detail_tracking"
+  | "estimated_hours"
+  | "executed_hours"
+>;
 
 export default async function RequerimientoPage({
   params,
@@ -17,16 +30,7 @@ export default async function RequerimientoPage({
   const { item: slug } = await params;
   const supabase = getSupabaseClient();
 
-  let requerimiento: {
-    id: string;
-    code: string;
-    title: string;
-    month_label: string | null;
-    complexity: string | null;
-    has_detail_tracking: boolean;
-    estimated_hours: number | null;
-    executed_hours: number | null;
-  } | null;
+  let requerimiento: RequerimientoDetalle | null;
 
   try {
     const { data: proyecto, error: errorProyecto } = await supabase
@@ -66,7 +70,7 @@ export default async function RequerimientoPage({
         "phase_number, phase_name, task_name, detail, status, estimated_hours, due_date, completed_date, milestone, blockers, notes, sort_order"
       )
       .eq("requirement_id", requerimiento.id);
-    fases = agruparPorFase((tareas ?? []) as RequirementTaskRow[]);
+    fases = agruparPorFase(tareas ?? []);
   }
 
   return (

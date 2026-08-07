@@ -10,7 +10,8 @@
     "db:new": "supabase migration new",
     "db:push": "supabase db push --db-url %SUPABASE_DB_POOLER_URL%",
     "db:list": "supabase migration list --db-url %SUPABASE_DB_POOLER_URL%",
-    "db:dump": "supabase db dump --db-url %SUPABASE_DB_POOLER_URL%"
+    "db:dump": "supabase db dump --db-url %SUPABASE_DB_POOLER_URL%",
+    "types:db": "supabase gen types typescript --project-id nllqrrmxwtmwwxzopzix --schema public > src/lib/supabase/database.types.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
