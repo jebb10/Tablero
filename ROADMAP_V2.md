@@ -237,6 +237,33 @@ aparezca, `migration repair` marca el histórico y se migra al flujo CLI sin ren
 **Bajo el Plan B la Unidad 0.5 (backup) queda BLOQUEADA** — señalarlo al PO como riesgo abierto, no
 seguir en silencio.
 
+### ✅ Unidad 0.1 completada (2026-08-07)
+
+Contraseña obtenida (el PO la reseteó en el Dashboard), CLI instalada y sesión autenticada por token
+manual del PO (login por navegador, `npx supabase login`). **No se pudo usar el flujo feliz de la
+unidad**: dos hallazgos nuevos, documentados en detalle en `supabase/MIGRACIONES.md`:
+
+- **`supabase link` está roto en la CLI 2.112.0** para este proyecto — falla siempre con
+  `SchemaError` al parsear la respuesta de `GET /v1/projects/<ref>/api-keys` (bug de la CLI, no de la
+  contraseña ni la red; el `GET` del proyecto en sí responde bien). Consecuencia: **nunca usar
+  `--linked`** en ningún comando de la CLI aquí — todo pasa `--db-url` explícito. Los scripts
+  `db:new`/`db:push`/`db:list`/`db:dump` de `package.json` ya están escritos así.
+- **La conexión directa (`db.<ref>.supabase.co:5432`) no resuelve ni siquiera en local**
+  (`getaddrinfo ENOTFOUND`) — el roadmap solo anticipaba que fallaría en GitHub Actions por ser
+  IPv6-only. El **Session Pooler** (`SUPABASE_DB_POOLER_URL` en `.env.local`) es la única cadena que
+  funciona hoy, tanto en local como (previsiblemente) en CI.
+
+Con `--db-url` apuntando al pooler, el resto de la unidad se completó según lo diseñado: baseline
+`supabase/migrations/20260101000000_baseline_fase_a.sql` escrito a mano (describe el estado real
+verificado en 0.0, seed idempotente), marcado como aplicado con `migration repair` (no se ejecutó SQL
+contra prod), `migration list` y `db push --dry-run` confirman que local y remoto coinciden.
+`schema.sql` movido a `supabase/legado/schema-fase-a.sql` con encabezado de histórico. `typecheck` y
+`lint` limpios (esta unidad no toca código de la app, solo tooling).
+
+**Nota para 0.2**: como `--linked` no funciona, `supabase gen types --linked` probablemente falle
+igual — usar `--db-url` ahí también, o reintentar `link` por si una versión más nueva de la CLI ya
+arregló el bug.
+
 ---
 
 ## Unidad 0.2 — Tipos generados de la base de datos
