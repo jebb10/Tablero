@@ -12,13 +12,15 @@ consulta siempre "Estado actual" abajo antes de proponer cambios grandes.
 
 - Desplegado en Vercel: [tablero-pi.vercel.app](https://tablero-pi.vercel.app/)
   (repo: `https://github.com/jebb10/Tablero.git`), sin autenticación
-  todavía (login es la Fase B pendiente — ver `ROADMAP_SUPABASE.md`).
+  todavía (login es la Fase B pendiente — ver `ROADMAP_V2.md`).
 - El PO decidió revertir la decisión de "sin BD, sin multi-proyecto" de la
   antigua Fase 5 (ver más abajo) para convertir esto en una aplicación real:
   multi-proyecto, con login por roles y escritura. La migración a Supabase
-  (Fase A del nuevo roadmap) ya está completa; faltan Fases B (auth/roles),
-  C (pantallas de escritura) y D (documentos versionados) — ver
-  `ROADMAP_SUPABASE.md` para el diseño completo y las decisiones tomadas.
+  (Fase A del nuevo roadmap) ya está completa; faltan Fase 0 (fundaciones:
+  migraciones versionadas, tipos generados, CI, backup — ver más abajo),
+  Fase B (auth/roles), Fase C (pantallas de escritura) y Fase D (documentos
+  versionados) — ver `ROADMAP_V2.md` para el diseño vigente completo y las
+  decisiones tomadas (`ROADMAP_SUPABASE.md` queda como historial, superado).
 - Lee de un proyecto Supabase (Postgres + API REST), ver "Fuente de datos"
   abajo. **El Google Sheet / `.xlsx` que se usaba antes de la Fase A ya no
   existe** — el archivo (`legado/REQUERIMIENTOS BOLSAS DE HORAS 414.xlsx`)
@@ -43,9 +45,11 @@ consulta siempre "Estado actual" abajo antes de proponer cambios grandes.
   hojas Gantt ocultas del Excel no fue viable). Cuando se retome este
   dashboard, este es el punto a resolver antes que nada, con las opciones
   ya evaluadas ahí.
-- **Sigue faltando** (ver `ROADMAP_SUPABASE.md`): Fase B (Supabase Auth +
-  roles Admin/Viewer), Fase C (pantallas de escritura), Fase D (documentos
-  versionados en Storage).
+- **Sigue faltando** (ver `ROADMAP_V2.md`, fuente de verdad vigente — anula
+  a `ROADMAP_SUPABASE.md`): Fase 0 (fundaciones: migraciones versionadas,
+  tipos generados, CI, backup), Fase B (Supabase Auth + roles Admin/Viewer),
+  Fase C (pantallas de escritura), Fase D (documentos versionados en
+  Storage).
 
 ## Fuente de datos
 
@@ -115,7 +119,7 @@ en este documento.
 - **`lucide-react`** para íconos (mapeo por palabra clave en
   `src/lib/icons.tsx`).
 - Base de datos real (Supabase/Postgres) desde la Fase A. Sin autenticación
-  todavía (Fase B pendiente, ver `ROADMAP_SUPABASE.md`).
+  todavía (Fase B pendiente, ver `ROADMAP_V2.md`).
 - **Control de versiones**: repo git local, rama `master` (tracking
   `origin/main`), remoto `https://github.com/jebb10/Tablero.git`. Un solo
   commit con todo el historial real del proyecto (el commit inicial de
@@ -217,17 +221,23 @@ planteadas:
   Gantt:** ✅ completa (2026-08-06). Ver "Estado actual" y "Fuente de datos"
   arriba para el resumen; diseño completo, decisiones tomadas con el PO
   (más de 30 preguntas de descubrimiento) y detalle campo a campo de la
-  migración en `ROADMAP_SUPABASE.md`.
+  migración en `ROADMAP_SUPABASE.md` (historial).
+- **Fase 0 — Fundaciones (migraciones versionadas, tipos generados, CI,
+  backup, andamiaje compartido):** pendiente, bloqueante para B/C/D. Diseño
+  completo en `ROADMAP_V2.md`.
 - **Fase B — Supabase Auth + roles (Admin/Viewer):** pendiente. Diseño
-  completo en `ROADMAP_SUPABASE.md`.
+  completo en `ROADMAP_V2.md`.
 - **Fase C — Pantallas de escritura (CRUD):** pendiente. Diseño completo en
-  `ROADMAP_SUPABASE.md`.
-- **Fase D — Documentos versionados:** pendiente. Diseño completo en
-  `ROADMAP_SUPABASE.md`.
+  `ROADMAP_V2.md`.
+- **Fase D — Documentos versionados (sin versionado real: subir reemplaza y
+  borra el anterior):** pendiente. Diseño completo en `ROADMAP_V2.md`.
 
 Plan detallado de las Fases 0 a 3a (historial, fuera de este repo, contexto
 completo de las decisiones tomadas con el PO — Fase 0, Fase 2 rediseñada, y
 el punto de control MVP):
 `.claude/plans/c-users-usuario-1-documents-tablero-req-lively-russell.md`.
-Plan detallado de la Fase A en adelante: `ROADMAP_SUPABASE.md` (en la raíz
-de este repo) — es la fuente de verdad vigente para todo lo que sigue.
+Plan detallado de la Fase A: `ROADMAP_SUPABASE.md` (en la raíz de este
+repo) — queda como historial, **superado**. Plan detallado de la Fase 0 en
+adelante: `ROADMAP_V2.md` (en la raíz de este repo) — es la fuente de
+verdad vigente para todo lo que sigue; incluye la tabla de 14 puntos donde
+`ROADMAP_SUPABASE.md` contradice lo que hay en disco.

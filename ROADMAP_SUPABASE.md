@@ -1,3 +1,12 @@
+> # ⚠️ SUPERADO — leer `ROADMAP_V2.md`
+>
+> Este documento queda **superado** desde el 2026-08-06 por `ROADMAP_V2.md` (en la raíz del repo),
+> escrito tras una auditoría profunda del código y de la base de datos reales. Contiene 14 puntos que
+> contradicen lo que hay en disco hoy (columnas y triggers que no existen, patrones de edición
+> imposibles con los componentes actuales, decisiones ya revertidas por el PO). **No ejecutar nada
+> desde aquí.** Este archivo se conserva solo como historial de la Fase A y del cuestionario de
+> descubrimiento previo a ella.
+>
 > **Fase A: ✅ ejecutada y verificada (2026-08-06).** Ver "Cierre de Fase A" justo debajo de este bloque para el resumen completo (qué se decidió, qué cambió respecto al plan, y qué queda pendiente). **Próximo paso para la siguiente sesión: Fase B** (§ más abajo) — Supabase Auth + roles Admin/Viewer. El punto pendiente más importante que dejó abierto Fase A **no es de Auth, es refinar la vista `/planeacion`** (ver "Cierre de Fase A" — hoy usa `due_date` como marcador de un día porque no hay fechas planeadas reales todavía).
 
 ## Cierre de Fase A (2026-08-06)
