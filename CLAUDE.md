@@ -50,13 +50,25 @@ consulta siempre "Estado actual" abajo antes de proponer cambios grandes.
 ## Fuente de datos
 
 La fuente de datos es un proyecto Supabase (Postgres + API REST vía
-`@supabase/supabase-js`, cliente `anon`/`NEXT_PUBLIC_SUPABASE_ANON_KEY`).
+`@supabase/supabase-js`, cliente `anon`/`publishable`).
 `src/lib/supabase/server.ts` crea el cliente; `src/lib/dashboard-data.ts` y
 `src/app/requerimiento/[item]/page.tsx` hacen las consultas. El proyecto
 activo es un default hardcodeado (`positiva-web-414`) en `src/lib/project.ts`
 — no hay selector de proyecto en la UI todavía porque solo existe un
 proyecto real (el modelo de datos ya soporta multi-proyecto, ver
 `ROADMAP_SUPABASE.md` §9).
+
+**`SUPABASE_URL`/`SUPABASE_ANON_KEY` están hardcodeadas como constantes en
+`src/lib/supabase/server.ts`, NO como env vars** — mismo patrón que el
+antiguo `SHEET_ID` de la Fase 3a. Se intentó vía env vars de Vercel primero
+y sí requería plan de pago (a diferencia de lo que se había asumido en
+`ROADMAP_SUPABASE.md`). Sin problema de seguridad nuevo: la `anon`/
+`publishable` key está diseñada para el navegador, protegida por RLS, no
+por mantenerla en secreto. Si el proyecto Supabase cambia, hay que editar
+esas constantes en código y hacer deploy — no hay forma de cambiarlo sin
+tocar código. La `secret key` (equivalente a `service_role`) **nunca** vive
+en el código — solo se usó localmente (`.env.local`, gitignored) para
+correr `scripts/migrate_to_supabase.py`.
 
 Esquema completo (DDL) en `supabase/schema.sql` — tablas `projects`,
 `requirements`, `requirement_tasks`, `activity_logs` (vacía, forward-looking

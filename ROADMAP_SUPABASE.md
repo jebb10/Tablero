@@ -341,9 +341,11 @@ Principio: minimizar cambios en componentes de presentación — toda la traducc
 | `src/app/actions.ts` | borrar `sincronizar()` — **flag para el PO**: ¿se retira el botón o se re-etiqueta como "Actualizar" con otro propósito? |
 | `src/components/dashboard-client.tsx` | quitar/re-etiquetar botón "Sincronizar"; resto sin cambios (shape de `Requerimiento` no cambió) |
 | `src/components/requerimiento-card.tsx` | opcional: pintar borde/dot con `req.semaforo` — **flag**: ¿reemplaza visualmente el borde de "bloqueado" o convive? |
-| `.env.local` / Vercel env vars | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` (runtime); `SUPABASE_DB_URL` solo para el script de migración, nunca como `NEXT_PUBLIC_*` |
+| `src/lib/supabase/server.ts` | `SUPABASE_URL`/`SUPABASE_ANON_KEY` **hardcodeadas como constantes** (no env vars) |
 
-Nota: a diferencia del `SHEET_ID`, las env vars de Supabase SÍ deben ir en `.env.local`/Vercel — la limitación de Vercel free documentada en `CLAUDE.md` era sobre env vars *distintas por ambiente*, una sola env var consistente en todos los ambientes es gratis. Reconfirmar en el momento de ejecutar, por si cambió.
+**Actualizado (2026-08-06): la nota original de abajo resultó incorrecta al ejecutar.** Se intentó configurar `NEXT_PUBLIC_SUPABASE_URL`/`NEXT_PUBLIC_SUPABASE_ANON_KEY` como env vars de Vercel y **sí requería plan de pago** (la limitación no era solo "env vars distintas por ambiente" como se asumía aquí). Se resolvió igual que el `SHEET_ID` de la Fase 3a: **hardcodeadas como constantes en `src/lib/supabase/server.ts`**, sin problema de seguridad nuevo — la `anon`/`publishable` key está diseñada para viajar al navegador (protección real: RLS), así que no importa si vive en una env var o en el código, el bundle del cliente la expone igual. `SUPABASE_DB_URL` sigue sin usarse (el script de migración usa `SUPABASE_URL`/`SUPABASE_SECRET_KEY` vía `supabase-py`, no conexión directa a Postgres).
+
+~~Nota original (incorrecta, conservada para no repetir el intento): a diferencia del `SHEET_ID`, las env vars de Supabase SÍ deben ir en `.env.local`/Vercel — la limitación de Vercel free documentada en `CLAUDE.md` era sobre env vars *distintas por ambiente*, una sola env var consistente en todos los ambientes es gratis.~~
 
 ## 8. Vista Gantt (`/planeacion`) con sidebar colapsable
 
