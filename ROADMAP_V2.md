@@ -352,7 +352,8 @@ pública de GitHub (`api.github.com/repos/jebb10/Tablero`, sin autenticación): 
 (nunca commitear dumps de backup). Confirmado también que `npm run build` no toca Supabase: las 3
 rutas salen marcadas `ƒ` (dinámicas) en la salida del build, es decir Next no las ejecuta en build
 time. Las 3 pruebas de aceptación pasaron: los 5 comandos en verde, un test roto a propósito puso la
-suite en rojo, revertido.
+suite en rojo (revertido), y **GitHub Actions corrió en verde tras el push** (run `31210292258`,
+`conclusion: success`, verificado vía API pública).
 
 ---
 
