@@ -341,6 +341,19 @@ en el propio `supabase/MIGRACIONES.md`:
 **Aceptación.** Los 5 comandos pasan en local; Actions en verde tras el push; romper un test a
 propósito lo pone en rojo (revertir).
 
+### ✅ Unidad 0.3 completada (2026-08-07)
+
+`vitest` + `vite-tsconfig-paths` instalados. `vitest.config.mts` (extensión `.mts`, no `.ts`: evita el
+warning de Vitest 4 sobre ESM cargado como CommonJS). 13 tests en 3 archivos, todos sobre lógica pura
+(`semaforo.test.ts`, `kpis.test.ts`, `fases.test.ts`) — sin `jsdom`/Testing Library, como pedía el
+alcance de Fase 0. `.github/workflows/ci.yml` con los 5 pasos sobre Node 22. Confirmado con la API
+pública de GitHub (`api.github.com/repos/jebb10/Tablero`, sin autenticación): **el repo es público**
+(`"private": false`) — resuelve el `[VERIFICAR EN VIVO]` pendiente, es determinante para la Unidad 0.5
+(nunca commitear dumps de backup). Confirmado también que `npm run build` no toca Supabase: las 3
+rutas salen marcadas `ƒ` (dinámicas) en la salida del build, es decir Next no las ejecuta en build
+time. Las 3 pruebas de aceptación pasaron: los 5 comandos en verde, un test roto a propósito puso la
+suite en rojo, revertido.
+
 ---
 
 ## Unidad 0.4 — Robustez del app-shell y limpieza era-Excel
