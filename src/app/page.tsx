@@ -2,6 +2,10 @@ import { ArchivoBloqueadoBanner } from "@/components/archivo-bloqueado-banner";
 import { DashboardClient } from "@/components/dashboard-client";
 import { getDashboardData } from "@/lib/dashboard-data";
 
+// Sin esto, Next intenta pre-renderizar esta página en build time (una sola
+// vez, con datos congelados) en vez de consultar Supabase en cada request.
+export const dynamic = "force-dynamic";
+
 export default async function Home() {
   const { requerimientos, kpis, error, ultimoResultadoNulo } = await getDashboardData();
 

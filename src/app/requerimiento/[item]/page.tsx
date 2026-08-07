@@ -7,6 +7,8 @@ import { agruparPorFase, type RequirementTaskRow } from "@/lib/fases";
 import { PROJECT_SLUG } from "@/lib/project";
 import { getSupabaseClient } from "@/lib/supabase/server";
 
+export const dynamic = "force-dynamic";
+
 export default async function RequerimientoPage({
   params,
 }: {
