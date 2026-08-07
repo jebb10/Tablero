@@ -1,3 +1,9 @@
+-- HISTÓRICO. No ejecutar. La verdad vigente son supabase/migrations/*.sql
+-- (empezando por 20260101000000_baseline_fase_a.sql, que describe el estado
+-- ACTUAL de prod verificado en la Unidad 0.0, no la historia de cómo se
+-- llegó a él). Este archivo se conserva solo como referencia de cómo se
+-- corrió manualmente en el SQL Editor durante la Fase A.
+--
 -- Fase A — Esquema Supabase para dashboard-414 (Positiva Web 414)
 -- Fuente: ROADMAP_SUPABASE.md §2. Correr una sola vez en el SQL Editor de Supabase
 -- (o vía conexión directa con el rol service_role/postgres), en un proyecto nuevo.
