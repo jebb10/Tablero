@@ -3,7 +3,7 @@
 import { useTransition } from "react";
 import { AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { sincronizar } from "@/app/actions";
+import { reintentar } from "@/app/actions";
 
 export function ArchivoBloqueadoBanner({ soloBanner }: { soloBanner?: boolean }) {
   const [isPending, startTransition] = useTransition();
@@ -20,7 +20,7 @@ export function ArchivoBloqueadoBanner({ soloBanner }: { soloBanner?: boolean })
         size="sm"
         variant="destructive"
         disabled={isPending}
-        onClick={() => startTransition(() => sincronizar())}
+        onClick={() => startTransition(() => reintentar())}
       >
         Reintentar
       </Button>

@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
-import { FileDown, RefreshCw, Search } from "lucide-react";
+import { useMemo, useState } from "react";
+import { FileDown, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,7 +16,6 @@ import { DataQualityPanel } from "@/components/data-quality-panel";
 import { ArchivoBloqueadoBanner } from "@/components/archivo-bloqueado-banner";
 import { PdfReport } from "@/components/pdf-report";
 import { RequerimientoCard } from "@/components/requerimiento-card";
-import { sincronizar } from "@/app/actions";
 import { cn } from "@/lib/utils";
 import type { Estado, KPIs, Requerimiento } from "@/lib/types";
 
@@ -54,7 +53,6 @@ export function DashboardClient({
   const [busqueda, setBusqueda] = useState("");
   const [complejidad, setComplejidad] = useState(TODOS);
   const [mes, setMes] = useState(TODOS);
-  const [isPending, startTransition] = useTransition();
 
   const complejidades = useMemo(
     () =>
@@ -96,14 +94,6 @@ export function DashboardClient({
             <Button variant="outline" onClick={() => window.print()}>
               <FileDown />
               Exportar PDF
-            </Button>
-            <Button
-              variant="outline"
-              disabled={isPending}
-              onClick={() => startTransition(() => sincronizar())}
-            >
-              <RefreshCw className={isPending ? "animate-spin" : ""} />
-              Sincronizar
             </Button>
           </div>
         </div>

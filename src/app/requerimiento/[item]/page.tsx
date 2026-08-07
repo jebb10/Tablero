@@ -3,10 +3,9 @@ import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { ArchivoBloqueadoBanner } from "@/components/archivo-bloqueado-banner";
 import { FaseStepper } from "@/components/fase-stepper";
-import { loadWorkbook } from "@/lib/excel/workbook";
-import { getRequerimientos } from "@/lib/excel/dashboard-sheet";
-import { getDetalle } from "@/lib/excel/detalle-sheet";
-import type { Requerimiento } from "@/lib/types";
+import { agruparPorFase, type RequirementTaskRow } from "@/lib/fases";
+import { PROJECT_SLUG } from "@/lib/project";
+import { getSupabaseClient } from "@/lib/supabase/server";
 
 export default async function RequerimientoPage({
   params,
@@ -14,12 +13,37 @@ export default async function RequerimientoPage({
   params: Promise<{ item: string }>;
 }) {
   const { item: slug } = await params;
+  const supabase = getSupabaseClient();
 
-  let requerimientos: Requerimiento[];
-  let wb: Awaited<ReturnType<typeof loadWorkbook>>;
+  let requerimiento: {
+    id: string;
+    code: string;
+    title: string;
+    month_label: string | null;
+    complexity: string | null;
+    has_detail_tracking: boolean;
+    estimated_hours: number | null;
+    executed_hours: number | null;
+  } | null;
+
   try {
-    wb = await loadWorkbook();
-    requerimientos = getRequerimientos(wb);
+    const { data: proyecto, error: errorProyecto } = await supabase
+      .from("projects")
+      .select("id")
+      .eq("slug", PROJECT_SLUG)
+      .single();
+    if (errorProyecto || !proyecto) throw errorProyecto ?? new Error("Proyecto no encontrado");
+
+    const { data, error } = await supabase
+      .from("requirements")
+      .select(
+        "id, code, title, month_label, complexity, has_detail_tracking, estimated_hours, executed_hours"
+      )
+      .eq("project_id", proyecto.id)
+      .eq("slug", slug)
+      .maybeSingle();
+    if (error) throw error;
+    requerimiento = data;
   } catch {
     return (
       <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 p-6">
@@ -28,15 +52,20 @@ export default async function RequerimientoPage({
     );
   }
 
-  const requerimiento = requerimientos.find((r) => r.slug === slug);
-
   if (!requerimiento) {
     notFound();
   }
 
-  const detalle = requerimiento.hojaDetalle
-    ? getDetalle(requerimiento.hojaDetalle, wb)
-    : null;
+  let fases = null;
+  if (requerimiento.has_detail_tracking) {
+    const { data: tareas } = await supabase
+      .from("requirement_tasks")
+      .select(
+        "phase_number, phase_name, task_name, detail, status, estimated_hours, due_date, completed_date, milestone, blockers, notes, sort_order"
+      )
+      .eq("requirement_id", requerimiento.id);
+    fases = agruparPorFase((tareas ?? []) as RequirementTaskRow[]);
+  }
 
   return (
     <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 p-6">
@@ -49,59 +78,46 @@ export default async function RequerimientoPage({
       </Link>
 
       <header>
-        <h1 className="text-2xl font-bold tracking-tight">{requerimiento.nombre}</h1>
-        <p className="text-sm text-muted-foreground">{requerimiento.item}</p>
+        <h1 className="text-2xl font-bold tracking-tight">{requerimiento.title}</h1>
+        <p className="text-sm text-muted-foreground">{requerimiento.code}</p>
       </header>
 
-      {!detalle ? (
+      {!fases ? (
         <div className="rounded-lg border border-dashed p-6 text-center text-muted-foreground">
           <p className="font-medium">Sin detalle disponible</p>
           <p className="text-sm">
-            Este requerimiento todavía no tiene una hoja de detalle asociada en el
-            Excel.
+            Este requerimiento todavía no tiene tareas registradas por fase.
           </p>
         </div>
       ) : (
         <>
           <div className="flex flex-wrap gap-x-6 gap-y-1 rounded-lg border bg-card p-4 text-sm">
-            {detalle.mes && (
+            {requerimiento.month_label && (
               <span>
-                <span className="text-muted-foreground">Mes:</span> {detalle.mes}
+                <span className="text-muted-foreground">Mes:</span> {requerimiento.month_label}
               </span>
             )}
-            {detalle.complejidad && (
+            {requerimiento.complexity && (
               <span>
                 <span className="text-muted-foreground">Complejidad:</span>{" "}
-                {detalle.complejidad}
+                {requerimiento.complexity}
               </span>
             )}
-            {detalle.prioridad && (
-              <span>
-                <span className="text-muted-foreground">Prioridad:</span>{" "}
-                {detalle.prioridad}
-              </span>
-            )}
-            {detalle.horasTotalesEstimadas !== null && (
+            {requerimiento.estimated_hours !== null && (
               <span>
                 <span className="text-muted-foreground">Horas estimadas:</span>{" "}
-                {detalle.horasTotalesEstimadas}
+                {requerimiento.estimated_hours}
               </span>
             )}
-            {detalle.horasTotalesConsumidas !== null && (
+            {requerimiento.executed_hours !== null && (
               <span>
                 <span className="text-muted-foreground">Horas consumidas:</span>{" "}
-                {detalle.horasTotalesConsumidas}
-              </span>
-            )}
-            {detalle.totalesTexto && (
-              <span>
-                <span className="text-muted-foreground">Avance:</span>{" "}
-                {detalle.totalesTexto}
+                {requerimiento.executed_hours}
               </span>
             )}
           </div>
 
-          <FaseStepper fases={detalle.fases} />
+          <FaseStepper fases={fases} />
         </>
       )}
     </main>

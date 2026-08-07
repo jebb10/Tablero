@@ -1,3 +1,5 @@
+import type { Semaforo } from "./semaforo";
+
 export type Estado =
   | "En curso"
   | "Pausado"
@@ -19,10 +21,10 @@ export interface Requerimiento {
   fechaCobro: string | null;
   notas: string | null;
   bloqueado: boolean;
-  hojaDetalle: string | null;
   tieneDetalle: boolean;
   sinTareas: boolean;
   fechaLimite: Date | null;
+  semaforo: Semaforo;
 }
 
 export interface CalidadDatos {

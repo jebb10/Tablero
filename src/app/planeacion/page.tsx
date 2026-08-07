@@ -1,0 +1,18 @@
+import { PlaneacionClient } from "@/components/planeacion/planeacion-client";
+import { getPlaneacionData } from "@/lib/planeacion-data";
+
+export default async function PlaneacionPage() {
+  const requerimientos = await getPlaneacionData();
+
+  return (
+    <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6 p-6">
+      <header>
+        <h1 className="text-2xl font-bold tracking-tight">Planeación</h1>
+        <p className="text-sm text-muted-foreground">
+          Vista Gantt por requerimiento — fases y tareas con fecha límite.
+        </p>
+      </header>
+      <PlaneacionClient requerimientos={requerimientos} />
+    </main>
+  );
+}

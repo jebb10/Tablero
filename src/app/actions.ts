@@ -2,6 +2,6 @@
 
 import { refresh } from "next/cache";
 
-export async function sincronizar() {
+export async function reintentar() {
   refresh();
 }

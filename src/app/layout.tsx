@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
+import Link from "next/link";
 import "./globals.css";
 
 const montserrat = localFont({
@@ -25,7 +26,20 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" className={`${montserrat.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <nav className="flex items-center gap-4 border-b bg-card px-6 py-2.5 print:hidden">
+          <Link href="/" className="text-sm font-semibold">
+            Dashboard 414
+          </Link>
+          <Link
+            href="/planeacion"
+            className="text-sm text-muted-foreground hover:text-foreground"
+          >
+            Planeación
+          </Link>
+        </nav>
+        {children}
+      </body>
     </html>
   );
 }
