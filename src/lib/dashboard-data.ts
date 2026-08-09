@@ -84,7 +84,7 @@ export async function getDashboardData(): Promise<
   DashboardData & { error: boolean; ultimoResultadoNulo: boolean }
 > {
   try {
-    const supabase = getSupabaseClient();
+    const supabase = await getSupabaseClient();
 
     const { data: proyecto, error: errorProyecto } = await supabase
       .from("projects")
