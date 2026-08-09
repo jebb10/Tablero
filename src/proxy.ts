@@ -10,12 +10,7 @@ import { createProxyClient } from "@/lib/supabase/proxy-client";
 export default async function proxy(request: NextRequest) {
   const { supabase, response } = createProxyClient(request);
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  // TEMPORAL: quitar tras verificar en logs de Vercel que el proxy corre en producción.
-  console.log("[proxy] sesión refrescada para", request.nextUrl.pathname, "user:", user?.id ?? "anon");
+  await supabase.auth.getUser();
 
   return response;
 }
