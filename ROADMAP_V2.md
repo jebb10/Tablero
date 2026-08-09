@@ -628,6 +628,52 @@ deploy a Vercel y el sitio sigue funcionando para un visitante anónimo.
 **Rollback.** Revert + redeploy. **No se tocó la base de datos** — el punto de rollback más limpio de
 toda la fase.
 
+### ✅ Unidad B.1 completada (2026-08-09)
+
+Ejecutada según el diseño, con la estructura de tres clientes (`server`, `proxy`; `browser` diferido a
+Fase D como estaba previsto). Hallazgos reales frente a los `[VERIFICAR EN VIVO]` de arriba:
+
+- **`@supabase/ssr` instalado en `^0.12.4`** — **no comparte numeración major con `@supabase/supabase-js`
+  (2.x)**. Esto es normal: `@supabase/ssr` versiona de forma independiente en su propia línea 0.x: no
+  es una incompatibilidad, el supuesto de "misma línea major 2" de este documento era incorrecto.
+- **Confirmado en producción**: `@supabase/ssr` **sí es compatible con `proxy.ts`** de Next 16.2 — la
+  "incógnita mayor" de la Fase B queda resuelta. `npm run build` local mostró `ƒ Proxy (Middleware)` en
+  la tabla de rutas, y en `npm run dev` cada request logueó `[proxy] sesión refrescada para <ruta> user:
+  anon` con tiempos de ejecución del proxy visibles (`proxy.ts: 1160ms` en frío, `13-37ms` en caliente).
+- **El `matcher` exacto del roadmap funciona sin ajustes**: verificado con requests directos (no solo
+  inspección visual) — `/_next/static/chunks/*.css` y las 4 fuentes Montserrat (que `next/font/local`
+  emite bajo `/_next/static/media/*.woff2`, no bajo `/fonts/` literal) devuelven 200 **sin** generar log
+  del proxy, confirmando que la exclusión de `_next/static` ya cubre las fuentes aunque nunca coincidan
+  con el segmento `fonts/` del patrón.
+- **Gotcha de Turbopack ya conocido reapareció** (`Failed to open database` / `invalid digit found in
+  string` al primer `npm run dev` tras instalar dependencias nuevas) — se resolvió igual que antes,
+  borrando `.next/`.
+- **Nuevo gotcha de infraestructura, no anticipado por el roadmap**: como el repo completo (incluida la
+  carpeta `.git`) vive bajo una carpeta sincronizada por OneDrive, OneDrive coloca archivos
+  `desktop.ini` (metadata de personalización de carpetas de Windows, contenido inofensivo) dentro de
+  `.git/refs/**`. Esto rompió `git fetch`/`git pull` con `fatal: bad object refs/desktop.ini` al
+  intentar verificar el merge del PR. **Solución**: borrar esos `desktop.ini` con
+  `Get-ChildItem .git\refs -Recurse -Force -Filter "desktop.ini" | Remove-Item -Force` y reintentar —
+  las referencias reales nunca se corrompieron, solo los archivos espurios de OneDrive. Puede volver a
+  aparecer en sesiones futuras; no indica un problema real del repo.
+- **Log temporal pendiente de retirar**: `src/proxy.ts` deja un `console.log` marcado
+  `// TEMPORAL: quitar tras verificar en logs de Vercel` — queda planeado para un commit de limpieza
+  menor una vez el PO confirme haberlo visto en los logs de Vercel de producción.
+- **Cambio de flujo de git confirmado con el PO para el resto de la Fase B**: a partir de esta unidad
+  se usa rama + PR (autoaprobado por el PO, único revisor) en vez de push directo a `origin/main` como
+  en toda la Fase 0. Esta unidad se ejecutó en la rama `fase-b/b1-clientes-ssr-proxy`, PR #1, mergeada a
+  `main` (commit `6a4fd61`). Vercel no tiene previews por PR — la verificación real en producción solo
+  ocurre después del merge.
+- **Limpieza adicional de alcance acordado con el PO**: `.env.local` perdió las variables
+  `NEXT_PUBLIC_SUPABASE_URL`/`NEXT_PUBLIC_SUPABASE_ANON_KEY` (huérfanas, sin consumidor desde que la
+  Fase A hardcodeó esas constantes en código) — no afecta a esta unidad, se mantiene la estrategia de
+  constantes hardcodeadas documentada en `CLAUDE.md`.
+- `typecheck`/`lint`/`test` (41/41)/`build` limpios. Plan detallado de esta unidad (incluyendo el
+  cuestionario de 20 preguntas al PO) archivado en `PLAN_B1.md`, en la raíz de este repo.
+
+Siguiente paso: Unidad B.2 (`profiles` + `is_admin()` + creación de usuarios) — requiere su propia
+ronda de preguntas al PO por tocar la base de datos.
+
 ---
 
 ## Unidad B.2 — `profiles` + `is_admin()` + creación de usuarios (sin tocar las policies existentes)
