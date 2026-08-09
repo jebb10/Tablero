@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body { font-family: 'Montserrat', -apple-system, sans-serif; background:#F7F8FA; }
+  a { color: #FF7500; text-decoration:none; }
+  a:hover { color: #E56700; }
+</style>
+</helmet>
+
+<div style="min-height:100vh; color:#1B3B51;">
+
+  <div style="background:#fff; border-bottom:1px solid #E1E5EA; padding:0 32px; display:flex; align-items:center; gap:28px; height:60px;">
+    <div style="font-weight:700; font-size:15px;">Dashboard 414</div>
+    <nav style="display:flex; gap:4px; flex:1;">
+      <a href="Home - Resumen General.dc.html" style="padding:8px 14px; border-radius:8px; color:#627887; font-size:13px; font-weight:600;">Resumen</a>
+      <a href="Gantt - Planeacion.dc.html" style="padding:8px 14px; border-radius:8px; color:#627887; font-size:13px; font-weight:600;">Planeación</a>
+    </nav>
+    <span style="font-size:13px; color:#627887;">Ana Torres</span>
+    <span style="font-size:12px; font-weight:600; padding:3px 10px; border-radius:999px; background:#FFF3E8; color:#8A4300;">Admin</span>
+  </div>
+
+  <main style="max-width:1100px; margin:0 auto; padding:28px 32px 64px; display:flex; flex-direction:column; gap:22px;">
+
+    <a href="Home - Resumen General.dc.html" style="display:flex; align-items:center; gap:6px; font-size:13px; color:#627887; width:fit-content;">← Volver al resumen</a>
+
+    <header style="display:flex; align-items:start; justify-content:space-between; gap:16px; flex-wrap:wrap;">
+      <div>
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
+          <span style="font-size:13px; font-weight:600; color:#627887;">REQ-101</span>
+          <span style="font-size:11px; font-weight:600; padding:3px 10px; border-radius:999px; background:color-mix(in oklch, oklch(0.58 0.16 250), white 88%); color:oklch(0.4 0.14 250);">En curso</span>
+        </div>
+        <h1 style="font-size:24px; font-weight:700; margin:0 0 6px;">Portal de pagos en línea PSE</h1>
+        <p style="font-size:13px; color:#627887; max-width:560px; line-height:1.6; margin:0;">Integración de pasarela PSE en el portal transaccional, incluyendo certificación de seguridad y pruebas de carga previas a producción.</p>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:4px; font-size:13px; text-align:right;">
+        <span><span style="color:#627887;">Cliente:</span> Positiva Compañía de Seguros</span>
+        <span><span style="color:#627887;">Asignado:</span> J. Gómez, L. Ramírez</span>
+        <span><span style="color:#627887;">Recepción:</span> 01 ago 2026</span>
+        <span><span style="color:#627887;">Entrega proyectada:</span> 22 ago 2026</span>
+      </div>
+    </header>
+
+    <section style="display:grid; grid-template-columns:repeat(3, 1fr); gap:14px;">
+      <div style="background:#fff; border:1px solid #E1E5EA; border-radius:14px; padding:16px 18px;">
+        <p style="font-size:12px; color:#627887; margin:0 0 6px;">Horas estimadas</p>
+        <p style="font-size:22px; font-weight:700; margin:0;">55h</p>
+      </div>
+      <div style="background:#fff; border:1px solid #E1E5EA; border-radius:14px; padding:16px 18px;">
+        <p style="font-size:12px; color:#627887; margin:0 0 6px;">Horas consumidas</p>
+        <p style="font-size:22px; font-weight:700; margin:0;">34h</p>
+      </div>
+      <div style="background:#fff; border:1px solid #E1E5EA; border-radius:14px; padding:16px 18px;">
+        <p style="font-size:12px; color:#627887; margin:0 0 6px;">Horas restantes</p>
+        <p style="font-size:22px; font-weight:700; margin:0;">21h</p>
+      </div>
+    </section>
+
+    <section style="background:#fff; border:1px solid #E1E5EA; border-radius:14px; padding:22px 24px;">
+      <h2 style="font-size:15px; font-weight:700; margin:0 0 16px;">Horas por fase — estimadas vs. consumidas</h2>
+      <div style="display:flex; flex-direction:column; gap:12px;">
+        <sc-for list="{{ fasesHoras }}" as="f" hint-placeholder-count="3">
+          <div style="display:grid; grid-template-columns:110px 1fr 80px; align-items:center; gap:14px;">
+            <span style="font-size:13px; font-weight:600;">{{ f.nombre }}</span>
+            <div style="height:10px; border-radius:999px; background:#EDEFF2; overflow:hidden; position:relative;">
+              <div style="height:100%; border-radius:999px; background:{{ f.color }}; width:{{ f.pct }}%;"></div>
+            </div>
+            <span style="font-family:ui-monospace,monospace; font-size:12px; color:{{ f.color }}; text-align:right;">{{ f.ejecutadas }}/{{ f.estimadas }}h</span>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+
+    <section style="background:#fff; border:1px solid #E1E5EA; border-radius:14px; padding:22px 24px;">
+      <h2 style="font-size:15px; font-weight:700; margin:0 0 16px;">Fases del requerimiento</h2>
+      <ol style="list-style:none; margin:0; padding:0; display:flex; flex-direction:column;">
+        <sc-for list="{{ fasesStepper }}" as="fase" hint-placeholder-count="3">
+          <li style="position:relative; padding:0 0 22px 30px;">
+            <span style="position:absolute; left:8px; top:20px; bottom:0; width:1px; background:#E1E5EA;"></span>
+            <span style="position:absolute; left:0; top:2px; width:18px; height:18px; border-radius:50%; background:{{ fase.dotBg }}; display:flex; align-items:center; justify-content:center; font-size:11px; color:#fff; font-weight:700;">{{ fase.dotLabel }}</span>
+            <div style="display:flex; align-items:baseline; justify-content:space-between; gap:8px;">
+              <h3 style="font-size:14px; font-weight:700; margin:0;">{{ fase.nombre }}</h3>
+              <span style="font-size:12px; font-weight:600; color:{{ fase.estadoColor }};">{{ fase.estadoLabel }}</span>
+            </div>
+            <sc-for list="{{ fase.tareasActivas }}" as="t" hint-placeholder-count="1">
+              <div style="margin-top:8px; border-radius:8px; background:#F7F8FA; padding:8px 10px; font-size:13px;">
+                <span style="font-weight:600;">{{ t.nombre }}</span>
+                <span style="color:#627887;"> — {{ t.detalle }}</span>
+              </div>
+            </sc-for>
+          </li>
+        </sc-for>
+      </ol>
+    </section>
+
+    <section style="background:#fff; border:1px solid #E1E5EA; border-radius:14px; padding:22px 24px;">
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:14px;">
+        <h2 style="font-size:15px; font-weight:700; margin:0;">Tareas</h2>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <sc-for list="{{ areas }}" as="a" hint-placeholder-count="4">
+            <button onClick="{{ a.onClick }}" style="height:30px; padding:0 12px; border-radius:999px; border:1px solid #E1E5EA; font-size:12px; font-weight:600; font-family:inherit; cursor:pointer; background:{{ a.bg }}; color:{{ a.color }};">{{ a.nombre }}</button>
+          </sc-for>
+        </div>
+      </div>
+      <div style="display:grid; grid-template-columns:1.6fr 2fr 1fr 1fr 1fr 0.7fr; gap:8px; padding:0 10px 8px; font-size:11px; font-weight:700; color:#627887; text-transform:uppercase; letter-spacing:0.03em; border-bottom:1px solid #E1E5EA;">
+        <span>Nombre</span><span>Descripción</span><span>Estado</span><span>Asignado</span><span>Fecha límite</span><span>Horas</span>
+      </div>
+      <sc-for list="{{ tareasVisibles }}" as="t" hint-placeholder-count="6">
+        <div style="display:grid; grid-template-columns:1.6fr 2fr 1fr 1fr 1fr 0.7fr; gap:8px; padding:10px; font-size:13px; border-bottom:1px solid #F1F2F5; align-items:center;">
+          <span style="font-weight:600;">{{ t.nombre }}</span>
+          <span style="color:#627887; font-size:12.5px;">{{ t.descripcion }}</span>
+          <span style="font-size:12px; font-weight:600; color:{{ t.estadoColor }};">{{ t.estado }}</span>
+          <span style="font-size:12.5px;">{{ t.asignado }}</span>
+          <span style="font-size:12.5px; color:#627887;">{{ t.fecha }}</span>
+          <span style="font-family:ui-monospace,monospace; font-size:12.5px;">{{ t.horas }}h</span>
+        </div>
+      </sc-for>
+    </section>
+
+    <section style="background:#fff; border:1px solid #E1E5EA; border-radius:14px; padding:22px 24px;">
+      <h2 style="font-size:15px; font-weight:700; margin:0 0 16px;">Registro de actividades</h2>
+      <div style="display:grid; grid-template-columns:0.8fr 0.9fr 0.9fr 0.6fr 2fr; gap:8px; padding:0 10px 8px; font-size:11px; font-weight:700; color:#627887; text-transform:uppercase; letter-spacing:0.03em; border-bottom:1px solid #E1E5EA;">
+        <span>Fecha</span><span>Tipo</span><span>Autor</span><span>Horas</span><span>Comentario</span>
+      </div>
+      <sc-for list="{{ actividades }}" as="a" hint-placeholder-count="5">
+        <div style="display:grid; grid-template-columns:0.8fr 0.9fr 0.9fr 0.6fr 2fr; gap:8px; padding:10px; font-size:13px; border-bottom:1px solid #F1F2F5; align-items:center;">
+          <span style="color:#627887; font-size:12.5px;">{{ a.fecha }}</span>
+          <span style="font-size:12px; font-weight:600; padding:2px 8px; border-radius:999px; background:#EDEFF2; color:#627887; width:fit-content;">{{ a.tipo }}</span>
+          <span style="font-size:12.5px;">{{ a.autor }}</span>
+          <span style="font-family:ui-monospace,monospace; font-size:12.5px;">{{ a.horas }}</span>
+          <span style="color:#627887; font-size:12.5px;">{{ a.comentario }}</span>
+        </div>
+      </sc-for>
+    </section>
+
+    <section style="display:flex; gap:12px; flex-wrap:wrap;">
+      <a href="#" style="display:flex; align-items:center; gap:8px; height:40px; padding:0 16px; border-radius:10px; border:1px solid #E1E5EA; background:#fff; font-size:13px; font-weight:600; color:#1B3B51;">📎 Datos de prueba</a>
+      <a href="#" style="display:flex; align-items:center; gap:8px; height:40px; padding:0 16px; border-radius:10px; border:1px solid #E1E5EA; background:#fff; font-size:13px; font-weight:600; color:#1B3B51;">↗ Ver en Jira</a>
+      <a href="#" style="display:flex; align-items:center; gap:8px; height:40px; padding:0 16px; border-radius:10px; border:1px solid #E1E5EA; background:#fff; font-size:13px; font-weight:600; color:#1B3B51;">↗ Ver en GitHub</a>
+    </section>
+
+  </main>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const FASES = [
+  { nombre: "Análisis", estimadas: 10, ejecutadas: 8, estado: "completada" },
+  { nombre: "Desarrollo", estimadas: 30, ejecutadas: 25, estado: "en-curso" },
+  { nombre: "QA", estimadas: 15, ejecutadas: 1, estado: "pendiente" },
+];
+
+const TAREAS_ACTIVAS_POR_FASE = {
+  "Desarrollo": [{ nombre: "Integración pasarela PSE", detalle: "en revisión de seguridad" }],
+};
+
+const TAREAS = [
+  { nombre: "Levantamiento requisitos PCI", descripcion: "Documentar alcance de certificación", estado: "Completada", area: "Backend", asignado: "L. Ramírez", fecha: "04 ago", horas: 8, estadoColor: "oklch(0.5 0.15 150)" },
+  { nombre: "Diseño de API de pagos", descripcion: "Contrato REST para PSE", estado: "Completada", area: "Backend", asignado: "J. Gómez", fecha: "06 ago", horas: 10, estadoColor: "oklch(0.5 0.15 150)" },
+  { nombre: "Integración pasarela PSE", descripcion: "Conexión con endpoints del banco", estado: "En curso", area: "Backend", asignado: "J. Gómez", fecha: "14 ago", horas: 14, estadoColor: "oklch(0.5 0.14 250)" },
+  { nombre: "Pantalla de confirmación de pago", descripcion: "UI de resultado de transacción", estado: "En curso", area: "Frontend", asignado: "P. León", fecha: "13 ago", horas: 6, estadoColor: "oklch(0.5 0.14 250)" },
+  { nombre: "Plan de pruebas de carga", descripcion: "Escenarios de concurrencia", estado: "Pendiente", area: "QA", asignado: "C. Duarte", fecha: "18 ago", horas: 0, estadoColor: "#627887" },
+  { nombre: "Pruebas de seguridad PCI", descripcion: "Checklist de certificación", estado: "Pendiente", area: "QA", asignado: "C. Duarte", fecha: "20 ago", horas: 0, estadoColor: "#627887" },
+];
+
+const ACTIVIDADES = [
+  { fecha: "08 ago", tipo: "Desarrollo", autor: "J. Gómez", horas: "5h", comentario: "Avance en integración de endpoints de PSE." },
+  { fecha: "07 ago", tipo: "Reunión", autor: "L. Ramírez", horas: "1h", comentario: "Seguimiento semanal con stakeholder." },
+  { fecha: "06 ago", tipo: "Desarrollo", autor: "P. León", horas: "4h", comentario: "Maquetación pantalla de confirmación." },
+  { fecha: "05 ago", tipo: "Comentario", autor: "C. Duarte", horas: "—", comentario: "Bloqueo temporal por credenciales de ambiente de pruebas." },
+];
+
+const AREAS_DEF = ["Todas", "Frontend", "Backend", "QA"];
+
+class Component extends DCLogic {
+  state = { areaActiva: "Todas" };
+
+  renderVals() {
+    const fasesHoras = FASES.map((f) => ({ ...f, pct: Math.min(Math.round((f.ejecutadas / f.estimadas) * 100), 100), color: f.ejecutadas > f.estimadas ? "oklch(0.55 0.2 25)" : "#FF7500" }));
+
+    const dotMap = { completada: { bg: "oklch(0.62 0.15 150)", label: "✓" }, "en-curso": { bg: "oklch(0.58 0.16 250)", label: "●" }, pendiente: { bg: "#D8DEE4", label: "" } };
+    const estadoLabelMap = { completada: "Completado", "en-curso": "En curso", pendiente: "Pendiente" };
+    const estadoColorMap = { completada: "oklch(0.5 0.15 150)", "en-curso": "oklch(0.5 0.14 250)", pendiente: "#627887" };
+
+    const fasesStepper = FASES.map((f) => ({
+      nombre: f.nombre,
+      dotBg: dotMap[f.estado].bg,
+      dotLabel: dotMap[f.estado].label,
+      estadoLabel: estadoLabelMap[f.estado],
+      estadoColor: estadoColorMap[f.estado],
+      tareasActivas: TAREAS_ACTIVAS_POR_FASE[f.nombre] || [],
+    }));
+
+    const areas = AREAS_DEF.map((a) => ({
+      nombre: a,
+      onClick: () => this.setState({ areaActiva: a }),
+      bg: this.state.areaActiva === a ? "#FFF3E8" : "#fff",
+      color: this.state.areaActiva === a ? "#CC5E00" : "#627887",
+    }));
+
+    const tareasVisibles = TAREAS.filter((t) => this.state.areaActiva === "Todas" || t.area === this.state.areaActiva);
+
+    return { fasesHoras, fasesStepper, areas, tareasVisibles, actividades: ACTIVIDADES };
+  }
+}
+
+</script>
+</body>
+</html>

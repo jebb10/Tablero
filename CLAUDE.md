@@ -19,24 +19,26 @@ consulta siempre "Estado actual" abajo antes de proponer cambios grandes.
   completos, y `src/proxy.ts` redirige a `/login` cualquier ruta sin
   sesión. Falta B.5 (RoleGate) y B.6 (verificación de seguridad + cierre
   de documentación).
-- **Pendiente antes de confiar en el flujo de recuperar contraseña en
-  producción: configurar SMTP propio en Supabase** (Authentication →
-  Settings → SMTP Settings). El servicio de correo por defecto de
-  Supabase (sin SMTP propio) tiene un límite de envíos muy bajo pensado
-  solo para pruebas — se agotó durante la verificación manual de B.3 y no
-  se pudo confirmar en vivo el último tramo del flujo (aterrizar en
-  `/login/restablecer` y definir la nueva contraseña). El resto del
-  checklist de B.3 (login Admin/Viewer, logout, protección de rutas,
-  manejo de link expirado) sí se verificó en vivo. También hace falta
-  agregar `https://tablero-pi.vercel.app/auth/callback` a la lista de
-  Redirect URLs de Supabase (Authentication → URL Configuration) antes de
-  desplegar esta unidad — hoy solo está whitelisteado el de `localhost`.
+- **El flujo completo de recuperar/restablecer contraseña ya se probó en
+  vivo con éxito (confirmado por el PO, 2026-08-09)**: pedir el correo,
+  llegar el enlace, aterrizar en `/login/restablecer` y definir la nueva
+  contraseña funcionó de punta a punta. El límite de envíos del SMTP por
+  defecto de Supabase (sin SMTP propio) ya no bloquea esta verificación,
+  pero **sigue sin configurarse un SMTP propio** — a vigilar si el volumen
+  de envíos crece (hoy son 1 Admin + pocos Viewers, riesgo bajo). También
+  sigue pendiente agregar `https://tablero-pi.vercel.app/auth/callback` a
+  la lista de Redirect URLs de Supabase (Authentication → URL
+  Configuration) — hoy solo está whitelisteado el de `localhost`;
+  verificar si el flujo probado en producción ya pasó por ahí o si usó
+  localhost.
 - **El sistema de diseño de Claude Design para B.3 (login) y B.5
-  (RoleGate) ya llegó** — ver `design/` en la raíz del repo (dos archivos
-  `.dc.html` de referencia) y los tokens nuevos en `src/app/globals.css`
-  (`--surface-muted`, `--success`, `--destructive-text`, `--warning-bg`/
-  `--warning-text`, `--primary-hover`/`--primary-disabled`). B.3/B.5 ya no
-  necesitan esperar nada del sistema de diseño para planificarse.
+  (RoleGate) ya llegó e integró** — ver `design/` en la raíz del repo y
+  los tokens nuevos en `src/app/globals.css` (`--surface-muted`,
+  `--success`, `--destructive-text`, `--warning-bg`/`--warning-text`,
+  `--primary-hover`/`--primary-disabled`). **Además, el 2026-08-09
+  llegaron 3 maquetas nuevas de Fase C** (home, Gantt, detalle de
+  requerimiento) — ver la tabla "Diseños de Claude Design entregados" en
+  `ROADMAP_V2.md` para el mapeo exacto a cada unidad pendiente.
 - **A partir de la Fase B, el flujo de git cambió**: rama + PR (autoaprobado
   por el PO) en vez de push directo a `origin/main` como en toda la Fase 0.
   Vercel no tiene previews por PR — la verificación real en producción solo

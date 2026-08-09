@@ -114,6 +114,22 @@ decisiones equivocadas.
 
 ---
 
+## Diseños de Claude Design entregados (carpeta `design/`)
+
+| Archivo | Cubre | Estado |
+|---|---|---|
+| `design-system-auth.dc.html` | Tokens/paleta base del sistema de diseño | Base, ya integrada en `globals.css` (B.3) |
+| `auth-dashboard-414.dc.html` | Login/recuperar/restablecer contraseña | Integrado (B.3) |
+| `home-resumen-general.dc.html` | Rediseño visual del home (`/`, hoy `dashboard-client.tsx`) — agrega KPI "Reabiertos" y "Salud del proyecto" que hoy no existen en el código | **Sin unidad asignada todavía** — es un rediseño de una pantalla ya construida en Fase A, no una unidad nueva del roadmap. Evaluar con el PO si se agenda como unidad propia (p.ej. "C0 — Rediseño Home") antes de tocar `dashboard-client.tsx`/`kpi-strip.tsx`. |
+| `fase-c1-gantt-planeacion.dc.html` | Ver Unidad C1.3 arriba | Cubre parcialmente C1.3 (falta estimado/confirmado y sticky) |
+| `fase-c-detalle-requerimiento.dc.html` | Ver Unidades C2.4 y C3.2 arriba | Cubre la vista de lectura; falta el modal de registro de C3.2 |
+
+Todos llegaron el 2026-08-09, después del cierre de B.4. Todos son maquetas estáticas con datos de
+ejemplo hardcodeados (no leen Supabase) — sirven como especificación visual/de interacción para
+integrar, no como código a copiar literal.
+
+---
+
 # FASE 0 — Fundaciones ✅ completa (2026-08-09)
 
 Nada de B/C/D se ejecuta sin esto. La Fase B modifica RLS sobre datos de producción; sin migraciones
@@ -323,6 +339,12 @@ por duraciones fijas por fase (Requerimientos 3, Diseño 5, Desarrollo 10, QA 4,
 
 ## Unidad C1.3 — Refinamiento de `gantt-timeline.tsx`
 
+**Diseño ya disponible**: `design/fase-c1-gantt-planeacion.dc.html` (Claude Design, llegó 2026-08-09) —
+zoom mensual/semanal, filtro con/sin consumo, barras por tarea + hitos, tooltip al hover, agrupación
+por requerimiento. Cubre buena parte de los puntos 1/2/7 de abajo; **no** resuelve la distinción
+estimado/confirmado (punto 6) ni el sticky de columna (punto 5) — señalarlo al PO si hace falta un
+segundo encargo a Claude Design para esos dos puntos antes de ejecutar la unidad.
+
 **Meta.** Convertir el timeline en un Gantt legible ahora que hay duraciones reales.
 
 1. **Escala configurable** `"dia" | "semana" | "mes"` con `PX_POR_DIA` 20/6/2, estado en
@@ -467,6 +489,10 @@ muestra el banner; `code` duplicado da error de campo. **Borrar el requerimiento
 
 ## Unidad C2.4 — Hacer alcanzables los 21 sin detalle + arreglar el drill-down
 
+**Diseño ya disponible**: `design/fase-c-detalle-requerimiento.dc.html` (Claude Design, llegó
+2026-08-09) — página de detalle con header + KPIs de horas, barra estimado/consumido por fase, stepper
+de fases, tabla de tareas filtrable por área, y la sección de bitácora de C3.2 (ver abajo).
+
 Implementa la decisión #10 y resuelve la contradicción #7 y el bug del error descartado.
 
 1. `requerimiento-card.tsx:35` → eliminar `esNavegable`; **los 28 son clickeables**. Mantener el
@@ -545,6 +571,11 @@ anónimo no puede leer.
 ---
 
 ## Unidad C3.2 — Modal de bitácora + historial
+
+**Diseño ya disponible**: la sección "Registro de actividades" de
+`design/fase-c-detalle-requerimiento.dc.html` (ver C2.4) — tabla fecha/tipo/autor/horas/comentario. El
+diseño la muestra de solo lectura; **falta el diseño del modal de registro** (punto 2 de abajo) — no
+está cubierto todavía, encargarlo a Claude Design cuando se planifique esta unidad.
 
 1. `registrarActividad`: `requireAdmin()` → zod (`event_type` ∈ los 5 del CHECK, `title` requerido,
    `hours_spent` numérico que **admite negativos**, `notes` opcional, `logged_at` con default hoy pero
