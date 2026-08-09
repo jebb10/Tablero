@@ -8,11 +8,16 @@ el detalle de tareas por fase al hacer drill-down. Este es un proyecto **vivo,
 construido por fases** — no asumas que la fase actual es la versión final;
 consulta siempre "Estado actual" abajo antes de proponer cambios grandes.
 
-## Estado actual: Fase 0 (Fundaciones) — completa
+## Estado actual: Fase 0 completa; Fase B en curso (Unidad B.1 completa)
 
 - Desplegado en Vercel: [tablero-pi.vercel.app](https://tablero-pi.vercel.app/)
   (repo: `https://github.com/jebb10/Tablero.git`), sin autenticación
-  todavía (login es la Fase B pendiente — ver `ROADMAP_V2.md`).
+  todavía (Unidad B.1 solo introdujo el manejo de cookies de sesión SSR,
+  sin usuarios ni RLS restrictiva — ver `ROADMAP_V2.md`).
+- **A partir de la Fase B, el flujo de git cambió**: rama + PR (autoaprobado
+  por el PO) en vez de push directo a `origin/main` como en toda la Fase 0.
+  Vercel no tiene previews por PR — la verificación real en producción solo
+  ocurre después de mergear.
 - El PO decidió revertir la decisión de "sin BD, sin multi-proyecto" de la
   antigua Fase 5 (ver más abajo) para convertir esto en una aplicación real:
   multi-proyecto, con login por roles y escritura. La migración a Supabase
@@ -42,9 +47,12 @@ consulta siempre "Estado actual" abajo antes de proponer cambios grandes.
   dashboard, este es el punto a resolver antes que nada, con las opciones
   ya evaluadas ahí.
 - **Sigue faltando** (ver `ROADMAP_V2.md`, fuente de verdad vigente — anula
-  a `ROADMAP_SUPABASE.md`): Fase B (Supabase Auth + roles Admin/Viewer),
-  Fase C (pantallas de escritura), Fase D (documentos versionados en
-  Storage). Fase 0 (fundaciones) ya está completa.
+  a `ROADMAP_SUPABASE.md`): el resto de la Fase B (B.2 a B.6: perfiles,
+  login, flip de RLS a solo-autenticados, RoleGate), Fase C (pantallas de
+  escritura — la UI espera componentes sincronizados desde el sistema de
+  diseño del PO en claude.ai/design, no se construye con shadcn como
+  placeholder), Fase D (documentos versionados en Storage). Fase 0
+  (fundaciones) ya está completa.
 
 ## Fuente de datos
 
@@ -131,11 +139,15 @@ manualmente para reactivar el cron, y confirmar que el run termina en verde.
   preset elegido en `npx shadcn init` fue "Nova". Los componentes en
   `src/components/ui/` usan `@base-ui/react/*`, no `@radix-ui/react-*`.
 - **`@supabase/supabase-js`** para leer/escribir Supabase (Postgres + API
-  REST). `src/lib/supabase/server.ts` crea el cliente `anon`.
+  REST). **`@supabase/ssr`** (Unidad B.1) maneja las cookies de sesión SSR —
+  `src/lib/supabase/server.ts` crea el cliente `anon` para Server
+  Components/data-loaders, `src/lib/supabase/proxy-client.ts` el usado por
+  `src/proxy.ts`.
 - **`lucide-react`** para íconos (mapeo por palabra clave en
   `src/lib/icons.tsx`).
 - Base de datos real (Supabase/Postgres) desde la Fase A. Sin autenticación
-  todavía (Fase B pendiente, ver `ROADMAP_V2.md`).
+  todavía (Unidad B.1 completa: cookies de sesión SSR sin usuarios ni RLS
+  restrictiva; faltan B.2–B.6, ver `ROADMAP_V2.md`).
 - **Control de versiones**: repo git local, rama `master` (tracking
   `origin/main`), remoto `https://github.com/jebb10/Tablero.git`. Un solo
   commit con todo el historial real del proyecto (el commit inicial de
@@ -148,7 +160,10 @@ manualmente para reactivar el cron, y confirmar que el run termina en verde.
 | --- | --- |
 | `supabase/migrations/` | DDL versionado (tablas, RLS, seed del proyecto), aplicado vía `npm run db:push` (CLI de Supabase). El DDL original de la Fase A quedó archivado en `supabase/legado/schema-fase-a.sql` ("HISTÓRICO. No ejecutar"). |
 | `scripts/migrate_to_supabase.py` | Script one-time (admin-run) que migró el `.xlsx` legado a Supabase vía `supabase-py`. Idempotente (upsert), reporte de verificación al final. No se vuelve a correr salvo que haya que re-migrar desde cero (`--reset`) — inejecutable hoy de todas formas, el `.xlsx` fuente ya no existe. |
-| `src/lib/supabase/server.ts` | `getSupabaseClient()` — cliente `anon` de `@supabase/supabase-js`. |
+| `src/lib/supabase/server.ts` | `getSupabaseClient()` (async, Unidad B.1) — cliente `anon` de `@supabase/ssr` (`createServerClient`) con cookies de sesión vía `cookies()` de `next/headers`. Usado por Server Components/data-loaders. |
+| `src/lib/supabase/config.ts` | `SUPABASE_URL`/`SUPABASE_ANON_KEY` hardcodeadas (Unidad B.1, antes vivían en `server.ts`) — mismo motivo que el antiguo `SHEET_ID`, ver "Fuente de datos". |
+| `src/lib/supabase/proxy-client.ts` | `createProxyClient(request)` (Unidad B.1) — cliente que lee/escribe cookies vía `NextRequest`/`NextResponse`, usado únicamente por `src/proxy.ts`. |
+| `src/proxy.ts` | Proxy de Next 16.2 (Unidad B.1, reemplaza a `middleware.ts`) — hoy solo refresca el token de sesión, sin redirigir (el login es la Unidad B.3). Matcher excluye `_next/static`/`_next/image`/`favicon.ico`/imágenes/fuentes. |
 | `src/lib/supabase/database.types.ts` | Tipos generados vía `npm run types:db` (CLI de Supabase) — usado por los tres módulos `src/lib/*-data.ts` para tipar las consultas sin `as`. |
 | `src/lib/project.ts` | `PROJECT_SLUG` — default hardcodeado del único proyecto sembrado (`positiva-web-414`). |
 | `src/lib/estados.ts` | Fuente única de estados: `ESTADOS_DB`, `ESTADO_DB_A_ES`/`ESTADO_ES_A_DB`, `dbAEstado()` (con `console.warn` para valores no mapeados). Sustituye el `Record` de 4 claves que antes vivía inline en `dashboard-data.ts`. |
@@ -248,8 +263,12 @@ planteadas:
   `estados.ts`, `fechas.ts`, `fases-orden.ts`, `zod`) y Unidad 0.5 (backup,
   con ensayo de restauración real verificado) completadas 2026-08-09. Diseño
   completo en `ROADMAP_V2.md`. Siguiente: Fase B (Auth).
-- **Fase B — Supabase Auth + roles (Admin/Viewer):** pendiente. Diseño
-  completo en `ROADMAP_V2.md`.
+- **Fase B — Supabase Auth + roles (Admin/Viewer):** en curso. **Unidad B.1
+  (clientes SSR + `proxy.ts`) ✅ completa (2026-08-09)** — confirmó que
+  `@supabase/ssr` es compatible con `proxy.ts` de Next 16.2 (la incógnita
+  mayor de la fase), sin tocar RLS ni crear usuarios. Faltan B.2–B.6. Diseño
+  completo en `ROADMAP_V2.md`. Desde esta unidad, Fase B usa rama + PR (no
+  push directo a `main`).
 - **Fase C — Pantallas de escritura (CRUD):** pendiente. Diseño completo en
   `ROADMAP_V2.md`.
 - **Fase D — Documentos versionados (sin versionado real: subir reemplaza y
