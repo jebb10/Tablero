@@ -168,9 +168,12 @@ manualmente para reactivar el cron, y confirmar que el run termina en verde.
   `src/proxy.ts`.
 - **`lucide-react`** para íconos (mapeo por palabra clave en
   `src/lib/icons.tsx`).
-- Base de datos real (Supabase/Postgres) desde la Fase A. Sin autenticación
-  todavía (Unidad B.1 completa: cookies de sesión SSR sin usuarios ni RLS
-  restrictiva; faltan B.2–B.6, ver `ROADMAP_V2.md`).
+- Base de datos real (Supabase/Postgres) desde la Fase A. **Autenticación
+  real desde la Unidad B.3**: Supabase Auth con `/login`, logout,
+  recuperar/restablecer contraseña, y `src/proxy.ts` exigiendo sesión en
+  toda ruta no pública. Roles Admin/Viewer existen (tabla `profiles`,
+  Unidad B.2) pero hoy son solo informativos (`RoleBadge`) — la RLS de
+  datos sigue en lectura pública hasta la Unidad B.4, ver `ROADMAP_V2.md`.
 - **Control de versiones**: repo git local, rama `master` (tracking
   `origin/main`), remoto `https://github.com/jebb10/Tablero.git`. Un solo
   commit con todo el historial real del proyecto (el commit inicial de
@@ -187,7 +190,13 @@ manualmente para reactivar el cron, y confirmar que el run termina en verde.
 | `src/lib/supabase/server.ts` | `getSupabaseClient()` (async, Unidad B.1) — cliente `anon` de `@supabase/ssr` (`createServerClient`) con cookies de sesión vía `cookies()` de `next/headers`. Usado por Server Components/data-loaders. |
 | `src/lib/supabase/config.ts` | `SUPABASE_URL`/`SUPABASE_ANON_KEY` hardcodeadas (Unidad B.1, antes vivían en `server.ts`) — mismo motivo que el antiguo `SHEET_ID`, ver "Fuente de datos". |
 | `src/lib/supabase/proxy-client.ts` | `createProxyClient(request)` (Unidad B.1) — cliente que lee/escribe cookies vía `NextRequest`/`NextResponse`, usado únicamente por `src/proxy.ts`. |
-| `src/proxy.ts` | Proxy de Next 16.2 (Unidad B.1, reemplaza a `middleware.ts`) — hoy solo refresca el token de sesión, sin redirigir (el login es la Unidad B.3). Matcher excluye `_next/static`/`_next/image`/`favicon.ico`/imágenes/fuentes. |
+| `src/proxy.ts` | Proxy de Next 16.2 (Unidad B.1, reemplaza a `middleware.ts`) — desde la Unidad B.3, exige sesión: si `auth.getUser()` no devuelve usuario y la ruta no es pública (`/login*`, `/auth*`), redirige a `/login?next=<ruta>` (protección optimista; la RLS pública sigue siendo el respaldo real hasta B.4). Matcher excluye `_next/static`/`_next/image`/`favicon.ico`/imágenes/fuentes. |
+| `src/lib/auth/session.ts` | `getCurrentProfile()` (Unidad B.3, memoizado con `cache()`) — valida el usuario contra Supabase Auth y lee su `role`/`full_name` de `profiles`; sin fila en `profiles` = no autorizado. `requireAuth()`/`requireAdmin()` existen como helpers para Fase C, sin consumidores todavía. |
+| `src/app/login/page.tsx` + `src/app/login/actions.ts` | Página de login (Server Component) + Server Actions `loginAction()`/`cerrarSesion()` (Unidad B.3) — `signInWithPassword`/`signOut` de Supabase Auth, con `rutaSegura()` para evitar open-redirect vía `?next=`. |
+| `src/app/login/recuperar/*` + `src/app/login/restablecer/*` | Flujo de recuperar/restablecer contraseña (Unidad B.3) — **pendiente probar en vivo por el PO**, ver "Estado actual". |
+| `src/app/auth/callback/route.ts` | Route Handler (Unidad B.3) que intercambia el código PKCE del correo de recuperación por una sesión real. |
+| `src/components/auth/login-form.tsx`, `recuperar-form.tsx`, `restablecer-form.tsx` | Formularios cliente (Unidad B.3) sobre `useActionState`, con componentes shadcn/ui (`Alert`, `Button`, `Input`, `Label`, `Spinner`) + tokens del sistema de diseño de Claude Design. |
+| `src/components/auth/role-badge.tsx` | `RoleBadge` (Unidad B.3) — badge visual Admin/Viewer en el nav de `layout.tsx`; puramente informativo, no condiciona renderizado (eso es la Unidad B.5). |
 | `src/lib/supabase/database.types.ts` | Tipos generados vía `npm run types:db` (CLI de Supabase) — usado por los tres módulos `src/lib/*-data.ts` para tipar las consultas sin `as`. |
 | `src/lib/project.ts` | `PROJECT_SLUG` — default hardcodeado del único proyecto sembrado (`positiva-web-414`). |
 | `src/lib/estados.ts` | Fuente única de estados: `ESTADOS_DB`, `ESTADO_DB_A_ES`/`ESTADO_ES_A_DB`, `dbAEstado()` (con `console.warn` para valores no mapeados). Sustituye el `Record` de 4 claves que antes vivía inline en `dashboard-data.ts`. |
@@ -287,23 +296,29 @@ planteadas:
   `estados.ts`, `fechas.ts`, `fases-orden.ts`, `zod`) y Unidad 0.5 (backup,
   con ensayo de restauración real verificado) completadas 2026-08-09. Diseño
   completo en `ROADMAP_V2.md`. Siguiente: Fase B (Auth).
-- **Fase B — Supabase Auth + roles (Admin/Viewer):** en curso. **Unidad B.1
-  (clientes SSR + `proxy.ts`) ✅ completa (2026-08-09)** — confirmó que
-  `@supabase/ssr` es compatible con `proxy.ts` de Next 16.2 (la incógnita
-  mayor de la fase), sin tocar RLS ni crear usuarios. **Unidad B.2
-  (`profiles` + `is_admin()` + usuarios) ✅ completa (2026-08-08)** — tabla
-  `profiles`, función `is_admin()` sin recursión (verificado en vivo
-  autenticado), `scripts/create_user.mjs`, 2 usuarios reales creados
-  (1 Admin + 1 Viewer de prueba); RLS pública sin tocar todavía. Faltan
-  B.3–B.6. Diseño completo en `ROADMAP_V2.md`. Desde la Unidad B.1, Fase B
-  usa rama + PR (no push directo a `main`).
+- **Fase B — Supabase Auth + roles (Admin/Viewer):** en curso. Unidades
+  B.1–B.3 ✅ completas — detalle de cada una (fechas, verificación en vivo,
+  hallazgos) archivado en `ROADMAP_HISTORIAL.md` para no inflar este
+  documento. Resumen: clientes SSR + `proxy.ts` (B.1), `profiles` +
+  `is_admin()` + usuarios reales (B.2), `/login` + logout + recuperar/
+  restablecer contraseña (B.3, alcance ampliado respecto al diseño
+  original — ver historial). Pendientes reales antes de dar B.3 por 100%
+  verificada: SMTP propio en Supabase, redirect URL de `/auth/callback` en
+  producción, y probar en vivo el flujo de recuperar contraseña. Faltan
+  B.4 (flip de RLS), B.5 (RoleGate) y B.6 (verificación de seguridad +
+  cierre de documentación) — diseño completo en `ROADMAP_V2.md`. Desde la
+  Unidad B.1, Fase B usa rama + PR (no push directo a `main`).
 - **Fase C — Pantallas de escritura (CRUD):** pendiente. Diseño completo en
   `ROADMAP_V2.md`.
 - **Fase D — Documentos versionados (sin versionado real: subir reemplaza y
   borra el anterior):** pendiente. Diseño completo en `ROADMAP_V2.md`.
 
 Resumen ejecutivo de la Fase A: `ROADMAP_SUPABASE.md` (en la raíz de este
-repo) — queda como historial, **superado**. Plan detallado de la Fase 0 en
-adelante: `ROADMAP_V2.md` (en la raíz de este repo) — es la fuente de
-verdad vigente para todo lo que sigue; incluye la tabla de 14 puntos donde
-`ROADMAP_SUPABASE.md` contradice lo que hay en disco.
+repo) — queda como historial, **superado**. Diseño vigente de lo que falta
+(B.4 en adelante): `ROADMAP_V2.md` (en la raíz de este repo) — se mantiene
+liviano a propósito, solo con el diseño de unidades pendientes; incluye la
+tabla de 14 puntos donde `ROADMAP_SUPABASE.md` contradice lo que hay en
+disco. **Bitácora completa de todas las unidades ya cerradas (0.0–0.6, Fase
+A, B.1–B.3): `ROADMAP_HISTORIAL.md`** — solo hace falta abrirlo si se
+necesita el detalle exacto de cómo se ejecutó algo ya hecho, no para seguir
+trabajando.

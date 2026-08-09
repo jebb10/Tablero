@@ -66,3 +66,4 @@ cargarla así desde el archivo evita que aparezca en el historial de la sesión.
 | Archivo | Aplicada en (UTC) | Cómo |
 | --- | --- | --- |
 | `20260101000000_baseline_fase_a.sql` | — (marcada como ya aplicada, no ejecutada) | `supabase migration repair --status applied 20260101000000` — describe el esquema que ya existía en prod desde la Fase A, verificado en la Unidad 0.0 |
+| `20260808233430_fase_b_profiles.sql` | 2026-08-08 | `npm run db:push` — Unidad B.2: tabla `profiles`, función `is_admin()`, policies `profiles_self_read`/`profiles_admin_all`. No toca las policies de lectura pública de `requirements`/`requirement_tasks` (eso es la Unidad B.4). |
