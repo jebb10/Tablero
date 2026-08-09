@@ -28,7 +28,7 @@ export interface RequerimientoDetalleResult {
  * lugar donde inyectar el cliente autenticado.
  */
 export async function getRequerimientoDetalle(slug: string): Promise<RequerimientoDetalleResult> {
-  const supabase = getSupabaseClient();
+  const supabase = await getSupabaseClient();
 
   try {
     const { data: proyecto, error: errorProyecto } = await supabase

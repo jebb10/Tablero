@@ -30,7 +30,7 @@ export async function getPlaneacionData(): Promise<{
   error: boolean;
 }> {
   try {
-    const supabase = getSupabaseClient();
+    const supabase = await getSupabaseClient();
 
     const { data: proyecto, error: errorProyecto } = await supabase
       .from("projects")
