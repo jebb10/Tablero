@@ -28,13 +28,12 @@ consulta siempre "Estado actual" abajo antes de proponer cambios grandes.
   es fuente de datos, no requiere mantenimiento, y no hace falta seguir
   pensando en él (el gotcha de fórmulas sin recalcular, las hojas ocultas,
   etc. son historia, no tareas pendientes).
-- **Pendiente por definir: estrategia de backup.** El `.xlsx` legado hacía
-  de respaldo informal; al borrarlo, todavía no hay un plan de backup
-  explícito para los datos de Supabase más allá del point-in-time recovery
-  que ofrece el plan pagado (el free tier no lo incluye con la misma
-  profundidad). Antes de confiar en esto a largo plazo, hay que decidir algo
-  como: exports periódicos (`pg_dump` o el backup nativo de Supabase),
-  automatizados vía GitHub Actions o Vercel Cron. No implementado todavía.
+- **Backup (Unidad 0.5): workflow listo, falta un paso manual del PO.**
+  `.github/workflows/backup.yml` + `supabase/RUNBOOK_BACKUP.md` ya están
+  escritos (dump diario de esquema+datos vía GitHub Actions, artifact 90
+  días). Falta que el PO cree el secreto `SUPABASE_DB_URL` en GitHub y se
+  corra el primer ensayo de restauración — sin eso, la unidad no cuenta como
+  verificada. Ver la bitácora de ensayos en `RUNBOOK_BACKUP.md`.
 - Cubre: vista principal con KPIs, búsqueda/filtros, 4 bloques de estado y
   semáforo por fecha límite; drill-down por requerimiento con línea de
   tiempo de fases; vista `/planeacion` (Gantt) con sidebar colapsable.

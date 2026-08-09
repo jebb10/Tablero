@@ -44,6 +44,11 @@ desktop.ini
 # vercel
 .vercel
 
+# dumps de backup (Unidad 0.5) -- nunca commitear datos de negocio del
+# cliente. Suben como artifact de GitHub Actions, no al repo.
+/schema.sql
+/data.sql
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

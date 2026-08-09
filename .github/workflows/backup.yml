@@ -1,0 +1,41 @@
+name: Backup Supabase
+
+on:
+  schedule:
+    # 07:00 UTC = 02:00 America/Bogota. GitHub deshabilita workflows
+    # programados en repos sin actividad por 60 dias -- ver RUNBOOK_BACKUP.md.
+    - cron: "0 7 * * *"
+  workflow_dispatch: {}
+
+jobs:
+  dump:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.112.0
+
+      - name: Dump esquema (detector de deriva contra las migraciones)
+        run: supabase db dump --db-url "$SUPABASE_DB_URL" --schema public -f schema.sql
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+
+      - name: Dump datos (irremplazable)
+        run: supabase db dump --db-url "$SUPABASE_DB_URL" --data-only -f data.sql
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+
+      - name: Confirmar que los dumps no estan vacios
+        run: |
+          test -s schema.sql
+          test -s data.sql
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: supabase-backup-${{ github.run_id }}
+          path: |
+            schema.sql
+            data.sql
+          retention-days: 90

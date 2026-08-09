@@ -457,6 +457,20 @@ guardar el archivo hasta confirmar que el flip salió bien.
 **Aceptación.** El workflow produce dos artefactos no vacíos; se restauró en destino limpio con
 conteos coincidentes; el runbook existe con fecha de ensayo; grep de la contraseña en el repo → cero.
 
+### 🟡 Unidad 0.5 en curso (2026-08-08) — código listo, falta acción manual del PO
+
+`.github/workflows/backup.yml` (cron diario 02:00 America/Bogotá + `workflow_dispatch`, dos dumps
+`schema.sql`/`data.sql` vía `supabase/setup-cli@v1`, artifact con `retention-days: 90`) y
+`supabase/RUNBOOK_BACKUP.md` escritos. `.gitignore` actualizado para nunca commitear `schema.sql`/
+`data.sql` si se generan en local por error.
+
+**No se puede marcar ✅ completada todavía**: el criterio de aceptación exige un ensayo de
+restauración real con conteos coincidentes, y eso requiere que el PO cree primero el secreto
+`SUPABASE_DB_URL` en GitHub (no automatizable desde esta sesión) y dispare el workflow — instrucciones
+paso a paso dadas en el chat. Ver la bitácora de ensayos en `RUNBOOK_BACKUP.md` para el estado real.
+Confirmado sin Docker Desktop en esta máquina → la prueba de restauración usa un proyecto Supabase
+desechable, no `supabase start` local.
+
 ---
 
 ## Unidad 0.6 — Andamiaje compartido (slug, estados, fechas, fases)
