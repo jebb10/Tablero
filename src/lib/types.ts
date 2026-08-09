@@ -4,7 +4,8 @@ export type Estado =
   | "En curso"
   | "Pausado"
   | "No iniciado"
-  | "Entregado en producción";
+  | "Entregado en producción"
+  | "Cerrado por cambio de alcance";
 
 export interface Requerimiento {
   item: string;

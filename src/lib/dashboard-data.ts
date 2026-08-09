@@ -2,20 +2,14 @@ import { calcularSemaforo } from "./semaforo";
 import { getKPIs } from "./kpis";
 import { PROJECT_SLUG } from "./project";
 import { getSupabaseClient } from "./supabase/server";
+import { dbAEstado } from "./estados";
 import type { Database } from "./supabase/database.types";
-import type { Estado, KPIs, Requerimiento } from "./types";
+import type { KPIs, Requerimiento } from "./types";
 
 interface DashboardData {
   requerimientos: Requerimiento[];
   kpis: KPIs;
 }
-
-const ESTADO_DB_A_ES: Record<string, Estado> = {
-  NO_INICIADO: "No iniciado",
-  EN_CURSO: "En curso",
-  PAUSADO: "Pausado",
-  ENTREGADO_PRODUCCION: "Entregado en producción",
-};
 
 function contieneBloqueo(notas: string | null): boolean {
   if (!notas) return false;
@@ -49,7 +43,7 @@ function adaptar(row: RequirementRow, idsConTareas: Set<string>): Requerimiento 
     item: row.code,
     slug: row.slug,
     nombre: row.title,
-    estado: ESTADO_DB_A_ES[row.status] ?? "No iniciado",
+    estado: dbAEstado(row.status),
     mes: row.month_label,
     complejidad: row.complexity,
     horasEstimadas,

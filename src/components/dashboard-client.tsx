@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { FileDown, Search } from "lucide-react";
+import { ChevronDown, ChevronUp, FileDown, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -30,6 +30,8 @@ const BLOQUES: { estado: Estado; etiqueta: string; dot: string }[] = [
   },
 ];
 
+const ESTADO_CERRADO: Estado = "Cerrado por cambio de alcance";
+
 const TODOS = "__todos__";
 
 function ordenarPorFechaLimite(a: Requerimiento, b: Requerimiento): number {
@@ -53,6 +55,7 @@ export function DashboardClient({
   const [busqueda, setBusqueda] = useState("");
   const [complejidad, setComplejidad] = useState(TODOS);
   const [mes, setMes] = useState(TODOS);
+  const [cerradosExpandido, setCerradosExpandido] = useState(false);
 
   const complejidades = useMemo(
     () =>
@@ -77,6 +80,11 @@ export function DashboardClient({
       return true;
     });
   }, [requerimientos, busqueda, complejidad, mes]);
+
+  const cerrados = useMemo(
+    () => filtrados.filter((r) => r.estado === ESTADO_CERRADO).sort(ordenarPorFechaLimite),
+    [filtrados]
+  );
 
   return (
     <div className="flex flex-col gap-6">
@@ -165,6 +173,36 @@ export function DashboardClient({
           </section>
         );
         })}
+
+      {cerrados.length > 0 && (
+        <div className="overflow-hidden rounded-xl border">
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={() => setCerradosExpandido((v) => !v)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") setCerradosExpandido((v) => !v);
+            }}
+            className="flex cursor-pointer items-center justify-between gap-3 p-3.5"
+          >
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+              Cerrados por cambio de alcance ({cerrados.length})
+            </h2>
+            {cerradosExpandido ? (
+              <ChevronUp className="h-4 w-4 shrink-0 text-muted-foreground" />
+            ) : (
+              <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
+            )}
+          </div>
+          {cerradosExpandido && (
+            <div className="grid grid-cols-2 gap-3 border-t p-3.5 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+              {cerrados.map((r) => (
+                <RequerimientoCard key={r.item} req={r} />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
       </div>
 
       <PdfReport requerimientos={requerimientos} kpis={kpis} />

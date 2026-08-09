@@ -6,6 +6,7 @@ export function getKPIs(requerimientos: Requerimiento[]): KPIs {
     Pausado: 0,
     "No iniciado": 0,
     "Entregado en producción": 0,
+    "Cerrado por cambio de alcance": 0,
   };
   let horasEstimadasTotal = 0;
   let horasEjecutadasTotal = 0;

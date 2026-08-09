@@ -5,6 +5,7 @@ const BLOQUES: { estado: Estado; etiqueta: string }[] = [
   { estado: "Pausado", etiqueta: "Pausados" },
   { estado: "No iniciado", etiqueta: "No iniciados" },
   { estado: "Entregado en producción", etiqueta: "Entregados en producción" },
+  { estado: "Cerrado por cambio de alcance", etiqueta: "Cerrados por cambio de alcance" },
 ];
 
 function formatearFecha(fecha: Date | null): string {

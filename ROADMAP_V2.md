@@ -517,6 +517,31 @@ dashboard renderiza igual salvo la nueva sección de cerrados (hoy vacía).
 **[VERIFICAR EN VIVO]** Si la query 10 de 0.0 devolvió >0, esos requerimientos hoy se muestran como
 "No iniciado" y la corrección **cambia los conteos de los KPIs** — avisar al PO antes de desplegar.
 
+### ✅ Unidad 0.6 completada (2026-08-08)
+
+`src/lib/fases-orden.ts` deduplica el `FASES_ORDEN` que vivía repetido en `fases.ts` y
+`planeacion-data.ts`. `src/lib/slug.ts` porta `slugify()` de `migrate_to_supabase.py` (mismo orden:
+`toLowerCase()` antes de `normalize("NFD")`); el fixture `slug.fixtures.json` **no existía en disco**
+pese a lo que decía la nota de la Unidad 0.0 — en vez de pedirle al PO la query manual en el SQL
+Editor, se generó con un script Node de un solo uso (`@supabase/supabase-js` + `SUPABASE_SECRET_KEY`
+local, nunca commiteado) contra la BD real: **28 filas**, coincide con el conteo de 0.0. Los 28 casos
+del `slug.test.ts` pasan, incluyendo los 5 códigos con espacios/comas/paréntesis que motivaron el test.
+`src/lib/estados.ts` es ahora la fuente única (`ESTADOS_DB`, `ESTADO_DB_A_ES` exhaustivo con los 5
+valores incluyendo `CERRADO_POR_CAMBIO_ALCANCE`, `ESTADO_ES_A_DB` derivado, `dbAEstado()` con
+`console.warn` en vez de fallback silencioso). `types.ts` gana el 5º valor de `Estado`; `kpis.ts`
+completado (el compilador lo marcó, como anticipaba el roadmap); `dashboard-data.ts` importa
+`dbAEstado()` en vez de mantener su propio `Record` de 4 claves. `dashboard-client.tsx` añadió una
+sección colapsable "Cerrados por cambio de alcance" debajo de los 4 bloques (colapsada por defecto,
+patrón igual al de `DataQualityPanel`); `pdf-report.tsx` añadió el 5º bloque a su tabla plana.
+`src/lib/fechas.ts` creado sin consumidores todavía (queda listo para C1.4, como decía el diseño —
+**no se tocó `semaforo.ts`**, cambiar su default es alcance explícito de esa unidad, no de esta).
+`zod` instalado como dependencia. **0 requerimientos reales en `CERRADO_POR_CAMBIO_ALCANCE` hoy**
+(confirmado en 0.0) → la sección nueva queda vacía/oculta, sin cambio visible para el PO.
+`typecheck`/`lint`/`build` limpios; `npm run test`: 41/41 en verde. Verificado en vivo con `npm run dev`
+(gotcha ya conocido de Turbopack reapareció — `Failed to open database`/`invalid digit found in
+string`; se resolvió igual que antes borrando `.next/`): las 3 rutas devuelven 200 sin banner de error,
+y la sección de cerrados no aparece en el HTML (0 casos).
+
 ---
 
 # FASE B — Supabase Auth + roles Admin/Viewer

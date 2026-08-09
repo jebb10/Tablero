@@ -139,6 +139,10 @@ en este documento.
 | `src/lib/supabase/server.ts` | `getSupabaseClient()` — cliente `anon` de `@supabase/supabase-js`. |
 | `src/lib/supabase/database.types.ts` | Tipos generados vía `npm run types:db` (CLI de Supabase) — usado por los tres módulos `src/lib/*-data.ts` para tipar las consultas sin `as`. |
 | `src/lib/project.ts` | `PROJECT_SLUG` — default hardcodeado del único proyecto sembrado (`positiva-web-414`). |
+| `src/lib/estados.ts` | Fuente única de estados: `ESTADOS_DB`, `ESTADO_DB_A_ES`/`ESTADO_ES_A_DB`, `dbAEstado()` (con `console.warn` para valores no mapeados). Sustituye el `Record` de 4 claves que antes vivía inline en `dashboard-data.ts`. |
+| `src/lib/slug.ts` | `slugify()` — port TS del de `scripts/migrate_to_supabase.py`, verificado contra los 28 códigos reales en `src/lib/__tests__/slug.fixtures.json`. |
+| `src/lib/fases-orden.ts` | `FASES_ORDEN` — antes duplicado en `fases.ts` y `planeacion-data.ts`. |
+| `src/lib/fechas.ts` | `hoyLocal()`/`aISO()`/`desdeISO()`/`sumarDias()`/`diffDias()` en zona `America/Bogota`. Sin consumidores todavía (se usa a partir de la Unidad C1.4). |
 | `src/lib/semaforo.ts` | `calcularSemaforo(deadline)` — rojo/ámbar/verde/sin-fecha por proximidad de fecha límite (umbrales 3/10 días). Reusado en la card y en `/planeacion`. |
 | `src/lib/fases.ts` | `agruparPorFase(filas)` — agrupa filas planas de `requirement_tasks` en el shape `Fase[]` que consume `FaseStepper`. |
 | `src/lib/planeacion-data.ts` | `getPlaneacionData()` — consulta requerimientos con `has_detail_tracking` + sus tareas, arma el shape que consume `/planeacion`. |
@@ -228,12 +232,10 @@ planteadas:
   (más de 30 preguntas de descubrimiento) y detalle campo a campo de la
   migración en `ROADMAP_SUPABASE.md` (historial).
 - **Fase 0 — Fundaciones (migraciones versionadas, tipos generados, CI,
-  backup, andamiaje compartido):** en curso. Unidades 0.0 (verificación BD
-  real), 0.1 (CLI Supabase + migraciones versionadas), 0.2 (tipos
-  generados), 0.3 (Vitest + CI) y 0.4 (robustez del app-shell) ✅
-  completadas (2026-08-07). Queda pendiente la Unidad 0.5 (backup) y el
-  andamiaje compartido (deduplicar `FASES_ORDEN` y la consulta de
-  `project_id` por `slug`, repetidos en varios `src/lib/*-data.ts`). Diseño
+  backup, andamiaje compartido):** en curso. Unidades 0.0–0.4 ✅ completadas
+  (2026-08-07). Unidad 0.6 (andamiaje compartido: `slug.ts`, `estados.ts`,
+  `fechas.ts`, `fases-orden.ts`, `zod`) ✅ completada (2026-08-08). Queda
+  pendiente la Unidad 0.5 (backup — en curso en esta misma sesión). Diseño
   completo en `ROADMAP_V2.md`.
 - **Fase B — Supabase Auth + roles (Admin/Viewer):** pendiente. Diseño
   completo en `ROADMAP_V2.md`.

@@ -1,6 +1,7 @@
 import { calcularSemaforo, type Semaforo } from "./semaforo";
 import { PROJECT_SLUG } from "./project";
 import { getSupabaseClient } from "./supabase/server";
+import { FASES_ORDEN } from "./fases-orden";
 
 export interface PlaneacionTarea {
   id: string;
@@ -23,14 +24,6 @@ export interface PlaneacionRequerimiento {
   title: string;
   fases: PlaneacionFase[];
 }
-
-const FASES_ORDEN = [
-  { numero: 1, nombre: "Requerimientos" },
-  { numero: 2, nombre: "Diseño" },
-  { numero: 3, nombre: "Desarrollo" },
-  { numero: 4, nombre: "QA" },
-  { numero: 5, nombre: "Producción" },
-];
 
 export async function getPlaneacionData(): Promise<{
   requerimientos: PlaneacionRequerimiento[];

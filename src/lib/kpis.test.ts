@@ -35,6 +35,7 @@ describe("getKPIs", () => {
       Pausado: 0,
       "No iniciado": 0,
       "Entregado en producción": 0,
+      "Cerrado por cambio de alcance": 0,
     });
   });
 

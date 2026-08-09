@@ -1,0 +1,114 @@
+[
+  {
+    "code": "ACCAI_HU0001_Formulario",
+    "slug": "accai-hu0001-formulario"
+  },
+  {
+    "code": "Accesibilidad, Portal Web",
+    "slug": "accesibilidad-portal-web"
+  },
+  {
+    "code": "ACRO_HU0001_ModificacionDocumentosAcrobat",
+    "slug": "acro-hu0001-modificaciondocumentosacrobat"
+  },
+  {
+    "code": "ACRO_HU0002_ModificacionDocumentosAcrobat",
+    "slug": "acro-hu0002-modificaciondocumentosacrobat"
+  },
+  {
+    "code": "ACRO_HU0005_RediseñoFurelFurat",
+    "slug": "acro-hu0005-redisenofurelfurat"
+  },
+  {
+    "code": "ADMI_HU0001_AdministradorPortalPensionados",
+    "slug": "admi-hu0001-administradorportalpensionados"
+  },
+  {
+    "code": "BANN_HU0001_AdminBanners",
+    "slug": "bann-hu0001-adminbanners"
+  },
+  {
+    "code": "BICI_HU0001_ProductoDigitalBicibles",
+    "slug": "bici-hu0001-productodigitalbicibles"
+  },
+  {
+    "code": "COTI_HU0001_LevantamientoDeRequerimiento",
+    "slug": "coti-hu0001-levantamientoderequerimiento"
+  },
+  {
+    "code": "Desarrollo y puesta en producción - Exequias",
+    "slug": "desarrollo-y-puesta-en-produccion-exequias"
+  },
+  {
+    "code": "DOCU_HU0001_BibliotecaListasInteligentes",
+    "slug": "docu-hu0001-bibliotecalistasinteligentes"
+  },
+  {
+    "code": "Estandarización Documental",
+    "slug": "estandarizacion-documental"
+  },
+  {
+    "code": "EXEQ_HU0001_ExequiasPositiva",
+    "slug": "exeq-hu0001-exequiaspositiva"
+  },
+  {
+    "code": "GEWE_HU0001_AdminEstadoActualizacion",
+    "slug": "gewe-hu0001-adminestadoactualizacion"
+  },
+  {
+    "code": "GEWE_HU0006_GestiónDocumentos",
+    "slug": "gewe-hu0006-gestiondocumentos"
+  },
+  {
+    "code": "IMPU_HU0001_GenerarCertificados",
+    "slug": "impu-hu0001-generarcertificados"
+  },
+  {
+    "code": "INTE_HU0001_MODULO_DE_BUSQUEDA_INTERMEDIARIOS",
+    "slug": "inte-hu0001-modulo-de-busqueda-intermediarios"
+  },
+  {
+    "code": "NOT_HU0001_EstructuracionNoticias",
+    "slug": "not-hu0001-estructuracionnoticias"
+  },
+  {
+    "code": "PARQ_HU0001_DiseñoPáginaInterna",
+    "slug": "parq-hu0001-disenopaginainterna"
+  },
+  {
+    "code": "Produccion VIGILANTES CORPORATIVOS EXEQUIAS ARL",
+    "slug": "produccion-vigilantes-corporativos-exequias-arl"
+  },
+  {
+    "code": "PUNT_HU0001_PuntosdeAtención",
+    "slug": "punt-hu0001-puntosdeatencion"
+  },
+  {
+    "code": "SALUD_HU0001_ModificaciónPantalla+Salud",
+    "slug": "salud-hu0001-modificacionpantalla-salud"
+  },
+  {
+    "code": "SALUD_HU0002_Rediseño",
+    "slug": "salud-hu0002-rediseno"
+  },
+  {
+    "code": "SALUD_HU005_DirectorioMédico",
+    "slug": "salud-hu005-directoriomedico"
+  },
+  {
+    "code": "SINI_HU0001_PortalAvisoSiniestros",
+    "slug": "sini-hu0001-portalavisosiniestros"
+  },
+  {
+    "code": "VIAJ_HU0001_CotizadorViajeros",
+    "slug": "viaj-hu0001-cotizadorviajeros"
+  },
+  {
+    "code": "Wompi (FR14) Validaciones Cambios Gaia",
+    "slug": "wompi-fr14-validaciones-cambios-gaia"
+  },
+  {
+    "code": "WOMPI_HU0001_RevisiónDesarrollo",
+    "slug": "wompi-hu0001-revisiondesarrollo"
+  }
+]
