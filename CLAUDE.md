@@ -8,12 +8,21 @@ el detalle de tareas por fase al hacer drill-down. Este es un proyecto **vivo,
 construido por fases** — no asumas que la fase actual es la versión final;
 consulta siempre "Estado actual" abajo antes de proponer cambios grandes.
 
-## Estado actual: Fase 0 completa; Fase B en curso (Unidad B.1 completa)
+## Estado actual: Fase 0 completa; Fase B en curso (Unidades B.1 y B.2 completas)
 
 - Desplegado en Vercel: [tablero-pi.vercel.app](https://tablero-pi.vercel.app/)
   (repo: `https://github.com/jebb10/Tablero.git`), sin autenticación
-  todavía (Unidad B.1 solo introdujo el manejo de cookies de sesión SSR,
-  sin usuarios ni RLS restrictiva — ver `ROADMAP_V2.md`).
+  todavía en el sitio público (B.1/B.2 crearon la infraestructura —
+  cookies de sesión SSR, tabla `profiles`, `is_admin()`, 2 usuarios reales
+  — pero RLS sigue en modo lectura pública hasta el flip de la Unidad B.4;
+  no hay pantalla de login todavía, esa es la Unidad B.3 — ver
+  `ROADMAP_V2.md`).
+- **El sistema de diseño de Claude Design para B.3 (login) y B.5
+  (RoleGate) ya llegó** — ver `design/` en la raíz del repo (dos archivos
+  `.dc.html` de referencia) y los tokens nuevos en `src/app/globals.css`
+  (`--surface-muted`, `--success`, `--destructive-text`, `--warning-bg`/
+  `--warning-text`, `--primary-hover`/`--primary-disabled`). B.3/B.5 ya no
+  necesitan esperar nada del sistema de diseño para planificarse.
 - **A partir de la Fase B, el flujo de git cambió**: rama + PR (autoaprobado
   por el PO) en vez de push directo a `origin/main` como en toda la Fase 0.
   Vercel no tiene previews por PR — la verificación real en producción solo
@@ -47,11 +56,11 @@ consulta siempre "Estado actual" abajo antes de proponer cambios grandes.
   dashboard, este es el punto a resolver antes que nada, con las opciones
   ya evaluadas ahí.
 - **Sigue faltando** (ver `ROADMAP_V2.md`, fuente de verdad vigente — anula
-  a `ROADMAP_SUPABASE.md`): el resto de la Fase B (B.2 a B.6: perfiles,
-  login, flip de RLS a solo-autenticados, RoleGate), Fase C (pantallas de
-  escritura — la UI espera componentes sincronizados desde el sistema de
-  diseño del PO en claude.ai/design, no se construye con shadcn como
-  placeholder), Fase D (documentos versionados en Storage). Fase 0
+  a `ROADMAP_SUPABASE.md`): el resto de la Fase B (B.3 a B.6: login, flip
+  de RLS a solo-autenticados, RoleGate), Fase C (pantallas de escritura —
+  la UI espera componentes sincronizados desde el sistema de diseño del PO
+  en claude.ai/design; el de B.3/B.5 ya llegó, el resto de Fase C sigue
+  pendiente), Fase D (documentos versionados en Storage). Fase 0
   (fundaciones) ya está completa.
 
 ## Fuente de datos
@@ -160,6 +169,7 @@ manualmente para reactivar el cron, y confirmar que el run termina en verde.
 | --- | --- |
 | `supabase/migrations/` | DDL versionado (tablas, RLS, seed del proyecto), aplicado vía `npm run db:push` (CLI de Supabase). El DDL original de la Fase A quedó archivado en `supabase/legado/schema-fase-a.sql` ("HISTÓRICO. No ejecutar"). |
 | `scripts/migrate_to_supabase.py` | Script one-time (admin-run) que migró el `.xlsx` legado a Supabase vía `supabase-py`. Idempotente (upsert), reporte de verificación al final. No se vuelve a correr salvo que haya que re-migrar desde cero (`--reset`) — inejecutable hoy de todas formas, el `.xlsx` fuente ya no existe. |
+| `scripts/create_user.mjs` | Script admin-run (Unidad B.2) para crear/actualizar usuarios: `auth.admin.createUser` + upsert en `profiles`, idempotente por email. Lee `SUPABASE_SECRET_KEY` de entorno, nunca del código. Único flujo soportado para altas de usuario — evita el estado roto de un usuario en `auth.users` sin fila en `profiles`. |
 | `src/lib/supabase/server.ts` | `getSupabaseClient()` (async, Unidad B.1) — cliente `anon` de `@supabase/ssr` (`createServerClient`) con cookies de sesión vía `cookies()` de `next/headers`. Usado por Server Components/data-loaders. |
 | `src/lib/supabase/config.ts` | `SUPABASE_URL`/`SUPABASE_ANON_KEY` hardcodeadas (Unidad B.1, antes vivían en `server.ts`) — mismo motivo que el antiguo `SHEET_ID`, ver "Fuente de datos". |
 | `src/lib/supabase/proxy-client.ts` | `createProxyClient(request)` (Unidad B.1) — cliente que lee/escribe cookies vía `NextRequest`/`NextResponse`, usado únicamente por `src/proxy.ts`. |
@@ -266,9 +276,13 @@ planteadas:
 - **Fase B — Supabase Auth + roles (Admin/Viewer):** en curso. **Unidad B.1
   (clientes SSR + `proxy.ts`) ✅ completa (2026-08-09)** — confirmó que
   `@supabase/ssr` es compatible con `proxy.ts` de Next 16.2 (la incógnita
-  mayor de la fase), sin tocar RLS ni crear usuarios. Faltan B.2–B.6. Diseño
-  completo en `ROADMAP_V2.md`. Desde esta unidad, Fase B usa rama + PR (no
-  push directo a `main`).
+  mayor de la fase), sin tocar RLS ni crear usuarios. **Unidad B.2
+  (`profiles` + `is_admin()` + usuarios) ✅ completa (2026-08-08)** — tabla
+  `profiles`, función `is_admin()` sin recursión (verificado en vivo
+  autenticado), `scripts/create_user.mjs`, 2 usuarios reales creados
+  (1 Admin + 1 Viewer de prueba); RLS pública sin tocar todavía. Faltan
+  B.3–B.6. Diseño completo en `ROADMAP_V2.md`. Desde la Unidad B.1, Fase B
+  usa rama + PR (no push directo a `main`).
 - **Fase C — Pantallas de escritura (CRUD):** pendiente. Diseño completo en
   `ROADMAP_V2.md`.
 - **Fase D — Documentos versionados (sin versionado real: subir reemplaza y

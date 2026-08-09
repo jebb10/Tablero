@@ -741,6 +741,34 @@ verificar en SQL Editor que ambos tienen fila en `profiles` → `npm run types:d
 funcionando igual para anónimos** (aún no se tocó RLS); el signup público falla; grep de `sb_secret_`
 en el repo → cero.
 
+### ✅ Unidad B.2 completada (2026-08-08)
+
+Ejecutada según el diseño, sin desviaciones del DDL propuesto.
+
+- **`npm run db:dump` local falló por un gotcha nuevo**: el comando `supabase db dump` requiere Docker
+  Desktop en esta máquina (no instalado) — a diferencia de `db push`/`db list`, que sí funcionan solo
+  con `--db-url`. Como red de seguridad alternativa se disparó manualmente el workflow `backup.yml`
+  (`workflow_dispatch`) desde la pestaña Actions y se confirmó en verde antes de aplicar la migración.
+  Si se necesita un dump local en el futuro, instalar Docker Desktop primero.
+- Migración `20260808233430_fase_b_profiles.sql` aplicada sin cambios sobre el DDL de esta sección;
+  `db push --dry-run` y `db push` limpios, `db list` confirma local=remoto.
+- **Verificado en vivo (no solo con la secret key)**: `select public.is_admin()` autenticado por
+  contraseña vía `@supabase/supabase-js` con la `anon`/`publishable` key devolvió `true` para el Admin y
+  `false` para el Viewer — sin `stack depth limit exceeded`. El supuesto de no-recursión de `security
+  definer` se confirmó tal como estaba previsto.
+- `scripts/create_user.mjs` creado según el diseño (Admin API + upsert en `profiles`, idempotente por
+  email). Se usó para crear exactamente 2 usuarios: 1 Admin (`johan.benitez@linktic.com`) y 1 Viewer de
+  prueba (`johan414@yopmail.com`) — confirmados con fila en `profiles` vía consulta directa.
+- Pasos manuales del Dashboard (desactivar signup público, confirmar providers, Site URL) realizados
+  por el PO — no verificables desde código, confirmados por el PO.
+- `npm run types:db` regenerado (incluye `profiles`). `typecheck`/`lint` limpios.
+- Ejecutada en la rama `fase-b/b2-profiles` (separada de `fase-b/design-auth-assets`, que solo trae
+  assets/tokens del sistema de diseño y no depende de esta unidad).
+
+Siguiente paso: Unidad B.3 (`/login`, logout, helpers de sesión) — el encargo de diseño para B.3/B.5 ya
+llegó desde Claude Design (ver `design/` en la raíz del repo y los tokens nuevos en `globals.css`), así
+que ya no hay que esperar nada del sistema de diseño para planificarla.
+
 ---
 
 ## Unidad B.3 — `/login`, logout, helpers de sesión y layout con sesión
