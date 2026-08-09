@@ -53,6 +53,12 @@
   --color-status-bloqueo: var(--status-bloqueo);
   --color-status-overbudget: var(--status-overbudget);
   --color-status-atencion: var(--status-atencion);
+  --color-surface-muted: var(--surface-muted);
+  --color-success: var(--success);
+  --color-success-text: var(--success-text);
+  --color-destructive-text: var(--destructive-text);
+  --color-warning-bg: var(--warning-bg);
+  --color-warning-text: var(--warning-text);
 }
 
 :root {
@@ -64,6 +70,8 @@
   --popover-foreground: #1B3B51;
   --primary: #FF7500;              /* Naranja Positiva — Pantone 2018C */
   --primary-foreground: #ffffff;
+  --primary-hover: #E56700;
+  --primary-disabled: #FFD3AD;
   --secondary: #EDEFF2;
   --secondary-foreground: #003145;
   --muted: #EDEFF2;
@@ -98,6 +106,16 @@
   --status-bloqueo: oklch(0.55 0.2 25);         /* rojo, sin cambio */
   --status-overbudget: oklch(0.55 0.2 25);
   --status-atencion: oklch(0.42 0.05 230);      /* nuevo — azul pizarra navy, NO ámbar */
+
+  /* Sistema de diseño Auth (Unidad B.3/B.5, claude.ai/design) — tokens
+     nuevos sin equivalente en el set base de shadcn, no tocan --destructive
+     ni --primary existentes. */
+  --surface-muted: #F7F8FA;
+  --success: #22A06B;
+  --success-text: #178A56;
+  --destructive-text: #B3261E;
+  --warning-bg: color-mix(in oklch, #FF7500, white 92%);
+  --warning-text: #8A4300;
 }
 
 .dark {
