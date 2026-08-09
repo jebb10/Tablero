@@ -8,7 +8,7 @@ el detalle de tareas por fase al hacer drill-down. Este es un proyecto **vivo,
 construido por fases** — no asumas que la fase actual es la versión final;
 consulta siempre "Estado actual" abajo antes de proponer cambios grandes.
 
-## Estado actual: Fase A (Supabase) — completa
+## Estado actual: Fase 0 (Fundaciones) — completa
 
 - Desplegado en Vercel: [tablero-pi.vercel.app](https://tablero-pi.vercel.app/)
   (repo: `https://github.com/jebb10/Tablero.git`), sin autenticación
@@ -16,11 +16,12 @@ consulta siempre "Estado actual" abajo antes de proponer cambios grandes.
 - El PO decidió revertir la decisión de "sin BD, sin multi-proyecto" de la
   antigua Fase 5 (ver más abajo) para convertir esto en una aplicación real:
   multi-proyecto, con login por roles y escritura. La migración a Supabase
-  (Fase A del nuevo roadmap) ya está completa; faltan Fase 0 (fundaciones:
-  migraciones versionadas, tipos generados, CI, backup — ver más abajo),
-  Fase B (auth/roles), Fase C (pantallas de escritura) y Fase D (documentos
-  versionados) — ver `ROADMAP_V2.md` para el diseño vigente completo y las
-  decisiones tomadas (`ROADMAP_SUPABASE.md` queda como historial, superado).
+  (Fase A del nuevo roadmap) y la Fase 0 (fundaciones: migraciones
+  versionadas, tipos generados, CI, backup, andamiaje compartido — ver más
+  abajo) ya están completas; faltan Fase B (auth/roles), Fase C (pantallas
+  de escritura) y Fase D (documentos versionados) — ver `ROADMAP_V2.md`
+  para el diseño vigente completo y las decisiones tomadas
+  (`ROADMAP_SUPABASE.md` queda como historial, superado).
 - Lee de un proyecto Supabase (Postgres + API REST), ver "Fuente de datos"
   abajo. **El Google Sheet / `.xlsx` que se usaba antes de la Fase A ya no
   existe** — el archivo (`legado/REQUERIMIENTOS BOLSAS DE HORAS 414.xlsx`)
@@ -28,12 +29,12 @@ consulta siempre "Estado actual" abajo antes de proponer cambios grandes.
   es fuente de datos, no requiere mantenimiento, y no hace falta seguir
   pensando en él (el gotcha de fórmulas sin recalcular, las hojas ocultas,
   etc. son historia, no tareas pendientes).
-- **Backup (Unidad 0.5): workflow listo, falta un paso manual del PO.**
-  `.github/workflows/backup.yml` + `supabase/RUNBOOK_BACKUP.md` ya están
-  escritos (dump diario de esquema+datos vía GitHub Actions, artifact 90
-  días). Falta que el PO cree el secreto `SUPABASE_DB_URL` en GitHub y se
-  corra el primer ensayo de restauración — sin eso, la unidad no cuenta como
-  verificada. Ver la bitácora de ensayos en `RUNBOOK_BACKUP.md`.
+- **Backup (Unidad 0.5): completo y verificado (2026-08-09).**
+  `.github/workflows/backup.yml` hace un dump diario de esquema+datos vía
+  GitHub Actions (artifact 90 días). Ensayo de restauración real ejecutado
+  de punta a punta contra un proyecto Supabase desechable, conteos
+  coincidentes (28/164) — ver `supabase/RUNBOOK_BACKUP.md` para el detalle
+  y la bitácora de ensayos.
 - Cubre: vista principal con KPIs, búsqueda/filtros, 4 bloques de estado y
   semáforo por fecha límite; drill-down por requerimiento con línea de
   tiempo de fases; vista `/planeacion` (Gantt) con sidebar colapsable.
@@ -45,10 +46,9 @@ consulta siempre "Estado actual" abajo antes de proponer cambios grandes.
   dashboard, este es el punto a resolver antes que nada, con las opciones
   ya evaluadas ahí.
 - **Sigue faltando** (ver `ROADMAP_V2.md`, fuente de verdad vigente — anula
-  a `ROADMAP_SUPABASE.md`): Fase 0 (fundaciones: migraciones versionadas,
-  tipos generados, CI, backup), Fase B (Supabase Auth + roles Admin/Viewer),
+  a `ROADMAP_SUPABASE.md`): Fase B (Supabase Auth + roles Admin/Viewer),
   Fase C (pantallas de escritura), Fase D (documentos versionados en
-  Storage).
+  Storage). Fase 0 (fundaciones) ya está completa.
 
 ## Fuente de datos
 
@@ -230,12 +230,11 @@ planteadas:
   arriba para el resumen; diseño completo, decisiones tomadas con el PO
   (más de 30 preguntas de descubrimiento) y detalle campo a campo de la
   migración en `ROADMAP_SUPABASE.md` (historial).
-- **Fase 0 — Fundaciones (migraciones versionadas, tipos generados, CI,
-  backup, andamiaje compartido):** en curso. Unidades 0.0–0.4 ✅ completadas
-  (2026-08-07). Unidad 0.6 (andamiaje compartido: `slug.ts`, `estados.ts`,
-  `fechas.ts`, `fases-orden.ts`, `zod`) ✅ completada (2026-08-08). Queda
-  pendiente la Unidad 0.5 (backup — en curso en esta misma sesión). Diseño
-  completo en `ROADMAP_V2.md`.
+- **Fase 0 — Fundaciones:** ✅ **completa** (2026-08-09). Unidades 0.0–0.4
+  completadas 2026-08-07; Unidad 0.6 (andamiaje compartido: `slug.ts`,
+  `estados.ts`, `fechas.ts`, `fases-orden.ts`, `zod`) y Unidad 0.5 (backup,
+  con ensayo de restauración real verificado) completadas 2026-08-09. Diseño
+  completo en `ROADMAP_V2.md`. Siguiente: Fase B (Auth).
 - **Fase B — Supabase Auth + roles (Admin/Viewer):** pendiente. Diseño
   completo en `ROADMAP_V2.md`.
 - **Fase C — Pantallas de escritura (CRUD):** pendiente. Diseño completo en

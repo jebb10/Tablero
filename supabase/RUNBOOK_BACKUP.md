@@ -41,8 +41,14 @@ es IPv6-only y los runners de GitHub Actions no tienen IPv6.
 1. Disparar el workflow a mano (`workflow_dispatch`) y descargar los 2 artefactos.
 2. Crear un proyecto Supabase **desechable** (free permite 2 proyectos activos — confirmar que no se
    está ya en el límite antes de crear uno nuevo).
-3. Restaurar `schema.sql` y luego `data.sql` contra el proyecto desechable (`psql` con la connection
-   string del proyecto de prueba, o el flujo equivalente de la CLI de Supabase).
+3. Restaurar `schema.sql` y luego `data.sql` contra el proyecto desechable. **Gotcha confirmado
+   (2026-08-09): `supabase db query --file` falla** con `cannot insert multiple commands into a
+   prepared statement` — la CLI ejecuta el archivo como *prepared statement*, que no soporta
+   múltiples sentencias SQL, y ni `schema.sql` ni `data.sql` son de una sola sentencia. Tampoco hay
+   `psql` instalado en esta máquina. Alternativa que funcionó: `npm install pg --no-save` (cliente
+   Postgres de Node, protocolo *simple query*, sí soporta múltiples statements en un solo `.query()`)
+   y un script de un solo uso que lee el `.sql` y lo ejecuta contra `RESTORE_TEST_DB_URL`. Desinstalar
+   `pg` (`npm uninstall pg`) y borrar el script al terminar — no es una dependencia del proyecto.
 4. Verificar conteos contra los números reales de la Unidad 0.0: **28 `requirements` / 164
    `requirement_tasks`** (no asumir 28/185 — ver 0.0).
 5. Borrar el proyecto de prueba.
@@ -51,7 +57,4 @@ es IPv6-only y los runners de GitHub Actions no tienen IPv6.
 
 | Fecha (UTC) | Resultado | Notas |
 | --- | --- | --- |
-| _pendiente_ | — | Primer ensayo pendiente de ejecutar tras crear el secreto `SUPABASE_DB_URL` en GitHub (ver instrucciones que te doy en el chat). |
-
-**No marcar la Unidad 0.5 como verificada de punta a punta hasta que esta tabla tenga al menos una fila
-real con fecha y resultado.**
+| 2026-08-09 | ✅ Éxito | Run `31291026258` disparado por `workflow_dispatch`. Artifact `supabase-backup-31291026258` (~23 KB) descargado y verificado: `schema.sql` (10.573 bytes) y `data.sql` (81.570 bytes) no vacíos. Restaurados contra un proyecto Supabase desechable (`tablero-restore-test`, borrado al terminar) vía `supabase db query --file` (el flag `--file` falló con múltiples statements — se usó el cliente `pg` de Node en modo simple-query como alternativa). Conteos tras restaurar: **28 `requirements` / 164 `requirement_tasks`** — coinciden exactos con los reales de la Unidad 0.0. |
