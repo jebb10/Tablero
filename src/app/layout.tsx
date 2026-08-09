@@ -5,6 +5,7 @@ import "./globals.css";
 import { cerrarSesion } from "@/app/login/actions";
 import { Button } from "@/components/ui/button";
 import { RoleBadge } from "@/components/auth/role-badge";
+import { RoleGate } from "@/components/auth/role-gate";
 import { getCurrentProfile } from "@/lib/auth/session";
 
 const montserrat = localFont({
@@ -46,6 +47,14 @@ export default async function RootLayout({
             </Link>
             <div className="ml-auto flex items-center gap-3">
               <span className="text-sm text-muted-foreground">{profile.email}</span>
+              <RoleGate>
+                <span
+                  data-testid="admin-only"
+                  className="text-sm font-medium text-muted-foreground"
+                >
+                  Vista Admin
+                </span>
+              </RoleGate>
               <RoleBadge role={profile.role} />
               <form action={cerrarSesion}>
                 <Button type="submit" variant="ghost" size="sm">

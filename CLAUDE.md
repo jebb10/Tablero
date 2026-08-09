@@ -8,7 +8,7 @@ el detalle de tareas por fase al hacer drill-down. Este es un proyecto **vivo,
 construido por fases** — no asumas que la fase actual es la versión final;
 consulta siempre "Estado actual" abajo antes de proponer cambios grandes.
 
-## Estado actual: Fase 0 completa; Fase B en curso (Unidades B.1-B.4 completas)
+## Estado actual: Fase 0 completa; Fase B en cierre (B.5 completa, B.6 en curso)
 
 - Desplegado en Vercel: [tablero-pi.vercel.app](https://tablero-pi.vercel.app/)
   (repo: `https://github.com/jebb10/Tablero.git`). **RLS ya exige sesión
@@ -17,20 +17,19 @@ consulta siempre "Estado actual" abajo antes de proponer cambios grandes.
   `requirement_tasks` por PostgREST. Desde la Unidad B.3 **ya existe
   `/login` real**: login, logout, recuperar/restablecer contraseña
   completos, y `src/proxy.ts` redirige a `/login` cualquier ruta sin
-  sesión. Falta B.5 (RoleGate) y B.6 (verificación de seguridad + cierre
-  de documentación).
-- **El flujo completo de recuperar/restablecer contraseña ya se probó en
-  vivo con éxito (confirmado por el PO, 2026-08-09)**: pedir el correo,
-  llegar el enlace, aterrizar en `/login/restablecer` y definir la nueva
-  contraseña funcionó de punta a punta. El límite de envíos del SMTP por
-  defecto de Supabase (sin SMTP propio) ya no bloquea esta verificación,
-  pero **sigue sin configurarse un SMTP propio** — a vigilar si el volumen
-  de envíos crece (hoy son 1 Admin + pocos Viewers, riesgo bajo). También
-  sigue pendiente agregar `https://tablero-pi.vercel.app/auth/callback` a
-  la lista de Redirect URLs de Supabase (Authentication → URL
-  Configuration) — hoy solo está whitelisteado el de `localhost`;
-  verificar si el flujo probado en producción ya pasó por ahí o si usó
-  localhost.
+  sesión. **Unidad B.5 (`RoleGate`) completa**: la UI ya oculta controles/
+  indicadores solo-Admin a los Viewers, no solo la RLS — ver
+  `src/components/auth/role-gate.tsx`. **Unidad B.6 en curso**:
+  verificación de seguridad con evidencia real contra producción — ver
+  `supabase/RUNBOOK_AUTH.md` (se completa tras el primer deploy con B.5).
+- **El flujo completo de recuperar/restablecer contraseña se probó en vivo
+  con éxito en producción (confirmado por el PO)**: pedir el correo, llegar
+  el enlace, aterrizar en `/login/restablecer` y definir la nueva
+  contraseña funcionó de punta a punta en `https://tablero-pi.vercel.app`.
+  El Redirect URL de `/auth/callback` de producción **ya está whitelisteado**
+  en Supabase (Authentication → URL Configuration). **Sigue sin configurarse
+  un SMTP propio** — pospuesto explícitamente por el PO hasta después de
+  cerrar Fase C (riesgo bajo hoy, con 1 Admin + pocos Viewers).
 - **El sistema de diseño de Claude Design para B.3 (login) y B.5
   (RoleGate) ya llegó e integró** — ver `design/` en la raíz del repo y
   los tokens nuevos en `src/app/globals.css` (`--surface-muted`,
@@ -72,12 +71,12 @@ consulta siempre "Estado actual" abajo antes de proponer cambios grandes.
   dashboard, este es el punto a resolver antes que nada, con las opciones
   ya evaluadas ahí.
 - **Sigue faltando** (ver `ROADMAP_V2.md`, fuente de verdad vigente — anula
-  a `ROADMAP_SUPABASE.md`): el resto de la Fase B (B.5 RoleGate, B.6
-  verificación de seguridad y cierre de documentación), Fase C (pantallas
-  de escritura — la UI espera componentes sincronizados desde el sistema
-  de diseño del PO en claude.ai/design; el de B.3/B.5 ya llegó, el resto
-  de Fase C sigue pendiente), Fase D (documentos versionados en Storage).
-  Fase 0 (fundaciones) ya está completa.
+  a `ROADMAP_SUPABASE.md`): cerrar B.6 (checklist de seguridad contra
+  producción, ver "Seguridad" arriba), Fase C (pantallas de escritura — la
+  UI espera componentes sincronizados desde el sistema de diseño del PO en
+  claude.ai/design; el de B.3/B.5 ya llegó, el resto de Fase C sigue
+  pendiente), Fase D (documentos versionados en Storage). Fase 0
+  (fundaciones) ya está completa.
 
 ## Fuente de datos
 
@@ -154,6 +153,16 @@ commit, **antes de asumir que el backup diario sigue corriendo**: entrar a
 la pestaña Actions del repo y disparar `workflow_dispatch` en `backup.yml`
 manualmente para reactivar el cron, y confirmar que el run termina en verde.
 
+## Seguridad
+
+Verificación de RLS con evidencia real (no por inspección visual) contra
+producción, con las 11 pruebas del checklist de la Unidad B.6 (anónimo no
+lee, Viewer lee pero no escribe/inserta/borra, Admin sí escribe, escalada
+de privilegio bloqueada, signup cerrado, sesión/HTML sin marcador
+admin-only para Viewer): `supabase/RUNBOOK_AUTH.md`. Script reutilizable
+para repetir la verificación: `scripts/verificar_seguridad_fase_b.mjs`
+(lee credenciales de variables de entorno, nunca hardcodeadas).
+
 ## Arquitectura
 
 - **Next.js (App Router) + TypeScript.** OJO: esta instalación es una
@@ -178,9 +187,14 @@ manualmente para reactivar el cron, y confirmar que el run termina en verde.
   recuperar/restablecer contraseña, y `src/proxy.ts` exigiendo sesión en
   toda ruta no pública. Roles Admin/Viewer existen (tabla `profiles`,
   Unidad B.2); en RLS ya distinguen (Unidad B.4: solo Admin puede
-  escribir), pero en la UI siguen siendo solo informativos (`RoleBadge`) —
-  ocultar controles de escritura por rol es la Unidad B.5, ver
-  `ROADMAP_V2.md`.
+  escribir), y desde la Unidad B.5 la UI también oculta contenido por rol:
+  `RoleBadge` sigue siendo solo informativo, pero `RoleGate` (Server
+  Component) condiciona qué se renderiza — para un Viewer, los `children`
+  nunca se serializan en el payload RSC. RLS sigue siendo el control real;
+  `RoleGate` es reducción de superficie, no seguridad. **Regla para Fase C:
+  toda Server Action que escriba debe empezar con `requireAuth()`/
+  `requireAdmin()`** (`src/lib/auth/session.ts`), no confiar solo en RLS
+  para dar feedback claro al usuario.
 - **Control de versiones**: repo git local, rama `master` (tracking
   `origin/main`), remoto `https://github.com/jebb10/Tablero.git`. Un solo
   commit con todo el historial real del proyecto (el commit inicial de
@@ -203,7 +217,8 @@ manualmente para reactivar el cron, y confirmar que el run termina en verde.
 | `src/app/login/recuperar/*` + `src/app/login/restablecer/*` | Flujo de recuperar/restablecer contraseña (Unidad B.3) — **pendiente probar en vivo por el PO**, ver "Estado actual". |
 | `src/app/auth/callback/route.ts` | Route Handler (Unidad B.3) que intercambia el código PKCE del correo de recuperación por una sesión real. |
 | `src/components/auth/login-form.tsx`, `recuperar-form.tsx`, `restablecer-form.tsx` | Formularios cliente (Unidad B.3) sobre `useActionState`, con componentes shadcn/ui (`Alert`, `Button`, `Input`, `Label`, `Spinner`) + tokens del sistema de diseño de Claude Design. |
-| `src/components/auth/role-badge.tsx` | `RoleBadge` (Unidad B.3) — badge visual Admin/Viewer en el nav de `layout.tsx`; puramente informativo, no condiciona renderizado (eso es la Unidad B.5). |
+| `src/components/auth/role-badge.tsx` | `RoleBadge` (Unidad B.3) — badge visual Admin/Viewer en el nav de `layout.tsx`; puramente informativo. |
+| `src/components/auth/role-gate.tsx` | `RoleGate` (Unidad B.5) — Server Component que oculta `children` a quien no tenga el `role` indicado (default `"admin"`), resuelto con `getCurrentProfile()`. Estrenado en `layout.tsx` con un indicador de nav solo-Admin (`data-testid="admin-only"`). |
 | `src/lib/supabase/database.types.ts` | Tipos generados vía `npm run types:db` (CLI de Supabase) — usado por los tres módulos `src/lib/*-data.ts` para tipar las consultas sin `as`. |
 | `src/lib/project.ts` | `PROJECT_SLUG` — default hardcodeado del único proyecto sembrado (`positiva-web-414`). |
 | `src/lib/estados.ts` | Fuente única de estados: `ESTADOS_DB`, `ESTADO_DB_A_ES`/`ESTADO_ES_A_DB`, `dbAEstado()` (con `console.warn` para valores no mapeados). Sustituye el `Record` de 4 claves que antes vivía inline en `dashboard-data.ts`. |
@@ -303,21 +318,21 @@ planteadas:
   `estados.ts`, `fechas.ts`, `fases-orden.ts`, `zod`) y Unidad 0.5 (backup,
   con ensayo de restauración real verificado) completadas 2026-08-09. Diseño
   completo en `ROADMAP_V2.md`. Siguiente: Fase B (Auth).
-- **Fase B — Supabase Auth + roles (Admin/Viewer):** en curso. Unidades
-  B.1–B.4 ✅ completas — detalle de cada una (fechas, verificación en vivo,
-  hallazgos) archivado en `ROADMAP_HISTORIAL.md` para no inflar este
+- **Fase B — Supabase Auth + roles (Admin/Viewer):** en cierre (B.1–B.5 ✅
+  completas, B.6 en curso). Detalle de cada unidad (fechas, verificación en
+  vivo, hallazgos) archivado en `ROADMAP_HISTORIAL.md` para no inflar este
   documento. Resumen: clientes SSR + `proxy.ts` (B.1), `profiles` +
   `is_admin()` + usuarios reales (B.2), `/login` + logout + recuperar/
   restablecer contraseña (B.3, alcance ampliado respecto al diseño
   original — ver historial), flip de RLS a solo-autenticados (B.4,
   2026-08-09: `projects`/`requirements`/`requirement_tasks` ya no son
-  legibles con la anon key, trigger `updated_at` activado). Pendientes
-  reales antes de dar B.3 por 100% verificada: SMTP propio en Supabase,
-  redirect URL de `/auth/callback` en producción, y probar en vivo el
-  flujo de recuperar contraseña. Faltan B.5 (RoleGate) y B.6 (verificación
-  de seguridad + cierre de documentación) — diseño completo en
-  `ROADMAP_V2.md`. Desde la Unidad B.1, Fase B usa rama + PR (no push
-  directo a `main`).
+  legibles con la anon key, trigger `updated_at` activado), `RoleGate`
+  ocultando contenido solo-Admin en la UI (B.5). **B.6 (verificación de
+  seguridad con evidencia real + cierre de documentación) en curso** — ver
+  "Seguridad" arriba y `supabase/RUNBOOK_AUTH.md`. Único pendiente
+  conocido, pospuesto explícitamente por el PO: SMTP propio en Supabase,
+  hasta después de cerrar Fase C. Desde la Unidad B.1, Fase B usa rama +
+  PR (no push directo a `main`).
 - **Fase C — Pantallas de escritura (CRUD):** pendiente. Diseño completo en
   `ROADMAP_V2.md`.
 - **Fase D — Documentos versionados (sin versionado real: subir reemplaza y
