@@ -715,7 +715,60 @@ contemplado arriba — decisión tomada con el PO vía cuestionario el mismo dí
 - **Verificación re-corrida el 2026-08-09** (sesión de limpieza documental, no se tocó código):
   `typecheck`, `lint`, `test` (41/41) y `build` limpios sobre `main` post-merge.
 
-Siguiente paso: Unidad B.4 (flip de RLS) — diseño completo en `ROADMAP_V2.md`, pospuesta
-explícitamente por el PO el 2026-08-09 hasta una sesión futura dedicada. Decisiones de diseño ya
-fijadas para cuando se retome: ver la sección "Decisiones de la Unidad B.4" en `ROADMAP_V2.md`/
-`CLAUDE.md`.
+Siguiente paso (histórico): Unidad B.4 (flip de RLS) — pospuesta explícitamente por el PO el
+2026-08-09 hasta una sesión futura dedicada, retomada y cerrada ese mismo día en una sesión posterior
+(ver bloque abajo).
+
+---
+
+## Unidad B.4 — Flip de RLS a solo-autenticados
+
+**Meta.** Que la anon key deje de leer datos. Hasta esta unidad, cualquiera con la anon key (pública en
+el bundle del navegador) podía leer `projects`, `requirements` y `requirement_tasks` por PostgREST
+aunque la UI pidiera login. Diseño completo (SQL, secuenciación, checklist) archivado en el historial
+de git de `ROADMAP_V2.md` (removido de ese archivo al cerrar esta unidad, para no duplicar contenido ya
+ejecutado).
+
+### ✅ Unidad B.4 completada (2026-08-09)
+
+Precedida de un cuestionario de 20 preguntas al PO (5 rondas) para fijar la logística de ejecución no
+cubierta por el diseño original (sin Docker Desktop disponible en la máquina de ejecución):
+
+- **Respaldo previo**: sin `npm run db:dump` local (requiere Docker), se disparó `workflow_dispatch` de
+  `backup.yml` en GitHub Actions — run en verde antes del push.
+- **Verificación previa**: `supabase db push --dry-run` contra el Session Pooler de producción (no hay
+  Supabase local ni staging) — solo mostró la migración nueva, revisada línea por línea contra el
+  diseño.
+- **Migración aplicada**: `supabase/migrations/20260809163803_fase_b_rls_authenticated.sql` — elimina
+  las 3 policies públicas de lectura; crea `read_authenticated` (select, `to authenticated`) en
+  `projects`/`requirements`/`requirement_tasks`; crea `admin_insert`/`admin_update`/`admin_delete` (vía
+  `public.is_admin()`) en `requirements` y `requirement_tasks` (`projects` sigue solo-lectura, crear
+  proyectos fuera de alcance); activa el trigger `set_updated_at` en `requirements` (comentado desde la
+  Fase A); agrega columna + trigger `updated_at` a `requirement_tasks`.
+- **Rollback preparado de antemano**: `supabase/20260809163803_fase_b_rls_authenticated.down.sql`,
+  ejecutable directo con `supabase db query --file`, además del bloque `-- ROLLBACK:` estándar dentro de
+  la propia migración. No fue necesario usarlo — el push fue limpio a la primera.
+- **Verificación en vivo tras el push** (todas en verde):
+  1. Petición anónima (`Invoke-RestMethod`/`curl`) a las 3 tablas → `[]` HTTP 200 (no 401).
+  2. `pg_policies` sobre las 3 tablas → 9 policies, todas `roles = {authenticated}`, ninguna pública
+     remanente.
+  3. `UPDATE` de prueba sobre un `requirement` (vía secret key local) → `updated_at` avanzó
+     correctamente, confirmando el trigger.
+  4. Sesión de Admin (el PO) y sesión de un usuario Viewer de prueba ya existente, ambas en
+     `tablero-pi.vercel.app` en producción → cargan los datos con normalidad, sin banner de error.
+- **Git**: rama `fase-b/b4-rls-authenticated`, PR #7, CI (typecheck+lint+test+build) en verde, mergeado
+  a `main` por fast-forward (`bdff514..a9b868d`), rama remota y local borradas tras el merge.
+- **Gotcha de entorno nuevo, no documentado antes**: OneDrive genera archivos `desktop.ini` dentro de
+  `.git/refs/**` y `supabase/migrations/`, lo que rompe la resolución de refs de git
+  (`fatal: bad object refs/desktop.ini`) y hace que `supabase db push` reporte
+  `Skipping migration desktop.ini...`. Se limpiaron ambos antes de continuar. Si reaparecen (OneDrive
+  los recrea), simplemente borrarlos — no son parte del repo, no están trackeados por git.
+- **Gotcha de CLI**: `supabase migration new` falla con
+  `LegacyMigrationNewWriteError: AlreadyExists (...\migrations)` en esta instalación (bug similar al ya
+  documentado de `supabase link`) — se creó el archivo de migración a mano con el timestamp generado por
+  `Get-Date -Format "yyyyMMddHHmmss"`, respetando la convención `<timestamp>_<nombre>.sql`.
+- **No se tocó ningún archivo de `src/`** en esta unidad — es 100% SQL, como estaba previsto.
+
+Siguiente paso: Unidad B.5 (`RoleGate`), luego B.6 (verificación de seguridad + cierre de
+documentación). Pendientes reales de B.3 (SMTP propio, redirect URL de `/auth/callback`, prueba en vivo
+de recuperar contraseña) siguen abiertos, deliberadamente fuera de esta sesión.

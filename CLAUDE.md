@@ -8,17 +8,17 @@ el detalle de tareas por fase al hacer drill-down. Este es un proyecto **vivo,
 construido por fases** — no asumas que la fase actual es la versión final;
 consulta siempre "Estado actual" abajo antes de proponer cambios grandes.
 
-## Estado actual: Fase 0 completa; Fase B en curso (Unidades B.1-B.3 completas)
+## Estado actual: Fase 0 completa; Fase B en curso (Unidades B.1-B.4 completas)
 
 - Desplegado en Vercel: [tablero-pi.vercel.app](https://tablero-pi.vercel.app/)
-  (repo: `https://github.com/jebb10/Tablero.git`). **RLS sigue en modo
-  lectura pública** hasta el flip de la Unidad B.4 (a propósito: si algo
-  falla en B.3, los datos siguen siendo legibles), pero desde la Unidad
-  B.3 (rama `fase-b/b3-login-sesion`, ver `PLAN_UNIDAD_B3.md`) **ya existe
+  (repo: `https://github.com/jebb10/Tablero.git`). **RLS ya exige sesión
+  para leer datos** desde la Unidad B.4 (2026-08-09): la anon key pública
+  del bundle del navegador ya no puede leer `projects`/`requirements`/
+  `requirement_tasks` por PostgREST. Desde la Unidad B.3 **ya existe
   `/login` real**: login, logout, recuperar/restablecer contraseña
   completos, y `src/proxy.ts` redirige a `/login` cualquier ruta sin
-  sesión. Falta B.4 (flip de RLS), B.5 (RoleGate) y B.6 (verificación de
-  seguridad + cierre de documentación).
+  sesión. Falta B.5 (RoleGate) y B.6 (verificación de seguridad + cierre
+  de documentación).
 - **Pendiente antes de confiar en el flujo de recuperar contraseña en
   producción: configurar SMTP propio en Supabase** (Authentication →
   Settings → SMTP Settings). El servicio de correo por defecto de
@@ -70,12 +70,12 @@ consulta siempre "Estado actual" abajo antes de proponer cambios grandes.
   dashboard, este es el punto a resolver antes que nada, con las opciones
   ya evaluadas ahí.
 - **Sigue faltando** (ver `ROADMAP_V2.md`, fuente de verdad vigente — anula
-  a `ROADMAP_SUPABASE.md`): el resto de la Fase B (B.4 flip de RLS, B.5
-  RoleGate, B.6 verificación de seguridad y cierre de documentación),
-  Fase C (pantallas de escritura — la UI espera componentes sincronizados
-  desde el sistema de diseño del PO en claude.ai/design; el de B.3/B.5 ya
-  llegó, el resto de Fase C sigue pendiente), Fase D (documentos
-  versionados en Storage). Fase 0 (fundaciones) ya está completa.
+  a `ROADMAP_SUPABASE.md`): el resto de la Fase B (B.5 RoleGate, B.6
+  verificación de seguridad y cierre de documentación), Fase C (pantallas
+  de escritura — la UI espera componentes sincronizados desde el sistema
+  de diseño del PO en claude.ai/design; el de B.3/B.5 ya llegó, el resto
+  de Fase C sigue pendiente), Fase D (documentos versionados en Storage).
+  Fase 0 (fundaciones) ya está completa.
 
 ## Fuente de datos
 
@@ -102,9 +102,12 @@ Esquema completo (DDL) versionado en `supabase/migrations/` (aplicado vía
 `npm run db:push`, CLI de Supabase — ver `supabase/MIGRACIONES.md`) — tablas
 `projects`, `requirements`, `requirement_tasks`, `activity_logs` (vacía,
 forward-looking para Fase C), `document_versions` (vacía, forward-looking
-para Fase D). RLS habilitado con policies de solo lectura pública (sin Auth
-todavía — Fase B las reemplaza por policies basadas en `auth.uid()`). El DDL
-original de la Fase A (`supabase/schema.sql`) quedó archivado en
+para Fase D). **RLS exige sesión desde la Unidad B.4** (2026-08-09):
+`projects`/`requirements`/`requirement_tasks` solo son legibles con
+`auth.uid()` válido (`to authenticated`); escribir en `requirements`/
+`requirement_tasks` exige además `public.is_admin()`. `activity_logs` y
+`document_versions` siguen sin policies (Fase C/D). El DDL original de la
+Fase A (`supabase/schema.sql`) quedó archivado en
 `supabase/legado/schema-fase-a.sql` ("HISTÓRICO. No ejecutar") una vez
 migrado a migraciones versionadas en la Unidad 0.1.
 
@@ -172,8 +175,10 @@ manualmente para reactivar el cron, y confirmar que el run termina en verde.
   real desde la Unidad B.3**: Supabase Auth con `/login`, logout,
   recuperar/restablecer contraseña, y `src/proxy.ts` exigiendo sesión en
   toda ruta no pública. Roles Admin/Viewer existen (tabla `profiles`,
-  Unidad B.2) pero hoy son solo informativos (`RoleBadge`) — la RLS de
-  datos sigue en lectura pública hasta la Unidad B.4, ver `ROADMAP_V2.md`.
+  Unidad B.2); en RLS ya distinguen (Unidad B.4: solo Admin puede
+  escribir), pero en la UI siguen siendo solo informativos (`RoleBadge`) —
+  ocultar controles de escritura por rol es la Unidad B.5, ver
+  `ROADMAP_V2.md`.
 - **Control de versiones**: repo git local, rama `master` (tracking
   `origin/main`), remoto `https://github.com/jebb10/Tablero.git`. Un solo
   commit con todo el historial real del proyecto (el commit inicial de
@@ -297,17 +302,20 @@ planteadas:
   con ensayo de restauración real verificado) completadas 2026-08-09. Diseño
   completo en `ROADMAP_V2.md`. Siguiente: Fase B (Auth).
 - **Fase B — Supabase Auth + roles (Admin/Viewer):** en curso. Unidades
-  B.1–B.3 ✅ completas — detalle de cada una (fechas, verificación en vivo,
+  B.1–B.4 ✅ completas — detalle de cada una (fechas, verificación en vivo,
   hallazgos) archivado en `ROADMAP_HISTORIAL.md` para no inflar este
   documento. Resumen: clientes SSR + `proxy.ts` (B.1), `profiles` +
   `is_admin()` + usuarios reales (B.2), `/login` + logout + recuperar/
   restablecer contraseña (B.3, alcance ampliado respecto al diseño
-  original — ver historial). Pendientes reales antes de dar B.3 por 100%
-  verificada: SMTP propio en Supabase, redirect URL de `/auth/callback` en
-  producción, y probar en vivo el flujo de recuperar contraseña. Faltan
-  B.4 (flip de RLS), B.5 (RoleGate) y B.6 (verificación de seguridad +
-  cierre de documentación) — diseño completo en `ROADMAP_V2.md`. Desde la
-  Unidad B.1, Fase B usa rama + PR (no push directo a `main`).
+  original — ver historial), flip de RLS a solo-autenticados (B.4,
+  2026-08-09: `projects`/`requirements`/`requirement_tasks` ya no son
+  legibles con la anon key, trigger `updated_at` activado). Pendientes
+  reales antes de dar B.3 por 100% verificada: SMTP propio en Supabase,
+  redirect URL de `/auth/callback` en producción, y probar en vivo el
+  flujo de recuperar contraseña. Faltan B.5 (RoleGate) y B.6 (verificación
+  de seguridad + cierre de documentación) — diseño completo en
+  `ROADMAP_V2.md`. Desde la Unidad B.1, Fase B usa rama + PR (no push
+  directo a `main`).
 - **Fase C — Pantallas de escritura (CRUD):** pendiente. Diseño completo en
   `ROADMAP_V2.md`.
 - **Fase D — Documentos versionados (sin versionado real: subir reemplaza y

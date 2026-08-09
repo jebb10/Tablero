@@ -155,7 +155,7 @@ versionadas ni backup probado, es un cambio irreversible sin red de seguridad.
    es RLS. **Adicional: rotar `SUPABASE_SECRET_KEY` en el Dashboard al cerrar la Fase B** (lleva
    tiempo en texto plano en `.env.local`, en una carpeta bajo sincronización de OneDrive).
 
-## Unidades B.1–B.3 ✅ completas
+## Unidades B.1–B.4 ✅ completas
 
 **Diseño original + bitácora de verificación real: `ROADMAP_HISTORIAL.md`.** Resumen:
 
@@ -164,79 +164,13 @@ versionadas ni backup probado, es un cambio irreversible sin red de seguridad.
 | B.1 | Clientes SSR (`server.ts`/`proxy-client.ts`) + `src/proxy.ts` compatible con Next 16.2, sin tocar RLS | 2026-08-09 |
 | B.2 | Tabla `profiles` + `is_admin()` sin recursión + `scripts/create_user.mjs` + 2 usuarios reales | 2026-08-08 |
 | B.3 | `/login`, logout, recuperar/restablecer contraseña, `proxy.ts` exige sesión (alcance ampliado sobre el diseño original) | 2026-08-09 |
+| B.4 | Flip de RLS a solo-autenticados: `projects`/`requirements`/`requirement_tasks` ya no son legibles con la anon key; trigger `updated_at` activado | 2026-08-09 |
 
 **Pendientes reales de B.3, no resueltos** (pospuestos explícitamente por el PO el 2026-08-09):
 SMTP propio en Supabase, redirect URL de `/auth/callback` en producción, y probar en vivo el flujo de
 recuperar contraseña.
 
-**Siguiente unidad a ejecutar: B.4** (abajo). Diseño de B.5/B.6 también abajo, sin ejecutar.
-
----
-
-## Unidad B.4 — Flip de RLS a solo-autenticados (unidad disruptiva)
-
-**Meta.** Que la anon key deje de leer datos. Hasta aquí, cualquiera con la anon key (que está en el
-bundle público) podía leer `projects`, `requirements` y `requirement_tasks` por PostgREST aunque la UI
-pidiera login. **Esta es la unidad que realmente aporta seguridad.** Implementa la decisión #1.
-
-**Secuenciación: desplegar primero, voltear después.** B.3 debe estar **desplegado y verificado en
-producción** antes de aplicar esta migración. Así: si el login estuviera roto, se descubre en B.3
-cuando los datos siguen siendo legibles y el rollback es un revert; y el flip es un único `db push`
-cuyo efecto se comprueba en segundos. La ventana "logueado pero con RLS pública" es de minutos, y los
-datos ya llevaban meses siendo públicos. **No ejecutar B.4 sin haber verificado B.3 en producción.**
-
-**Migración** (`<ts>_fase_b_rls_authenticated.sql`):
-```sql
-drop policy if exists "public read projects"          on public.projects;
-drop policy if exists "public read requirements"      on public.requirements;
-drop policy if exists "public read requirement_tasks" on public.requirement_tasks;
-
--- Patrón repetible por tabla. "to authenticated" deja al rol anon sin ninguna
--- policy => cero filas. Es preferible a auth.role()='authenticated': se evalúa
--- a nivel de rol, no por fila.
-create policy "read_authenticated" on public.requirements
-  for select to authenticated using (true);
-create policy "admin_insert" on public.requirements
-  for insert to authenticated with check (public.is_admin());
-create policy "admin_update" on public.requirements
-  for update to authenticated using (public.is_admin()) with check (public.is_admin());
-create policy "admin_delete" on public.requirements
-  for delete to authenticated using (public.is_admin());
--- Repetir para requirement_tasks. Para projects: solo read_authenticated
--- (crear proyectos no está en alcance; el único se sembró por DDL).
--- activity_logs y document_versions: sus policies se definen en C3.1 y D.1.
-
--- Trigger de updated_at (estaba comentado en schema.sql:118-124; se activa
--- ahora porque a partir de aquí puede haber escrituras). Contradicción #2.
-create or replace function public.set_updated_at() returns trigger
-language plpgsql as $$ begin new.updated_at = now(); return new; end; $$;
-create trigger trg_requirements_updated_at before update on public.requirements
-  for each row execute function public.set_updated_at();
-
--- requirement_tasks no tiene updated_at y C1/C2 la van a editar constantemente:
-alter table public.requirement_tasks add column updated_at timestamptz not null default now();
-create trigger trg_requirement_tasks_updated_at before update on public.requirement_tasks
-  for each row execute function public.set_updated_at();
-```
-
-**Nota:** policies explícitas por comando en vez de `for all`. `for all` cubre también `select` y,
-combinándose por OR con la de lectura, oscurece la intención sin cambiar el resultado.
-
-**Preparar ANTES de aplicar** el archivo `.down.sql` con los `drop policy` de todas las nuevas + los 3
-`create policy "public read …" using (true)` originales + `drop trigger`. Tenerlo abierto durante el push.
-
-**Pasos.** `npm run db:dump` local y confirmar que el archivo no está vacío (**no continuar si falla**)
-→ confirmar B.3 verificada en prod → `db push --dry-run`, revisar línea por línea → `db push` →
-**inmediatamente** correr la verificación anónima (checklist B.6 ítem 1, debe devolver `[]`) →
-recargar el sitio con sesión de Admin y de Viewer. Si aparece el banner de error, el problema casi
-seguro es que el cliente del servidor no envía el JWT (revisar `getAll`/`setAll`) → **rollback inmediato**.
-
-**Aceptación.** Petición a PostgREST con solo la anon key → `[]` (HTTP 200 con array vacío, **no 401**
-— así funciona RLS en `select`). Admin y Viewer ven todo en las 3 rutas. `pg_policies` no muestra
-ninguna policy `using(true)` sin `to authenticated`.
-
-**Rollback.** Aplicar el `.down.sql` preparado. Si fallara, restaurar desde el dump siguiendo
-`RUNBOOK_BACKUP.md`. **Tiempo objetivo: < 5 minutos.**
+**Siguiente unidad a ejecutar: B.5** (abajo). Diseño de B.6 también abajo, sin ejecutar.
 
 ---
 

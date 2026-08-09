@@ -2,11 +2,16 @@
 
 ## Flujo normal
 
-1. `npm run db:new <nombre>` → crea `supabase/migrations/<timestamp>_<nombre>.sql` vacío.
+1. `npm run db:new <nombre>` → crea `supabase/migrations/<timestamp>_<nombre>.sql` vacío. **Si falla
+   con `LegacyMigrationNewWriteError`, ver Gotcha #3** — crear el archivo a mano.
 2. Editar el `.sql`. **Regla obligatoria: todo archivo de migración termina con un bloque comentado
    `-- ROLLBACK:` con el SQL inverso** (ver `20260101000000_baseline_fase_a.sql` como ejemplo).
-3. `npm run db:push -- --dry-run` (revisar la salida línea por línea).
-4. `npm run db:push` para aplicar de verdad.
+3. `npm run db:push -- --dry-run` (revisar la salida línea por línea). **Si falla con
+   `LegacyDbConfigParseUrlError: ...%SUPABASE_DB_POOLER_URL%`, el `%VAR%` de `package.json` no se
+   expandió** (visto en una sesión de PowerShell donde `npm run` no pasó por `cmd.exe`) — usar
+   `npx supabase db push --db-url $env:SUPABASE_DB_POOLER_URL --dry-run` directamente.
+4. `npm run db:push` (o el `npx supabase db push --db-url ...` equivalente si el script falla igual)
+   para aplicar de verdad.
 5. `npm run db:list` para confirmar que local y remoto coinciden.
 
 Antes de este proyecto no había migraciones versionadas: `supabase/legado/schema-fase-a.sql` es el DDL
@@ -45,6 +50,31 @@ tiene IPv6. Lo que no estaba confirmado es que **esta máquina Windows tampoco l
 (`SUPABASE_DB_POOLER_URL` en `.env.local`) tanto en local como en GitHub Actions. No se investigó la
 causa exacta (¿falta de ruta IPv6 del ISP/router?) porque el pooler cubre ambos casos sin más trabajo.
 
+## Gotcha #3 — `supabase migration new` falla en esta instalación
+
+`npm run db:new <nombre>` falla con
+`LegacyMigrationNewWriteError: AlreadyExists: FileSystem.makeDirectory (...\migrations)` aunque el
+directorio ya exista y sea válido (bug similar al de `supabase link`, Gotcha #1). **Workaround:** crear
+el archivo a mano con `New-Item` (nunca `-Force`, para no truncar nada), usando
+`Get-Date -Format "yyyyMMddHHmmss"` como timestamp, respetando el patrón `<timestamp>_<nombre>.sql`
+exigido por la CLI.
+
+## Gotcha #4 — OneDrive genera `desktop.ini` dentro de `supabase/migrations/` y de `.git/refs/`
+
+Esta carpeta del proyecto vive bajo sincronización de OneDrive (ver nota sobre `.env.local` en
+`ROADMAP_V2.md`), que a veces deposita archivos `desktop.ini` dentro de subcarpetas del repo —
+incluyendo `.git/refs/**` (rompe `git checkout -b`/`git pull` con
+`fatal: bad object refs/desktop.ini`) y `supabase/migrations/` (`supabase db push` imprime
+`Skipping migration desktop.ini...`, inofensivo pero ruidoso). No están trackeados por git: si
+aparecen, simplemente borrarlos con `Get-ChildItem -Recurse -Force -Filter "desktop.ini" | Remove-Item -Force`
+en la carpeta afectada.
+
+## `supabase db query` — ejecutar SQL suelto (ej. el rollback de B.4)
+
+No existe `supabase db execute`; el comando correcto es `supabase db query --db-url <url> --file <ruta.sql>`
+(o `supabase db query --db-url <url> "<sql suelto>"`, pero solo admite una sentencia por invocación —
+usar `returning` si hace falta ver el resultado de un `update`/`insert` sin una segunda consulta).
+
 ## Cómo cargar la variable antes de correr cualquier `db:*`
 
 Los scripts de `package.json` esperan `SUPABASE_DB_POOLER_URL` en el entorno del proceso — **no la
@@ -67,3 +97,4 @@ cargarla así desde el archivo evita que aparezca en el historial de la sesión.
 | --- | --- | --- |
 | `20260101000000_baseline_fase_a.sql` | — (marcada como ya aplicada, no ejecutada) | `supabase migration repair --status applied 20260101000000` — describe el esquema que ya existía en prod desde la Fase A, verificado en la Unidad 0.0 |
 | `20260808233430_fase_b_profiles.sql` | 2026-08-08 | `npm run db:push` — Unidad B.2: tabla `profiles`, función `is_admin()`, policies `profiles_self_read`/`profiles_admin_all`. No toca las policies de lectura pública de `requirements`/`requirement_tasks` (eso es la Unidad B.4). |
+| `20260809163803_fase_b_rls_authenticated.sql` | 2026-08-09 | `supabase db push` (vía `npx`, el script `db:push` de `package.json` no expande `%SUPABASE_DB_POOLER_URL%` en esta shell) — Unidad B.4: elimina las 3 policies públicas de lectura de `projects`/`requirements`/`requirement_tasks`, crea `read_authenticated`/`admin_insert`/`admin_update`/`admin_delete`, activa trigger `updated_at` en `requirements` y lo agrega a `requirement_tasks`. Rollback ejecutable en `supabase/20260809163803_fase_b_rls_authenticated.down.sql`. |
