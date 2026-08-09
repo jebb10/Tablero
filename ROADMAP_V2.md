@@ -171,7 +171,7 @@ versionadas ni backup probado, es un cambio irreversible sin red de seguridad.
    es RLS. **Adicional: rotar `SUPABASE_SECRET_KEY` en el Dashboard al cerrar la Fase B** (lleva
    tiempo en texto plano en `.env.local`, en una carpeta bajo sincronización de OneDrive).
 
-## Unidades B.1–B.4 ✅ completas
+## Unidades B.1–B.5 ✅ completas
 
 **Diseño original + bitácora de verificación real: `ROADMAP_HISTORIAL.md`.** Resumen:
 
@@ -181,16 +181,18 @@ versionadas ni backup probado, es un cambio irreversible sin red de seguridad.
 | B.2 | Tabla `profiles` + `is_admin()` sin recursión + `scripts/create_user.mjs` + 2 usuarios reales | 2026-08-08 |
 | B.3 | `/login`, logout, recuperar/restablecer contraseña, `proxy.ts` exige sesión (alcance ampliado sobre el diseño original) | 2026-08-09 |
 | B.4 | Flip de RLS a solo-autenticados: `projects`/`requirements`/`requirement_tasks` ya no son legibles con la anon key; trigger `updated_at` activado | 2026-08-09 |
+| B.5 | `RoleGate` (Server Component) + indicador solo-Admin (`data-testid="admin-only"`) en el nav + tests de `session.ts` con `vi.mock` | 2026-08-09 |
 
-**Pendientes reales de B.3, no resueltos** (pospuestos explícitamente por el PO el 2026-08-09):
-SMTP propio en Supabase, redirect URL de `/auth/callback` en producción, y probar en vivo el flujo de
-recuperar contraseña.
+**Pendientes reales de B.3, ya resueltos** (el PO confirmó en la sesión de cierre de Fase B): el
+redirect URL de `/auth/callback` en producción ya está whitelisteado y el flujo de recuperar
+contraseña se probó en vivo en producción. **SMTP propio en Supabase sigue pendiente, pospuesto
+explícitamente hasta después de cerrar Fase C.**
 
-**Siguiente unidad a ejecutar: B.5** (abajo). Diseño de B.6 también abajo, sin ejecutar.
+**Unidad en curso: B.6** (abajo) — checklist de seguridad contra producción.
 
 ---
 
-## Unidad B.5 — `<RoleGate>` y ocultamiento por rol
+## Unidad B.5 — `<RoleGate>` y ocultamiento por rol ✅ completa (2026-08-09)
 
 **Meta.** Dejar el mecanismo con el que C omitirá los controles de escritura para Viewers, y usarlo ya
 al menos una vez.
@@ -240,16 +242,17 @@ de Admin **sí**. Tests en verde en CI.
 11. **HTML de Viewer** sin el marcador admin-only (B.5).
 
 **Documentación a actualizar (obligatorio — es cómo la siguiente sesión sabe dónde está parada):**
-- **`CLAUDE.md`**: "Estado actual" → Fase B completa; **reemplazar** (no añadir) la sección obsoleta
-  "Fase 3 — Acceso" (Auth.js + Google, plan abandonado); actualizar la tabla de archivos clave con
-  `src/proxy.ts`, `src/lib/auth/session.ts`, `src/lib/supabase/config.ts`,
-  `src/lib/requerimiento-data.ts`, `src/components/error-datos-banner.tsx`; **borrar el punto
-  "Pendiente por definir: estrategia de backup"** (resuelto en 0.5); documentar la regla "toda Server
-  Action empieza con `requireAuth()`/`requireAdmin()`" y el flujo de migraciones.
-- **`README.md`**: hoy está obsoleto (describe la arquitectura de Google Sheet, previa a Supabase).
-  Reescribirlo: qué es, stack, cómo correrlo, cómo hacer un cambio de esquema, cómo entrar, backups.
-- **`ROADMAP_V2.md`**: marcar Fase B completa y anotar las desviaciones respecto a este diseño.
-- **Rotar `SUPABASE_SECRET_KEY`** en el Dashboard y actualizar `.env.local`.
+hecho en la sesión de cierre de Fase B (2026-08-09): `CLAUDE.md` ("Estado actual", sección
+"Seguridad" nueva, tabla de archivos clave, regla `requireAuth()`/`requireAdmin()`), `README.md`
+reescrito (cómo correrlo, cambio de esquema, cómo entrar, backups), esta sección de
+`ROADMAP_V2.md`. **Pendiente**: marcar Fase B 100% completa aquí y en `CLAUDE.md` una vez el
+checklist de abajo corra en verde contra producción; rotar `SUPABASE_SECRET_KEY` en el Dashboard y
+actualizar `.env.local` (último paso, ver instrucciones en `PLAN_CIERRE_FASE_B.md`).
+
+**Script reutilizable para correr el checklist:** `scripts/verificar_seguridad_fase_b.mjs` (lee
+`VIEWER_EMAIL`/`VIEWER_PASSWORD`/`ADMIN_EMAIL`/`ADMIN_PASSWORD` de variables de entorno locales,
+nunca hardcodeadas). Cubre los puntos 1–10 contra producción; el punto 11 se verifica a mano en el
+navegador (ver `supabase/RUNBOOK_AUTH.md`) porque requiere una sesión real, no solo un JWT vía API.
 
 ---
 

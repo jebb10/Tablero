@@ -8,11 +8,12 @@ como fuente de datos.
 
 ## Estado actual
 
-Login con Supabase Auth y roles Admin/Viewer ya funcionan (Fase B en
-curso); RLS de datos sigue en lectura pública hasta el siguiente paso del
-roadmap. **El estado detallado y siempre vigente vive en
-[`CLAUDE.md`](./CLAUDE.md) — no se duplica aquí para evitar que este
-resumen se desactualice.**
+**Fase B (Supabase Auth + roles Admin/Viewer) en cierre**: login real, RLS
+exige sesión para leer y solo Admin puede escribir, y la UI oculta
+controles de escritura a los Viewers (`RoleGate`) — falta cerrar la
+verificación de seguridad con evidencia real (B.6). **El estado detallado y
+siempre vigente vive en [`CLAUDE.md`](./CLAUDE.md) — no se duplica aquí
+para evitar que este resumen se desactualice.**
 
 **Toda la documentación real del proyecto vive en [`CLAUDE.md`](./CLAUDE.md)**:
 arquitectura, fuente de datos, reglas de negocio, estado actual y roadmap
@@ -28,4 +29,25 @@ npm install
 npm run dev
 ```
 
-Abre [http://localhost:3000](http://localhost:3000).
+Abre [http://localhost:3000](http://localhost:3000). Necesitas loguearte con
+un usuario real (ver `scripts/create_user.mjs` para crear uno).
+
+## Cómo entrar
+
+Login real vía Supabase Auth en `/login` — pide tu correo/contraseña de
+usuario (Admin o Viewer, tabla `profiles`). No hay signup abierto: los
+usuarios se crean con `scripts/create_user.mjs` (requiere
+`SUPABASE_SECRET_KEY` local, nunca en el repo).
+
+## Cómo hacer un cambio de esquema
+
+Todo cambio de esquema va en `supabase/migrations/` (nunca directo en el
+SQL Editor de producción) y se aplica con `npm run db:push` — ver
+`supabase/MIGRACIONES.md` para el detalle y los dos gotchas de la CLI de
+este proyecto.
+
+## Backups
+
+Backup diario automático (GitHub Actions) + procedimiento de restauración
+en `supabase/RUNBOOK_BACKUP.md`. Verificación de seguridad (RLS) con
+evidencia real en `supabase/RUNBOOK_AUTH.md`.
