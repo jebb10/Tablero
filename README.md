@@ -8,10 +8,11 @@ como fuente de datos.
 
 ## Estado actual
 
-**Fase B (Supabase Auth + roles Admin/Viewer) en cierre**: login real, RLS
-exige sesión para leer y solo Admin puede escribir, y la UI oculta
-controles de escritura a los Viewers (`RoleGate`) — falta cerrar la
-verificación de seguridad con evidencia real (B.6). **El estado detallado y
+**Fase B (Supabase Auth + roles Admin/Viewer) completa**: login real, RLS
+exige sesión para leer y solo Admin puede escribir, la UI oculta
+controles de escritura a los Viewers (`RoleGate`), y la seguridad quedó
+verificada con evidencia real contra producción (`supabase/RUNBOOK_AUTH.md`).
+**El estado detallado y
 siempre vigente vive en [`CLAUDE.md`](./CLAUDE.md) — no se duplica aquí
 para evitar que este resumen se desactualice.**
 

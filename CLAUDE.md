@@ -8,7 +8,7 @@ el detalle de tareas por fase al hacer drill-down. Este es un proyecto **vivo,
 construido por fases** — no asumas que la fase actual es la versión final;
 consulta siempre "Estado actual" abajo antes de proponer cambios grandes.
 
-## Estado actual: Fase 0 completa; Fase B en cierre (B.5 completa, B.6 en curso)
+## Estado actual: Fase 0 y Fase B completas
 
 - Desplegado en Vercel: [tablero-pi.vercel.app](https://tablero-pi.vercel.app/)
   (repo: `https://github.com/jebb10/Tablero.git`). **RLS ya exige sesión
@@ -19,9 +19,9 @@ consulta siempre "Estado actual" abajo antes de proponer cambios grandes.
   completos, y `src/proxy.ts` redirige a `/login` cualquier ruta sin
   sesión. **Unidad B.5 (`RoleGate`) completa**: la UI ya oculta controles/
   indicadores solo-Admin a los Viewers, no solo la RLS — ver
-  `src/components/auth/role-gate.tsx`. **Unidad B.6 en curso**:
-  verificación de seguridad con evidencia real contra producción — ver
-  `supabase/RUNBOOK_AUTH.md` (se completa tras el primer deploy con B.5).
+  `src/components/auth/role-gate.tsx`. **Unidad B.6 completa**: checklist
+  de seguridad de 11 puntos corrido contra producción con evidencia real
+  (11/11 en verde) — ver `supabase/RUNBOOK_AUTH.md`.
 - **El flujo completo de recuperar/restablecer contraseña se probó en vivo
   con éxito en producción (confirmado por el PO)**: pedir el correo, llegar
   el enlace, aterrizar en `/login/restablecer` y definir la nueva
@@ -71,12 +71,11 @@ consulta siempre "Estado actual" abajo antes de proponer cambios grandes.
   dashboard, este es el punto a resolver antes que nada, con las opciones
   ya evaluadas ahí.
 - **Sigue faltando** (ver `ROADMAP_V2.md`, fuente de verdad vigente — anula
-  a `ROADMAP_SUPABASE.md`): cerrar B.6 (checklist de seguridad contra
-  producción, ver "Seguridad" arriba), Fase C (pantallas de escritura — la
-  UI espera componentes sincronizados desde el sistema de diseño del PO en
+  a `ROADMAP_SUPABASE.md`): Fase C (pantallas de escritura — la UI espera
+  componentes sincronizados desde el sistema de diseño del PO en
   claude.ai/design; el de B.3/B.5 ya llegó, el resto de Fase C sigue
-  pendiente), Fase D (documentos versionados en Storage). Fase 0
-  (fundaciones) ya está completa.
+  pendiente), Fase D (documentos versionados en Storage). Fase 0 y Fase B
+  (fundaciones y auth/roles) ya están completas.
 
 ## Fuente de datos
 
@@ -318,20 +317,20 @@ planteadas:
   `estados.ts`, `fechas.ts`, `fases-orden.ts`, `zod`) y Unidad 0.5 (backup,
   con ensayo de restauración real verificado) completadas 2026-08-09. Diseño
   completo en `ROADMAP_V2.md`. Siguiente: Fase B (Auth).
-- **Fase B — Supabase Auth + roles (Admin/Viewer):** en cierre (B.1–B.5 ✅
-  completas, B.6 en curso). Detalle de cada unidad (fechas, verificación en
-  vivo, hallazgos) archivado en `ROADMAP_HISTORIAL.md` para no inflar este
+- **Fase B — Supabase Auth + roles (Admin/Viewer):** ✅ **completa**
+  (2026-08-09). Detalle de cada unidad (fechas, verificación en vivo,
+  hallazgos) archivado en `ROADMAP_HISTORIAL.md` para no inflar este
   documento. Resumen: clientes SSR + `proxy.ts` (B.1), `profiles` +
   `is_admin()` + usuarios reales (B.2), `/login` + logout + recuperar/
   restablecer contraseña (B.3, alcance ampliado respecto al diseño
   original — ver historial), flip de RLS a solo-autenticados (B.4,
   2026-08-09: `projects`/`requirements`/`requirement_tasks` ya no son
   legibles con la anon key, trigger `updated_at` activado), `RoleGate`
-  ocultando contenido solo-Admin en la UI (B.5). **B.6 (verificación de
-  seguridad con evidencia real + cierre de documentación) en curso** — ver
-  "Seguridad" arriba y `supabase/RUNBOOK_AUTH.md`. Único pendiente
+  ocultando contenido solo-Admin en la UI (B.5), checklist de seguridad de
+  11 puntos con evidencia real contra producción (B.6, 11/11 en verde —
+  ver "Seguridad" arriba y `supabase/RUNBOOK_AUTH.md`). Único pendiente
   conocido, pospuesto explícitamente por el PO: SMTP propio en Supabase,
-  hasta después de cerrar Fase C. Desde la Unidad B.1, Fase B usa rama +
+  hasta después de cerrar Fase C. Desde la Unidad B.1, Fase B usó rama +
   PR (no push directo a `main`).
 - **Fase C — Pantallas de escritura (CRUD):** pendiente. Diseño completo en
   `ROADMAP_V2.md`.

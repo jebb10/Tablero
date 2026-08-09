@@ -2,9 +2,9 @@
 
 > Este archivo existe para que `ROADMAP_V2.md` se quede liviano. Contiene el
 > diseño original + la bitácora real de verificación de cada unidad **ya
-> completada** (Fase 0, Fase B hasta B.3). Solo hace falta abrirlo si se
+> completada** (Fase 0, Fase B completa). Solo hace falta abrirlo si se
 > necesita el detalle exacto de cómo se ejecutó algo ya hecho — para seguir
-> trabajando en el roadmap, `ROADMAP_V2.md` (con el diseño de B.4 en
+> trabajando en el roadmap, `ROADMAP_V2.md` (con el diseño de Fase C en
 > adelante) es suficiente. Ver la tabla de estado por unidad en
 > `ROADMAP_V2.md` y en `CLAUDE.md`.
 
@@ -458,7 +458,7 @@ y la sección de cerrados no aparece en el HTML (0 casos).
 
 ---
 
-# FASE B — Supabase Auth + roles Admin/Viewer (unidades B.1–B.3)
+# FASE B — Supabase Auth + roles Admin/Viewer (unidades B.1–B.6, completa)
 
 ## Unidad B.1 — Clientes SSR + `proxy.ts` (sin tocar RLS)
 
@@ -772,3 +772,89 @@ cubierta por el diseño original (sin Docker Desktop disponible en la máquina d
 Siguiente paso: Unidad B.5 (`RoleGate`), luego B.6 (verificación de seguridad + cierre de
 documentación). Pendientes reales de B.3 (SMTP propio, redirect URL de `/auth/callback`, prueba en vivo
 de recuperar contraseña) siguen abiertos, deliberadamente fuera de esta sesión.
+
+---
+
+## Unidad B.5 — `<RoleGate>` y ocultamiento por rol
+
+**Meta.** Dejar el mecanismo con el que C omitirá los controles de escritura para Viewers, y usarlo ya
+al menos una vez.
+
+`src/components/auth/role-gate.tsx` — **Server Component** (sin `"use client"`), props
+`{ role = "admin", children, fallback = null }`, resuelve con `getCurrentProfile()`.
+
+**Por qué es más que un `disabled`:** al ser Server Component, para un Viewer los `children` **nunca se
+serializan en el payload RSC** — ni el marcado, ni las props, ni los datos que contengan llegan al
+navegador. Precisión honesta: los *chunks* JS pueden seguir existiendo en el build, pero no se
+referencian ni se descargan. **RLS sigue siendo el control real**; `RoleGate` es UX y reducción de
+superficie, no seguridad.
+
+Estrenarlo con algo real: un indicador de nav solo-Admin con un literal único y buscable
+(`data-testid="admin-only"`), que sirve además de sonda para el checklist de B.6.
+
+### ✅ Unidad B.5 completada (2026-08-09)
+
+Ejecutada sin desviaciones del diseño. `src/components/auth/role-gate.tsx` resuelve con
+`getCurrentProfile()` (ya existía desde B.3) y renderiza `fallback` (default `null`) si no hay perfil
+o el rol no coincide. Estrenado en `src/app/layout.tsx`: un `<span data-testid="admin-only">` con el
+texto "Vista Admin", envuelto en `<RoleGate>`, junto al `RoleBadge` existente.
+
+**Primer test de este proyecto que mockea el cliente de Supabase** (hasta ahora solo existía
+`slug.test.ts`, sobre una función pura): `src/lib/auth/__tests__/session.test.ts`, con `vi.mock` sobre
+`@/lib/supabase/server` y sobre `server-only` (este último necesario porque el paquete `server-only`
+lanza una excepción fuera del bundler de Next — hay que mockearlo explícitamente en cualquier test que
+importe, directa o indirectamente, un módulo que lo declare). Tres casos: sin usuario → `null`; usuario
+sin fila en `profiles` → `null`; `requireAdmin()` con rol `viewer` → lanza vía el `redirect()` mockeado
+(que en el mock lanza `Error("REDIRECT:/")` en vez de usar la API real de Next).
+
+Verificación de aceptación corrida en producción como parte del checklist de B.6 (punto 11, ver
+abajo): HTML con sesión Viewer no contiene el literal `admin-only`; con sesión Admin sí. `typecheck`/
+`lint`/`test` (44/44)/`build` limpios. Ejecutada junto con B.6 en la rama
+`fase-b/b5-b6-cierre-fase-b`, PR #8.
+
+---
+
+## Unidad B.6 — Verificación de seguridad y actualización de documentación
+
+**Meta.** Demostrar **con evidencia, no por inspección visual**, que un Viewer no puede escribir.
+
+### ✅ Unidad B.6 completada (2026-08-09)
+
+Checklist de 11 puntos corrido con un script reutilizable (`scripts/verificar_seguridad_fase_b.mjs`,
+lee credenciales de un `--env-file` local gitignored, nunca hardcodeadas) contra producción, usando
+las cuentas reales de Admin y Viewer del PO — decisión explícita del PO en el cuestionario de cierre
+de Fase B (no usar usuarios desechables). **11/11 puntos en PASA**; bitácora completa con la salida
+literal de cada punto en `supabase/RUNBOOK_AUTH.md`.
+
+Desviaciones sobre el diseño original:
+- El checklist de `ROADMAP_V2.md` asumía columnas genéricas (`name`); el esquema real usa `title` en
+  `requirements` — corregido en el script tras el primer intento fallar en el punto 3.
+- **Hallazgo adicional, no anticipado por el diseño**: el punto 5 (Viewer no inserta en
+  `activity_logs`) confirmó que esa tabla, aunque todavía sin uso real (vacía, forward-looking para
+  Fase C), **ya tiene RLS activo** — no es una tabla abierta a escritura, contrario a lo que podría
+  sugerir "sin policies" en notas anteriores (0.0/B.4): RLS habilitado sin policies **deniega por
+  defecto**, no permite.
+- El punto 11 (HTML de Viewer sin el marcador `admin-only`) no se pudo automatizar vía API (requiere
+  una sesión de navegador real, no solo un JWT) — se verificó a mano, confirmado por el PO tras el
+  deploy del PR #8.
+- **Incidente de manejo de credenciales durante la coordinación**: el primer intento de pasar las
+  credenciales vía variables de entorno con el prefijo `!` (que corre en una shell distinta a la que
+  usan las herramientas de Claude Code) no funcionó, y de paso expuso la contraseña del Viewer en
+  texto plano en el chat. Se corrigió el método a un archivo local `--env-file` (gitignored por la
+  regla `.env*` ya existente) para las ejecuciones siguientes, y se recomendó al PO rotar esa
+  contraseña por precaución.
+
+Documentación de cierre actualizada en la misma sesión: `CLAUDE.md` (Estado actual → Fase B completa,
+sección "Seguridad" nueva, tabla de archivos clave, regla `requireAuth()`/`requireAdmin()` para Fase
+C), `README.md` reescrito (cómo correrlo, cambio de esquema, cómo entrar, backups), esta entrada de
+`ROADMAP_HISTORIAL.md`. Confirmado con el PO en el mismo cierre: el redirect URL de `/auth/callback`
+en producción ya estaba whitelisteado y el flujo de recuperar contraseña ya se había probado en
+producción (pendientes de B.3 que quedaban abiertos) — **SMTP propio en Supabase sigue pendiente,
+pospuesto explícitamente hasta después de cerrar Fase C**. Único paso operativo que queda fuera de
+este documento: rotar `SUPABASE_SECRET_KEY` en el Dashboard de Supabase y actualizar `.env.local`
+(acción manual del PO, instrucciones en `PLAN_CIERRE_FASE_B.md` antes de borrarlo).
+
+Ejecutada junto con B.5 en una sola rama/PR (`fase-b/b5-b6-cierre-fase-b`, PR #8) — decisión explícita
+del PO en el cuestionario de cierre, distinta del patrón de un PR por unidad usado en B.1–B.4.
+
+**Fase B queda 100% cerrada.** Siguiente paso: Fase C (pantallas de escritura).

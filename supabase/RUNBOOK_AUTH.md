@@ -34,18 +34,14 @@ puntos 1-10 verifican RLS, vigente desde B.4 — no dependen de que B.5 esté de
 **Hallazgo adicional confirmado por el punto 5**: `activity_logs`, aunque todavía sin uso real
 (vacía, forward-looking para Fase C), **ya tiene RLS activo** — no es una tabla abierta.
 
-## Pendiente: punto 11
+## Punto 11 — confirmado 2026-08-09, tras el deploy del PR #8
 
-**HTML de Viewer sin el marcador `data-testid="admin-only"` (y con él para Admin).** No se puede
-verificar contra producción hasta que el PR de B.5 (`RoleGate`) esté mergeado y desplegado — hoy la
-marca ni existe en producción, así que "ausente" no sería evidencia real de que `RoleGate` funciona.
+**HTML de Viewer sin el marcador `data-testid="admin-only"` (y con él para Admin).** Verificado a
+mano en el navegador contra `https://tablero-pi.vercel.app` ya con B.5 desplegada: logueado como
+Viewer, el indicador "Vista Admin" **no aparece** en el nav; logueado como Admin, **sí aparece**.
+Confirmado por el PO.
 
-**Verificación pendiente, a mano en el navegador tras el deploy:**
-1. Abrir una ventana de incógnito en `https://tablero-pi.vercel.app`, loguearse con una cuenta
-   Viewer. Ver código fuente de la página (`Ctrl+U` o "Ver código fuente") y confirmar que el texto
-   `data-testid="admin-only"` **no aparece**.
-2. Repetir con una cuenta Admin — confirmar que **sí aparece**.
-3. Anotar el resultado aquí con fecha, cerrando este runbook.
+**11/11 puntos del checklist en PASA. Fase B queda cerrada.**
 
 ## Notas de seguridad de esta ejecución
 

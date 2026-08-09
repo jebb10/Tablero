@@ -171,7 +171,7 @@ versionadas ni backup probado, es un cambio irreversible sin red de seguridad.
    es RLS. **Adicional: rotar `SUPABASE_SECRET_KEY` en el Dashboard al cerrar la Fase B** (lleva
    tiempo en texto plano en `.env.local`, en una carpeta bajo sincronización de OneDrive).
 
-## Unidades B.1–B.5 ✅ completas
+## Unidades B.1–B.6 ✅ completas — Fase B cerrada
 
 **Diseño original + bitácora de verificación real: `ROADMAP_HISTORIAL.md`.** Resumen:
 
@@ -182,77 +182,17 @@ versionadas ni backup probado, es un cambio irreversible sin red de seguridad.
 | B.3 | `/login`, logout, recuperar/restablecer contraseña, `proxy.ts` exige sesión (alcance ampliado sobre el diseño original) | 2026-08-09 |
 | B.4 | Flip de RLS a solo-autenticados: `projects`/`requirements`/`requirement_tasks` ya no son legibles con la anon key; trigger `updated_at` activado | 2026-08-09 |
 | B.5 | `RoleGate` (Server Component) + indicador solo-Admin (`data-testid="admin-only"`) en el nav + tests de `session.ts` con `vi.mock` | 2026-08-09 |
+| B.6 | Checklist de seguridad de 11 puntos contra producción (11/11 en verde, `supabase/RUNBOOK_AUTH.md`) + cierre de documentación | 2026-08-09 |
 
 **Pendientes reales de B.3, ya resueltos** (el PO confirmó en la sesión de cierre de Fase B): el
 redirect URL de `/auth/callback` en producción ya está whitelisteado y el flujo de recuperar
 contraseña se probó en vivo en producción. **SMTP propio en Supabase sigue pendiente, pospuesto
 explícitamente hasta después de cerrar Fase C.**
 
-**Unidad en curso: B.6** (abajo) — checklist de seguridad contra producción.
+**Único paso operativo pendiente**: rotar `SUPABASE_SECRET_KEY` en el Dashboard de Supabase y
+actualizar `.env.local` (acción manual del PO — ver `PLAN_CIERRE_FASE_B.md`).
 
----
-
-## Unidad B.5 — `<RoleGate>` y ocultamiento por rol ✅ completa (2026-08-09)
-
-**Meta.** Dejar el mecanismo con el que C omitirá los controles de escritura para Viewers, y usarlo ya
-al menos una vez.
-
-`src/components/auth/role-gate.tsx` — **Server Component** (sin `"use client"`), props
-`{ role = "admin", children, fallback = null }`, resuelve con `getCurrentProfile()`.
-
-**Por qué es más que un `disabled`:** al ser Server Component, para un Viewer los `children` **nunca se
-serializan en el payload RSC** — ni el marcado, ni las props, ni los datos que contengan llegan al
-navegador. Precisión honesta: los *chunks* JS pueden seguir existiendo en el build, pero no se
-referencian ni se descargan. **RLS sigue siendo el control real**; `RoleGate` es UX y reducción de
-superficie, no seguridad.
-
-Estrenarlo con algo real: un indicador de nav solo-Admin con un literal único y buscable
-(`data-testid="admin-only"`), que sirve además de sonda para el checklist.
-
-Tests unitarios de `session.ts` con cliente Supabase mockeado: sin usuario → `null`; usuario sin fila
-en `profiles` → `null`; `requireAdmin()` redirige cuando el rol es `viewer`.
-
-**Aceptación.** El HTML de `/` con cookie de Viewer **no** contiene el literal admin-only; con cookie
-de Admin **sí**. Tests en verde en CI.
-
----
-
-## Unidad B.6 — Verificación de seguridad y actualización de documentación
-
-**Meta.** Demostrar **con evidencia, no por inspección visual**, que un Viewer no puede escribir.
-
-**Checklist (ejecutar en orden, guardar la salida en `supabase/RUNBOOK_AUTH.md` con fecha):**
-1. **Anónimo no lee.** `Invoke-RestMethod` a `/rest/v1/requirements?select=id&limit=1` con solo la
-   anon key → **array vacío**. Repetir con `projects`, `requirement_tasks`, `activity_logs`,
-   `document_versions`, `profiles`.
-2. **Obtener un JWT de Viewer** (`signInWithPassword` desde un script local de un solo uso, o un flag
-   `--login` en `create_user.mjs`).
-3. **Viewer lee.** `select` con su JWT → filas.
-4. **Viewer NO actualiza.** `PATCH` a un requerimiento → **array vacío**. RLS filtra **silenciosamente**
-   en UPDATE (0 filas, HTTP 200). **Confirmar acto seguido con una lectura que el valor no cambió** —
-   la ausencia de error no significa que la escritura pasó.
-5. **Viewer NO inserta.** `POST` a `activity_logs` → 401/403 `new row violates row-level security policy`.
-6. **Viewer NO borra.** `DELETE` → 0 filas; verificar que la fila sigue existiendo.
-7. **Admin SÍ escribe.** Repetir 4 con JWT de Admin → devuelve la fila. **Revertir el cambio
-   inmediatamente** y comprobar que `updated_at` se movió (prueba del trigger de B.4).
-8. **Escalada de privilegio bloqueada.** Con JWT de Viewer, `PATCH /rest/v1/profiles?user_id=eq.<su
-   propio id>` con `{"role":"admin"}` → **0 filas**. Es el ataque más obvio y debe fallar.
-9. **Sin signup abierto.** `POST /auth/v1/signup` con la anon key → "signups not allowed".
-10. **Sesión.** Navegador anónimo → redirige a `/login`; borrar la cookie y recargar → vuelve a `/login`.
-11. **HTML de Viewer** sin el marcador admin-only (B.5).
-
-**Documentación a actualizar (obligatorio — es cómo la siguiente sesión sabe dónde está parada):**
-hecho en la sesión de cierre de Fase B (2026-08-09): `CLAUDE.md` ("Estado actual", sección
-"Seguridad" nueva, tabla de archivos clave, regla `requireAuth()`/`requireAdmin()`), `README.md`
-reescrito (cómo correrlo, cambio de esquema, cómo entrar, backups), esta sección de
-`ROADMAP_V2.md`. **Pendiente**: marcar Fase B 100% completa aquí y en `CLAUDE.md` una vez el
-checklist de abajo corra en verde contra producción; rotar `SUPABASE_SECRET_KEY` en el Dashboard y
-actualizar `.env.local` (último paso, ver instrucciones en `PLAN_CIERRE_FASE_B.md`).
-
-**Script reutilizable para correr el checklist:** `scripts/verificar_seguridad_fase_b.mjs` (lee
-`VIEWER_EMAIL`/`VIEWER_PASSWORD`/`ADMIN_EMAIL`/`ADMIN_PASSWORD` de variables de entorno locales,
-nunca hardcodeadas). Cubre los puntos 1–10 contra producción; el punto 11 se verifica a mano en el
-navegador (ver `supabase/RUNBOOK_AUTH.md`) porque requiere una sesión real, no solo un JWT vía API.
+**Siguiente fase: Fase C** (pantallas de escritura).
 
 ---
 
