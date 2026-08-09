@@ -72,7 +72,7 @@ async function main() {
 
   const { data: viewerRead, error: viewerReadError } = await viewer
     .from("requirements")
-    .select("id, name, updated_at")
+    .select("id, title, updated_at")
     .limit(1);
   record(
     "3",
@@ -90,27 +90,27 @@ async function main() {
   // 4. Viewer NO actualiza (0 filas, sin error) + confirmar que el valor no cambió.
   const { data: viewerUpdate, error: viewerUpdateError } = await viewer
     .from("requirements")
-    .update({ name: `${target.name} [INTENTO-VIEWER]` })
+    .update({ title: `${target.title} [INTENTO-VIEWER]` })
     .eq("id", target.id)
     .select();
   const { data: afterUpdate } = await viewer
     .from("requirements")
-    .select("name")
+    .select("title")
     .eq("id", target.id)
     .maybeSingle();
   const punto4Pasa =
-    !viewerUpdateError && (viewerUpdate?.length ?? 0) === 0 && afterUpdate?.name === target.name;
+    !viewerUpdateError && (viewerUpdate?.length ?? 0) === 0 && afterUpdate?.title === target.title;
   record(
     "4",
     "Viewer NO actualiza requirements (RLS filtra silenciosamente, valor no cambió)",
     punto4Pasa,
-    `filas actualizadas: ${viewerUpdate?.length ?? "?"}, nombre tras intento: "${afterUpdate?.name}"`,
+    `filas actualizadas: ${viewerUpdate?.length ?? "?"}, título tras intento: "${afterUpdate?.title}"`,
   );
 
   // 5. Viewer NO inserta en activity_logs.
   const { error: viewerInsertError } = await viewer
     .from("activity_logs")
-    .insert({ requirement_id: target.id, hours: 1, description: "intento-viewer" });
+    .insert({ requirement_id: target.id, event_type: "intento-viewer", title: "Intento Viewer" });
   record(
     "5",
     "Viewer NO inserta en activity_logs",
@@ -136,18 +136,18 @@ async function main() {
   const admin = await signIn(ADMIN_EMAIL, ADMIN_PASSWORD);
   const { data: before } = await admin
     .from("requirements")
-    .select("name, updated_at")
+    .select("title, updated_at")
     .eq("id", target.id)
     .maybeSingle();
   const { data: adminUpdate, error: adminUpdateError } = await admin
     .from("requirements")
-    .update({ name: `${before.name} [PRUEBA-ADMIN]` })
+    .update({ title: `${before.title} [PRUEBA-ADMIN]` })
     .eq("id", target.id)
     .select();
   const trigger =
     !adminUpdateError && adminUpdate?.[0]?.updated_at && adminUpdate[0].updated_at !== before.updated_at;
   // Revertir de inmediato.
-  await admin.from("requirements").update({ name: before.name }).eq("id", target.id);
+  await admin.from("requirements").update({ title: before.title }).eq("id", target.id);
   record(
     "7",
     "Admin SÍ escribe (revertido) y trigger updated_at se movió",
