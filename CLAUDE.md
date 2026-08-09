@@ -29,12 +29,8 @@ consulta siempre "Estado actual" abajo antes de proponer cambios grandes.
   es fuente de datos, no requiere mantenimiento, y no hace falta seguir
   pensando en él (el gotcha de fórmulas sin recalcular, las hojas ocultas,
   etc. son historia, no tareas pendientes).
-- **Backup (Unidad 0.5): completo y verificado (2026-08-09).**
-  `.github/workflows/backup.yml` hace un dump diario de esquema+datos vía
-  GitHub Actions (artifact 90 días). Ensayo de restauración real ejecutado
-  de punta a punta contra un proyecto Supabase desechable, conteos
-  coincidentes (28/164) — ver `supabase/RUNBOOK_BACKUP.md` para el detalle
-  y la bitácora de ensayos.
+- **Backup (Unidad 0.5): completo y verificado (2026-08-09).** Ver sección
+  "Backup" abajo.
 - Cubre: vista principal con KPIs, búsqueda/filtros, 4 bloques de estado y
   semáforo por fecha límite; drill-down por requerimiento con línea de
   tiempo de fases; vista `/planeacion` (Gantt) con sidebar colapsable.
@@ -58,14 +54,12 @@ La fuente de datos es un proyecto Supabase (Postgres + API REST vía
 `src/app/requerimiento/[item]/page.tsx` hacen las consultas. El proyecto
 activo es un default hardcodeado (`positiva-web-414`) en `src/lib/project.ts`
 — no hay selector de proyecto en la UI todavía porque solo existe un
-proyecto real (el modelo de datos ya soporta multi-proyecto, ver
-`ROADMAP_SUPABASE.md` §9).
+proyecto real (el modelo de datos ya soporta multi-proyecto).
 
 **`SUPABASE_URL`/`SUPABASE_ANON_KEY` están hardcodeadas como constantes en
 `src/lib/supabase/server.ts`, NO como env vars** — mismo patrón que el
 antiguo `SHEET_ID` de la Fase 3a. Se intentó vía env vars de Vercel primero
-y sí requería plan de pago (a diferencia de lo que se había asumido en
-`ROADMAP_SUPABASE.md`). Sin problema de seguridad nuevo: la `anon`/
+y sí requería plan de pago. Sin problema de seguridad nuevo: la `anon`/
 `publishable` key está diseñada para el navegador, protegida por RLS, no
 por mantenerla en secreto. Si el proyecto Supabase cambia, hay que editar
 esas constantes en código y hacer deploy — no hay forma de cambiarlo sin
@@ -84,9 +78,11 @@ original de la Fase A (`supabase/schema.sql`) quedó archivado en
 migrado a migraciones versionadas en la Unidad 0.1.
 
 Los datos se migraron una sola vez con `scripts/migrate_to_supabase.py`
-(Python + openpyxl + `supabase-py`, idempotente vía upsert) — el detalle de
-esa migración (qué hoja mapeaba a qué columna, etc.) vive en
-`ROADMAP_SUPABASE.md`, no hace falta repetirlo aquí. No hay polling ni
+(Python + openpyxl + `supabase-py`, idempotente vía upsert) — el detalle
+campo a campo de esa migración (qué hoja mapeaba a qué columna, etc.) ya no
+vive en ningún documento vigente (se recortó de `ROADMAP_SUPABASE.md` el
+2026-08-09 por ser historia ya ejecutada); sigue disponible en el historial
+de git de ese archivo si algún día hiciera falta. No hay polling ni
 caché de servidor más allá de una caché in-memory del último resultado
 bueno (para resiliencia si Supabase no responde en un request puntual) — el
 botón "Sincronizar" (RN-05, tenía sentido solo cuando la fuente era externa)
@@ -104,6 +100,23 @@ de Supabase con el repositorio) — verificar en el momento si eso implica un
 flujo de migraciones/branching que el equipo deba seguir (ej. cambios de
 esquema vía PR en vez de directamente en el SQL Editor), no asumido todavía
 en este documento.
+
+## Backup
+
+Backup diario de Supabase vía GitHub Actions (`.github/workflows/backup.yml`,
+cron `0 7 * * *` = 02:00 Bogotá + `workflow_dispatch` manual): dos dumps
+(`schema.sql`, `data.sql`) con `supabase db dump`, subidos como artifact con
+retención de 90 días. Complemento no automatizado: copia mensual manual del
+PO a OneDrive (única protección contra pérdida de la cuenta de GitHub).
+Procedimiento completo de restauración y bitácora de ensayos en
+`supabase/RUNBOOK_BACKUP.md` — no repetido aquí.
+
+**Riesgo a vigilar activamente**: GitHub deshabilita automáticamente los
+workflows programados (`cron`) en repos sin actividad (sin push/commit) por
+60+ días. Si al retomar este proyecto han pasado 60+ días desde el último
+commit, **antes de asumir que el backup diario sigue corriendo**: entrar a
+la pestaña Actions del repo y disparar `workflow_dispatch` en `backup.yml`
+manualmente para reactivar el cron, y confirmar que el run termina en verde.
 
 ## Arquitectura
 
@@ -227,9 +240,9 @@ planteadas:
 
 - **Fase A — Migración a Supabase (multi-proyecto, solo lectura), semáforo,
   Gantt:** ✅ completa (2026-08-06). Ver "Estado actual" y "Fuente de datos"
-  arriba para el resumen; diseño completo, decisiones tomadas con el PO
-  (más de 30 preguntas de descubrimiento) y detalle campo a campo de la
-  migración en `ROADMAP_SUPABASE.md` (historial).
+  arriba para el resumen; decisiones tomadas con el PO (más de 30 preguntas
+  de descubrimiento) y resumen ejecutivo del cierre en `ROADMAP_SUPABASE.md`
+  (historial, recortado el 2026-08-09).
 - **Fase 0 — Fundaciones:** ✅ **completa** (2026-08-09). Unidades 0.0–0.4
   completadas 2026-08-07; Unidad 0.6 (andamiaje compartido: `slug.ts`,
   `estados.ts`, `fechas.ts`, `fases-orden.ts`, `zod`) y Unidad 0.5 (backup,
@@ -242,7 +255,7 @@ planteadas:
 - **Fase D — Documentos versionados (sin versionado real: subir reemplaza y
   borra el anterior):** pendiente. Diseño completo en `ROADMAP_V2.md`.
 
-Plan detallado de la Fase A: `ROADMAP_SUPABASE.md` (en la raíz de este
+Resumen ejecutivo de la Fase A: `ROADMAP_SUPABASE.md` (en la raíz de este
 repo) — queda como historial, **superado**. Plan detallado de la Fase 0 en
 adelante: `ROADMAP_V2.md` (en la raíz de este repo) — es la fuente de
 verdad vigente para todo lo que sigue; incluye la tabla de 14 puntos donde

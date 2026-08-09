@@ -6,7 +6,7 @@ como fuente de datos.
 
 **Demo desplegada:** [tablero-pi.vercel.app](https://tablero-pi.vercel.app/)
 
-## Estado actual: Fase A (Supabase) — completa
+## Estado actual: Fase A (Supabase) y Fase 0 (Fundaciones) — completas
 
 - Desplegado en Vercel, sin autenticación todavía (login es la Fase B
   pendiente).
@@ -17,9 +17,9 @@ como fuente de datos.
   semáforo por fecha límite; drill-down por requerimiento con línea de
   tiempo de fases; vista `/planeacion` (Gantt); calidad de datos; exportar
   a PDF; manejo de fallos de conexión con caché del último dato bueno.
-- Sigue faltando: Fase 0 (fundaciones — en curso, ver `CLAUDE.md`), Fase B
-  (login + roles), Fase C (pantallas de escritura), Fase D (documentos
-  versionados).
+- Sigue faltando: Fase B (login + roles), Fase C (pantallas de escritura),
+  Fase D (documentos versionados) — ver `CLAUDE.md` para el detalle. Fase 0
+  (fundaciones) ya está completa.
 
 **Toda la documentación real del proyecto vive en [`CLAUDE.md`](./CLAUDE.md)**:
 arquitectura, fuente de datos, reglas de negocio, estado actual y roadmap
