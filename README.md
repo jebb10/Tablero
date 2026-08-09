@@ -1,31 +1,34 @@
 # Dashboard 414 — Seguimiento de Requerimientos (Positiva Web)
 
 Dashboard ejecutivo del proyecto Positiva Web 414. Next.js (App Router) +
-TypeScript + Tailwind v4 + shadcn/ui, sin base de datos, lee un Google Sheet
-(export xlsx) como única fuente de verdad.
+TypeScript + Tailwind v4 + shadcn/ui, con Supabase (Postgres + API REST)
+como fuente de datos.
 
 **Demo desplegada:** [tablero-pi.vercel.app](https://tablero-pi.vercel.app/)
 
-## Estado actual: Fase 3a (Drive como fuente de datos) — completa
+## Estado actual: Fase A (Supabase) — completa
 
-- Desplegado en Vercel, sin autenticación todavía (login es la Fase 3
+- Desplegado en Vercel, sin autenticación todavía (login es la Fase B
   pendiente).
-- Lee un Google Sheet público (export xlsx) vía fetch en cada carga —
-  ya no depende de un archivo local.
-- Cubre: vista principal con KPIs, búsqueda/filtros y 4 bloques de estado;
-  drill-down por requerimiento con línea de tiempo de fases; calidad de
-  datos; exportar a PDF; manejo de fallos de conexión con caché del último
-  dato bueno.
-- Sigue faltando: login (Fase 3), datos del Gantt (Fase 4), validar a
-  escala (Fase 5).
+- Lee de un proyecto Supabase (Postgres + API REST vía
+  `@supabase/supabase-js`) — no depende de ningún Excel/Sheet/Drive, ya
+  retirado por completo.
+- Cubre: vista principal con KPIs, búsqueda/filtros, 4 bloques de estado y
+  semáforo por fecha límite; drill-down por requerimiento con línea de
+  tiempo de fases; vista `/planeacion` (Gantt); calidad de datos; exportar
+  a PDF; manejo de fallos de conexión con caché del último dato bueno.
+- Sigue faltando: Fase 0 (fundaciones — en curso, ver `CLAUDE.md`), Fase B
+  (login + roles), Fase C (pantallas de escritura), Fase D (documentos
+  versionados).
 
 **Toda la documentación real del proyecto vive en [`CLAUDE.md`](./CLAUDE.md)**:
-arquitectura, reglas de negocio, estado actual y roadmap de fases. Empieza
-ahí.
+arquitectura, fuente de datos, reglas de negocio, estado actual y roadmap
+de fases (`ROADMAP_V2.md`). Empieza ahí.
 
 ## Correr en local
 
-Requiere internet (la fuente de datos es Google Drive, no hay modo offline).
+Requiere credenciales de un proyecto Supabase — ver "Fuente de datos" en
+`CLAUDE.md` y `supabase/MIGRACIONES.md`.
 
 ```bash
 npm install

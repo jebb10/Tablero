@@ -74,11 +74,15 @@ tocar código. La `secret key` (equivalente a `service_role`) **nunca** vive
 en el código — solo se usó localmente (`.env.local`, gitignored) para
 correr `scripts/migrate_to_supabase.py`.
 
-Esquema completo (DDL) en `supabase/schema.sql` — tablas `projects`,
-`requirements`, `requirement_tasks`, `activity_logs` (vacía, forward-looking
-para Fase C), `document_versions` (vacía, forward-looking para Fase D). RLS
-habilitado con policies de solo lectura pública (sin Auth todavía — Fase B
-las reemplaza por policies basadas en `auth.uid()`).
+Esquema completo (DDL) versionado en `supabase/migrations/` (aplicado vía
+`npm run db:push`, CLI de Supabase — ver `supabase/MIGRACIONES.md`) — tablas
+`projects`, `requirements`, `requirement_tasks`, `activity_logs` (vacía,
+forward-looking para Fase C), `document_versions` (vacía, forward-looking
+para Fase D). RLS habilitado con policies de solo lectura pública (sin Auth
+todavía — Fase B las reemplaza por policies basadas en `auth.uid()`). El DDL
+original de la Fase A (`supabase/schema.sql`) quedó archivado en
+`supabase/legado/schema-fase-a.sql` ("HISTÓRICO. No ejecutar") una vez
+migrado a migraciones versionadas en la Unidad 0.1.
 
 Los datos se migraron una sola vez con `scripts/migrate_to_supabase.py`
 (Python + openpyxl + `supabase-py`, idempotente vía upsert) — el detalle de
@@ -89,7 +93,7 @@ bueno (para resiliencia si Supabase no responde en un request puntual) — el
 botón "Sincronizar" (RN-05, tenía sentido solo cuando la fuente era externa)
 se **retiró por completo**: ya no hay nada que sincronizar manualmente,
 Next.js sirve datos frescos en cada carga de página. El banner de error
-sigue existiendo (`archivo-bloqueado-banner.tsx`) con un botón "Reintentar"
+sigue existiendo (`error-datos-banner.tsx`) con un botón "Reintentar"
 que solo fuerza un refresh de la página (`reintentar()` en `actions.ts`).
 
 **Este proyecto lee y (a partir de Fase C) escribirá en Supabase.** No hay
@@ -130,15 +134,17 @@ en este documento.
 
 | Archivo | Responsabilidad |
 | --- | --- |
-| `supabase/schema.sql` | DDL completo (tablas, RLS, seed del proyecto) — correr una sola vez en el SQL Editor de Supabase. |
-| `scripts/migrate_to_supabase.py` | Script one-time (admin-run) que migró el `.xlsx` legado a Supabase vía `supabase-py`. Idempotente (upsert), reporte de verificación al final. No se vuelve a correr salvo que haya que re-migrar desde cero (`--reset`). |
+| `supabase/migrations/` | DDL versionado (tablas, RLS, seed del proyecto), aplicado vía `npm run db:push` (CLI de Supabase). El DDL original de la Fase A quedó archivado en `supabase/legado/schema-fase-a.sql` ("HISTÓRICO. No ejecutar"). |
+| `scripts/migrate_to_supabase.py` | Script one-time (admin-run) que migró el `.xlsx` legado a Supabase vía `supabase-py`. Idempotente (upsert), reporte de verificación al final. No se vuelve a correr salvo que haya que re-migrar desde cero (`--reset`) — inejecutable hoy de todas formas, el `.xlsx` fuente ya no existe. |
 | `src/lib/supabase/server.ts` | `getSupabaseClient()` — cliente `anon` de `@supabase/supabase-js`. |
+| `src/lib/supabase/database.types.ts` | Tipos generados vía `npm run types:db` (CLI de Supabase) — usado por los tres módulos `src/lib/*-data.ts` para tipar las consultas sin `as`. |
 | `src/lib/project.ts` | `PROJECT_SLUG` — default hardcodeado del único proyecto sembrado (`positiva-web-414`). |
 | `src/lib/semaforo.ts` | `calcularSemaforo(deadline)` — rojo/ámbar/verde/sin-fecha por proximidad de fecha límite (umbrales 3/10 días). Reusado en la card y en `/planeacion`. |
 | `src/lib/fases.ts` | `agruparPorFase(filas)` — agrupa filas planas de `requirement_tasks` en el shape `Fase[]` que consume `FaseStepper`. |
 | `src/lib/planeacion-data.ts` | `getPlaneacionData()` — consulta requerimientos con `has_detail_tracking` + sus tareas, arma el shape que consume `/planeacion`. |
 | `src/lib/kpis.ts` | `getKPIs()`, `getCalidadDatos()` — puramente sobre el array de `Requerimiento[]` ya adaptado, sin tocar Supabase directamente. |
 | `src/lib/dashboard-data.ts` | `getDashboardData()` — consulta `requirements` por `project_id`, adapta cada fila DB → `Requerimiento` (mismo shape de siempre), con caché in-memory del último resultado bueno si Supabase no responde. Único punto de entrada que usa `src/app/page.tsx`. |
+| `src/lib/requerimiento-data.ts` | `getRequerimientoDetalle(slug)` — consulta `requirements`+`requirement_tasks` en Supabase por `slug`, con su propio try/catch. Único punto de entrada del drill-down, usado por `src/app/requerimiento/[item]/page.tsx`. |
 | `src/lib/types.ts` | Tipos compartidos (`Requerimiento`, `Fase`, `Tarea`, `KPIs`, `CalidadDatos`, etc.). `Requerimiento` ganó `semaforo: Semaforo`; perdió `hojaDetalle` (concepto específico de Excel, ya no aplica). |
 | `src/lib/icons.tsx` | `RequerimientoIcono` (componente, no una función que devuelve un componente — así lo exige la regla `react-hooks/static-components` de eslint) que mapea el ícono por patrón en el nombre del requerimiento. |
 | `src/app/page.tsx` | Server Component: llama `getDashboardData()`, muestra solo el banner de error si no hay ningún dato previo bueno. |
@@ -147,10 +153,10 @@ en este documento.
 | `src/components/requerimiento-card.tsx` | Card individual ampliada (~176px, badge de mes, fila horas/fecha, dot de semáforo junto a la fecha) (RN-04). El semáforo **convive** con el borde de "bloqueado" (RN-03) — son dos señales distintas, no se reemplazan entre sí. |
 | `src/components/kpi-strip.tsx` | 5 KPIs, el 5º ("Calidad de datos") con acento `"atencion"` (azul pizarra, no ámbar) y link a `#calidad-datos`. |
 | `src/components/data-quality-panel.tsx` | Panel colapsable de calidad de datos — **solo evalúa los 7 requerimientos con hoja de detalle real**, nunca los 21 heurísticos. |
-| `src/components/archivo-bloqueado-banner.tsx` | Banner de error + botón Reintentar (llama a `reintentar()`, solo hace `refresh()` — no confundir con el antiguo botón "Sincronizar", que ya no existe), usado standalone (sin datos previos) o embebido en `dashboard-client.tsx` (con datos previos atenuados). |
+| `src/components/error-datos-banner.tsx` | `ErrorDatosBanner` — Banner de error + botón Reintentar (llama a `reintentar()`, solo hace `refresh()` — no confundir con el antiguo botón "Sincronizar", que ya no existe), usado standalone (sin datos previos) o embebido en `dashboard-client.tsx` (con datos previos atenuados). |
 | `src/components/pdf-report.tsx` | Reporte para impresión (`hidden print:block`), incluye los 28 requerimientos, sin el panel de calidad, sin numeración de página. |
 | `src/components/fase-stepper.tsx` | Línea de tiempo vertical de fases en el drill-down. |
-| `src/app/requerimiento/[item]/page.tsx` | Página de drill-down por requerimiento (RN-04/05). Consulta `requirements`+`requirement_tasks` en Supabase por `slug`; envuelto en try/catch propio → `<ArchivoBloqueadoBanner soloBanner />` si falla. |
+| `src/app/requerimiento/[item]/page.tsx` | Página de drill-down por requerimiento (RN-04/05). Llama a `getRequerimientoDetalle(slug)` (`src/lib/requerimiento-data.ts`) → `<ErrorDatosBanner soloBanner />` si falla. |
 | `src/app/actions.ts` | Server Action `reintentar()` (`refresh()`) — usada solo por el banner de error. |
 | `public/fonts/montserrat-{400,500,600,700}.woff2` | Montserrat auto-hospedada (no `next/font/google`) — cargada vía `next/font/local` en `layout.tsx`. |
 
@@ -192,9 +198,8 @@ pertenece a una fase futura sin confirmarlo primero. **El orden de fases fue
 reordenado por el PO el 2026-08-01** (cuestionario de 24+ preguntas) — no es
 el orden original con el que arrancó el proyecto.
 
-Fases previas a la migración a Supabase (todas ✅ completas, era-Excel —
-detalle completo en el plan histórico referenciado al final de esta
-sección, no se repite aquí porque el Excel ya no es parte de la app):
+Fases previas a la migración a Supabase (todas ✅ completas, era-Excel — no
+se repite el detalle aquí porque el Excel ya no es parte de la app):
 **Fase 0** (reorganización inicial del Excel), **Fase 0.1** (auditoría/
 estandarización de las 7 hojas de detalle), **Fase 1** (MVP local),
 **Fase 2** (marca Positiva + calidad de datos + PDF + resiliencia),
@@ -223,7 +228,12 @@ planteadas:
   (más de 30 preguntas de descubrimiento) y detalle campo a campo de la
   migración en `ROADMAP_SUPABASE.md` (historial).
 - **Fase 0 — Fundaciones (migraciones versionadas, tipos generados, CI,
-  backup, andamiaje compartido):** pendiente, bloqueante para B/C/D. Diseño
+  backup, andamiaje compartido):** en curso. Unidades 0.0 (verificación BD
+  real), 0.1 (CLI Supabase + migraciones versionadas), 0.2 (tipos
+  generados), 0.3 (Vitest + CI) y 0.4 (robustez del app-shell) ✅
+  completadas (2026-08-07). Queda pendiente la Unidad 0.5 (backup) y el
+  andamiaje compartido (deduplicar `FASES_ORDEN` y la consulta de
+  `project_id` por `slug`, repetidos en varios `src/lib/*-data.ts`). Diseño
   completo en `ROADMAP_V2.md`.
 - **Fase B — Supabase Auth + roles (Admin/Viewer):** pendiente. Diseño
   completo en `ROADMAP_V2.md`.
@@ -232,10 +242,6 @@ planteadas:
 - **Fase D — Documentos versionados (sin versionado real: subir reemplaza y
   borra el anterior):** pendiente. Diseño completo en `ROADMAP_V2.md`.
 
-Plan detallado de las Fases 0 a 3a (historial, fuera de este repo, contexto
-completo de las decisiones tomadas con el PO — Fase 0, Fase 2 rediseñada, y
-el punto de control MVP):
-`.claude/plans/c-users-usuario-1-documents-tablero-req-lively-russell.md`.
 Plan detallado de la Fase A: `ROADMAP_SUPABASE.md` (en la raíz de este
 repo) — queda como historial, **superado**. Plan detallado de la Fase 0 en
 adelante: `ROADMAP_V2.md` (en la raíz de este repo) — es la fuente de

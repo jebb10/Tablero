@@ -30,9 +30,10 @@ Uso:
 
 Usa el cliente supabase-py (API REST/PostgREST) en vez de una conexion
 directa a Postgres -- no requiere la contrasena de base de datos, solo la
-secret key del proyecto (Project Settings > API). El schema (supabase/
-schema.sql) se corre aparte, manualmente, en el SQL Editor del proyecto --
-este script asume que las tablas y la seed del proyecto ya existen.
+secret key del proyecto (Project Settings > API). El schema se aplica aparte
+vía las migraciones versionadas en supabase/migrations/ (npm run db:push,
+ver supabase/MIGRACIONES.md) -- este script asume que las tablas y la seed
+del proyecto ya existen.
 
 Idempotente: upsert por clave natural (project_id+code para requirements,
 requirement_id+phase_number+task_name para tareas). --reset hace DELETE por
