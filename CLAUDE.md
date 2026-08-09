@@ -8,15 +8,29 @@ el detalle de tareas por fase al hacer drill-down. Este es un proyecto **vivo,
 construido por fases** — no asumas que la fase actual es la versión final;
 consulta siempre "Estado actual" abajo antes de proponer cambios grandes.
 
-## Estado actual: Fase 0 completa; Fase B en curso (Unidades B.1 y B.2 completas)
+## Estado actual: Fase 0 completa; Fase B en curso (Unidades B.1-B.3 completas)
 
 - Desplegado en Vercel: [tablero-pi.vercel.app](https://tablero-pi.vercel.app/)
-  (repo: `https://github.com/jebb10/Tablero.git`), sin autenticación
-  todavía en el sitio público (B.1/B.2 crearon la infraestructura —
-  cookies de sesión SSR, tabla `profiles`, `is_admin()`, 2 usuarios reales
-  — pero RLS sigue en modo lectura pública hasta el flip de la Unidad B.4;
-  no hay pantalla de login todavía, esa es la Unidad B.3 — ver
-  `ROADMAP_V2.md`).
+  (repo: `https://github.com/jebb10/Tablero.git`). **RLS sigue en modo
+  lectura pública** hasta el flip de la Unidad B.4 (a propósito: si algo
+  falla en B.3, los datos siguen siendo legibles), pero desde la Unidad
+  B.3 (rama `fase-b/b3-login-sesion`, ver `PLAN_UNIDAD_B3.md`) **ya existe
+  `/login` real**: login, logout, recuperar/restablecer contraseña
+  completos, y `src/proxy.ts` redirige a `/login` cualquier ruta sin
+  sesión. Falta B.4 (flip de RLS), B.5 (RoleGate) y B.6 (verificación de
+  seguridad + cierre de documentación).
+- **Pendiente antes de confiar en el flujo de recuperar contraseña en
+  producción: configurar SMTP propio en Supabase** (Authentication →
+  Settings → SMTP Settings). El servicio de correo por defecto de
+  Supabase (sin SMTP propio) tiene un límite de envíos muy bajo pensado
+  solo para pruebas — se agotó durante la verificación manual de B.3 y no
+  se pudo confirmar en vivo el último tramo del flujo (aterrizar en
+  `/login/restablecer` y definir la nueva contraseña). El resto del
+  checklist de B.3 (login Admin/Viewer, logout, protección de rutas,
+  manejo de link expirado) sí se verificó en vivo. También hace falta
+  agregar `https://tablero-pi.vercel.app/auth/callback` a la lista de
+  Redirect URLs de Supabase (Authentication → URL Configuration) antes de
+  desplegar esta unidad — hoy solo está whitelisteado el de `localhost`.
 - **El sistema de diseño de Claude Design para B.3 (login) y B.5
   (RoleGate) ya llegó** — ver `design/` en la raíz del repo (dos archivos
   `.dc.html` de referencia) y los tokens nuevos en `src/app/globals.css`
@@ -56,12 +70,12 @@ consulta siempre "Estado actual" abajo antes de proponer cambios grandes.
   dashboard, este es el punto a resolver antes que nada, con las opciones
   ya evaluadas ahí.
 - **Sigue faltando** (ver `ROADMAP_V2.md`, fuente de verdad vigente — anula
-  a `ROADMAP_SUPABASE.md`): el resto de la Fase B (B.3 a B.6: login, flip
-  de RLS a solo-autenticados, RoleGate), Fase C (pantallas de escritura —
-  la UI espera componentes sincronizados desde el sistema de diseño del PO
-  en claude.ai/design; el de B.3/B.5 ya llegó, el resto de Fase C sigue
-  pendiente), Fase D (documentos versionados en Storage). Fase 0
-  (fundaciones) ya está completa.
+  a `ROADMAP_SUPABASE.md`): el resto de la Fase B (B.4 flip de RLS, B.5
+  RoleGate, B.6 verificación de seguridad y cierre de documentación),
+  Fase C (pantallas de escritura — la UI espera componentes sincronizados
+  desde el sistema de diseño del PO en claude.ai/design; el de B.3/B.5 ya
+  llegó, el resto de Fase C sigue pendiente), Fase D (documentos
+  versionados en Storage). Fase 0 (fundaciones) ya está completa.
 
 ## Fuente de datos
 

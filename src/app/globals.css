@@ -59,6 +59,8 @@
   --color-destructive-text: var(--destructive-text);
   --color-warning-bg: var(--warning-bg);
   --color-warning-text: var(--warning-text);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-disabled: var(--primary-disabled);
 }
 
 :root {
