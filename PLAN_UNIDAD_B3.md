@@ -320,6 +320,31 @@ toggle de dark mode activo hoy).
 - Sin bucle de redirección (`ERR_TOO_MANY_REDIRECTS`) en ningún flujo.
 - `npm run lint`/`tsc`/`build` limpios.
 
+## Verificación manual (2026-08-09)
+
+Confirmado en vivo por el PO: login con Admin y con Viewer funcionan (cada
+uno ve su badge de rol correcto), logout limpia la sesión y muestra el
+banner de éxito, y un link de recuperación reusado/vencido cae
+correctamente en el flujo de error de Supabase (`otp_expired`) sin romper
+nada — confirma que `src/app/auth/callback/route.ts` sí se ejecuta y sí
+distingue errores reales.
+
+**No se pudo confirmar el último tramo** (aterrizar en
+`/login/restablecer` y definir la contraseña nueva): el servicio de correo
+por defecto de Supabase (sin SMTP propio) tiene un límite de envíos muy
+bajo, y se agotó durante las pruebas repetidas. Dos pendientes explícitos
+antes de dar por cerrado el flujo de recuperación al 100%:
+
+1. Configurar SMTP propio en Supabase (Authentication → Settings → SMTP
+   Settings) — el mailer por defecto es solo para pruebas iniciales, no
+   para uso real.
+2. Agregar `https://tablero-pi.vercel.app/auth/callback` a Redirect URLs
+   en Supabase (Authentication → URL Configuration) antes de desplegar —
+   hoy solo está `http://localhost:3000/auth/callback`.
+
+Ambos son tareas de configuración en el Dashboard de Supabase, no de
+código — quedan anotados también en `CLAUDE.md`.
+
 ## Rollback
 
 Revert + redeploy → el sitio vuelve a ser público (RLS no se toca en esta
