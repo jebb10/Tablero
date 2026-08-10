@@ -235,7 +235,7 @@ para repetir la verificación: `scripts/verificar_seguridad_fase_b.mjs`
   toda Server Action que escriba debe empezar con `requireAuth()`/
   `requireAdmin()`** (`src/lib/auth/session.ts`), no confiar solo en RLS
   para dar feedback claro al usuario.
-- **Control de versiones**: repo git local, rama `master` (tracking
+- **Control de versiones**: repo git local, rama `main` (tracking
   `origin/main`), remoto `https://github.com/jebb10/Tablero.git`. Un solo
   commit con todo el historial real del proyecto (el commit inicial de
   `create-next-app` y el placeholder que traía el repo remoto quedaron
