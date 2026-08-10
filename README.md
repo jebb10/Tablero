@@ -12,8 +12,8 @@ como fuente de datos.
 exige sesión para leer y solo Admin puede escribir, la UI oculta
 controles de escritura a los Viewers (`RoleGate`), y la seguridad quedó
 verificada con evidencia real contra producción (`supabase/RUNBOOK_AUTH.md`).
-**Fase C (pantallas de escritura) ya fue implementada y mergeada a
-`main` (PR #9), desplegada en producción.**
+**Fase C (pantallas de escritura) completa**: implementada, mergeada a
+`main` (PR #9) y verificada en vivo en producción, aprobada por el PO.
 **El estado detallado y
 siempre vigente vive en [`CLAUDE.md`](./CLAUDE.md) — no se duplica aquí
 para evitar que este resumen se desactualice.**

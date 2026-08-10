@@ -8,7 +8,7 @@ el detalle de tareas por fase al hacer drill-down. Este es un proyecto **vivo,
 construido por fases** — no asumas que la fase actual es la versión final;
 consulta siempre "Estado actual" abajo antes de proponer cambios grandes.
 
-## Estado actual: Fase 0 y Fase B completas; Fase C implementada y mergeada a `main` (PR #9), pendiente de verificación en vivo
+## Estado actual: Fase 0, Fase B y Fase C completas y verificadas
 
 - Desplegado en Vercel: [tablero-pi.vercel.app](https://tablero-pi.vercel.app/)
   (repo: `https://github.com/jebb10/Tablero.git`). **RLS ya exige sesión
@@ -92,14 +92,16 @@ consulta siempre "Estado actual" abajo antes de proponer cambios grandes.
   detalle exacto de lo implementado). Verificado en código: acordeón
   completo, botón de actividad gateado por rol, sin referencias colgantes a
   `documentation_folder_url` (columna eliminada en la migración). **Pendiente
-  de verificar en vivo** (no bloqueante): KPI "Reabiertos" tras reabrir un
-  requerimiento, cambio de color de "Salud del proyecto" con una tarea
-  vencida, autor correcto en una actividad nueva, y que un Viewer no pueda
-  insertar en `activity_logs` vía API directa (extender
-  `scripts/verificar_seguridad_fase_b.mjs`). **Sigue faltando** (ver
-  `ROADMAP_V2.md`, fuente de verdad vigente de lo pendiente): las unidades
-  C1/C2/C3 recién mencionadas y Fase D (documentos versionados en Storage).
-  Fase 0 y Fase B (fundaciones y auth/roles) ya están completas.
+  **Verificación en vivo completada y aprobada por el PO (2026-08-10)**:
+  KPI "Reabiertos" tras reabrir un requerimiento, cambio de color de
+  "Salud del proyecto" con una tarea vencida, autor correcto en una
+  actividad nueva, y que un Viewer no puede insertar en `activity_logs`
+  vía API directa — los 4 puntos de la sección 5 de
+  `PLAN_IMPLEMENTACION_FASE_C.md` en verde. **Fase C queda cerrada por
+  completo.** **Sigue faltando** (ver `ROADMAP_V2.md`, fuente de verdad
+  vigente de lo pendiente): las unidades C1/C2/C3 recién mencionadas y
+  Fase D (documentos versionados en Storage). Fase 0 y Fase B
+  (fundaciones y auth/roles) ya están completas.
 
 ## Fuente de datos
 
@@ -360,9 +362,11 @@ planteadas:
   conocido, pospuesto explícitamente por el PO: SMTP propio en Supabase,
   hasta después de cerrar Fase C. Desde la Unidad B.1, Fase B usó rama +
   PR (no push directo a `main`).
-- **Fase C — Pantallas de escritura:** Home/Gantt-visual/Detalle/Registro de
-  actividades implementados y mergeados a `main` (PR #9) — ver "Estado actual" arriba y
-  `PLAN_IMPLEMENTACION_FASE_C.md` (ya marcado como ejecutado). Las unidades
+- **Fase C — Pantallas de escritura:** ✅ **completa** (2026-08-10).
+  Home/Gantt-visual/Detalle/Registro de actividades implementados,
+  mergeados a `main` (PR #9) y verificados en vivo (los 4 puntos de la
+  sección 5 de `PLAN_IMPLEMENTACION_FASE_C.md`, aprobado por el PO) — ver
+  "Estado actual" arriba. Las unidades
   C1 (Gantt de fechas reales)/C2 (CRUD de requerimientos y tareas)/C3
   (bitácora de horas ejecutadas) de `ROADMAP_V2.md` siguen pendientes —
   diseño completo ahí.

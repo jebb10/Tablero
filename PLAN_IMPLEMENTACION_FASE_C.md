@@ -8,9 +8,12 @@ plan (Home/Gantt-visual/Detalle/Actividades) **no son las mismas** que las
 unidades Fase C1/C2/C3 de `ROADMAP_V2.md` (Gantt de fechas reales/CRUD/
 bitácora de horas ejecutadas), que siguen pendientes — ver "Estado actual"
 de `CLAUDE.md` para el detalle de qué quedó implementado y qué no.
-**Próximo paso real**: la verificación en vivo de la sección 5 de este plan
-(pendiente, no bloqueante), y luego retomar las unidades pendientes de
-`ROADMAP_V2.md`.
+**Verificación en vivo de la sección 5 completada y aprobada por el PO
+(2026-08-10)**: los 4 puntos (KPI "Reabiertos", semáforo de "Salud del
+proyecto", autor de actividad, RLS de Viewer sobre `activity_logs` vía API
+directa) en verde. **Fase C queda cerrada por completo.**
+**Próximo paso real**: retomar las unidades pendientes de `ROADMAP_V2.md`
+(C1/C2/C3).
 
 > Este documento es autocontenido para ejecutarse en una sesión nueva. No depende de que quien lo ejecute haya visto la conversación donde se diseñó. Antes de tocar código, lee `CLAUDE.md` (estado del proyecto) y los 3 mockups + contratos en `design/` y `design/contratos/`.
 
