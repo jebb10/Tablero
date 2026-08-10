@@ -4,6 +4,7 @@ import { FASES_ORDEN } from "./fases-orden";
 
 export type RequirementTaskRow = Pick<
   Database["public"]["Tables"]["requirement_tasks"]["Row"],
+  | "id"
   | "phase_number"
   | "phase_name"
   | "task_name"
@@ -41,6 +42,7 @@ export function agruparPorFase(filas: RequirementTaskRow[]): Fase[] {
   return FASES_ORDEN.map(({ numero, nombre }) => {
     const filasFase = (porNumero.get(numero) ?? []).sort((a, b) => a.sort_order - b.sort_order);
     const tareas: Tarea[] = filasFase.map((f) => ({
+      id: f.id,
       tarea: f.task_name,
       detalle: f.detail,
       estado: f.status,

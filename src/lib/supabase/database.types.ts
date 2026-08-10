@@ -23,6 +23,7 @@ export type Database = {
           logged_at: string
           notes: string | null
           requirement_id: string
+          task_id: string | null
           title: string
         }
         Insert: {
@@ -33,6 +34,7 @@ export type Database = {
           logged_at?: string
           notes?: string | null
           requirement_id: string
+          task_id?: string | null
           title: string
         }
         Update: {
@@ -43,6 +45,7 @@ export type Database = {
           logged_at?: string
           notes?: string | null
           requirement_id?: string
+          task_id?: string | null
           title?: string
         }
         Relationships: [
@@ -51,6 +54,13 @@ export type Database = {
             columns: ["requirement_id"]
             isOneToOne: false
             referencedRelation: "requirements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activity_logs_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "requirement_tasks"
             referencedColumns: ["id"]
           },
         ]
@@ -144,6 +154,7 @@ export type Database = {
           detail: string | null
           due_date: string | null
           estimated_hours: number | null
+          executed_hours: number
           id: string
           milestone: string | null
           notes: string | null
@@ -166,6 +177,7 @@ export type Database = {
           detail?: string | null
           due_date?: string | null
           estimated_hours?: number | null
+          executed_hours?: number
           id?: string
           milestone?: string | null
           notes?: string | null
@@ -188,6 +200,7 @@ export type Database = {
           detail?: string | null
           due_date?: string | null
           estimated_hours?: number | null
+          executed_hours?: number
           id?: string
           milestone?: string | null
           notes?: string | null
@@ -312,6 +325,7 @@ export type Database = {
     Functions: {
       is_admin: { Args: never; Returns: boolean }
       nombre_autor: { Args: { p_user_id: string }; Returns: string }
+      rpc_set_planned_dates: { Args: { filas: Json }; Returns: undefined }
     }
     Enums: {
       [_ in never]: never

@@ -580,6 +580,16 @@ lectura**. La query del invariante devuelve 0 filas. `overbudget` se sigue dispa
 **[VERIFICAR EN VIVO]** Que `activity_logs` está vacía antes del backfill (query 6 de 0.0) — si no, el
 backfill **duplicaría horas**.
 
+**⚠️ Este supuesto YA ES FALSO (2026-08-10).** `activity_logs` tiene datos reales en producción desde que
+el Registro de actividades de la Fase C (PR #9) se desplegó — el backfill "una entrada por requerimiento
+con `title = 'Saldo inicial migrado'`" no puede asumir la tabla vacía. Antes de ejecutar C3.3: decidir si
+el backfill se salta para requerimientos que ya tienen actividad real, o si se distingue por otro criterio
+(p. ej. solo backfillear si `executed_hours > 0` Y no hay ninguna fila de `activity_logs` para ese
+`requirement_id` todavía). Ver también `supabase/migrations/20260810120000_c1_ext_horas_por_tarea.sql` —
+la Unidad C1 agregó una extensión de horas ejecutadas *por tarea* (`activity_logs.task_id`,
+`requirement_tasks.executed_hours`) fuera de este diseño de C3 (que opera solo a nivel de requerimiento);
+no reimplementar ni contradecir esa extensión al ejecutar C3.1/C3.2/C3.3.
+
 ---
 
 # FASE D — Documentos vigentes (SIN versionado)

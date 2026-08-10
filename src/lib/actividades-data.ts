@@ -11,6 +11,10 @@ export interface Actividad {
   hoursSpent: number | null;
   loggedAt: Date;
   autor: string | null;
+  // Extensión de C1 (2026-08-10): tarea específica a la que se le registró
+  // el consumo de horas, si se seleccionó una en el modal. null = actividad
+  // a nivel de requerimiento completo (comportamiento histórico).
+  taskId: string | null;
 }
 
 export async function getActividades(requirementId: string): Promise<{
@@ -22,7 +26,7 @@ export async function getActividades(requirementId: string): Promise<{
 
     const { data, error } = await supabase
       .from("activity_logs")
-      .select("id, event_type, title, notes, hours_spent, logged_at, created_by")
+      .select("id, event_type, title, notes, hours_spent, logged_at, created_by, task_id")
       .eq("requirement_id", requirementId)
       .order("logged_at", { ascending: false });
     if (error) throw error;
@@ -54,6 +58,7 @@ export async function getActividades(requirementId: string): Promise<{
       hoursSpent: a.hours_spent,
       loggedAt: new Date(a.logged_at),
       autor: a.created_by ? nombrePorId.get(a.created_by) ?? null : null,
+      taskId: a.task_id,
     }));
 
     return { actividades, error: false };

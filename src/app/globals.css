@@ -51,6 +51,7 @@
   --color-status-no-iniciado: var(--status-no-iniciado);
   --color-status-entregado: var(--status-entregado);
   --color-status-bloqueo: var(--status-bloqueo);
+  --color-status-vencido: var(--status-vencido);
   --color-status-overbudget: var(--status-overbudget);
   --color-status-atencion: var(--status-atencion);
   --color-surface-muted: var(--surface-muted);
@@ -106,6 +107,7 @@
   --status-no-iniciado: oklch(0.6 0.02 230);    /* gris con tinte navy de marca (antes hue 258) */
   --status-entregado: oklch(0.62 0.15 150);     /* verde, sin cambio */
   --status-bloqueo: oklch(0.55 0.2 25);         /* rojo, sin cambio */
+  --status-vencido: oklch(0.38 0.14 25);        /* C1.4: rojo más oscuro/desaturado que status-bloqueo, mismo hue, para distinguir "vencido" de "próximo a vencer" */
   --status-overbudget: oklch(0.55 0.2 25);
   --status-atencion: oklch(0.42 0.05 230);      /* nuevo — azul pizarra navy, NO ámbar */
 
@@ -158,6 +160,7 @@
   --status-no-iniciado: oklch(0.55 0.02 258);
   --status-entregado: oklch(0.72 0.15 150);
   --status-bloqueo: oklch(0.68 0.2 25);
+  --status-vencido: oklch(0.5 0.14 25);         /* C1.4: paralelo al ajuste de status-bloqueo en dark, más oscuro/desaturado */
   --status-overbudget: oklch(0.68 0.2 25);
 }
 

@@ -12,8 +12,17 @@ describe("calcularSemaforo", () => {
     expect(calcularSemaforo(null, HOY)).toBe("sin-fecha");
   });
 
-  it("rojo cuando ya venció", () => {
-    expect(calcularSemaforo(enDias(-1), HOY)).toBe("rojo");
+  it("vencido cuando ya venció y no está completada", () => {
+    expect(calcularSemaforo(enDias(-1), HOY)).toBe("vencido");
+  });
+
+  it("vencido hace mucho tiempo (no colapsa con rojo)", () => {
+    expect(calcularSemaforo(enDias(-100), HOY)).toBe("vencido");
+  });
+
+  it("no es vencido si la tarea está completada, aunque la fecha ya pasó", () => {
+    expect(calcularSemaforo(enDias(-1), HOY, true)).not.toBe("vencido");
+    expect(calcularSemaforo(enDias(-100), HOY, true)).not.toBe("vencido");
   });
 
   it("rojo en el umbral de 3 días (inclusive)", () => {

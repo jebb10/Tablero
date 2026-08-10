@@ -84,6 +84,21 @@ export default async function RequerimientoPage({
         </div>
       ) : (
         <>
+          {errorActividades && <ErrorDatosBanner soloBanner />}
+          <RegistroActividades
+            actividades={actividades}
+            botonAgregar={
+              <RoleGate role="admin">
+                <BotonAgregarActividad
+                  requirementId={requerimiento.id}
+                  tareas={(fases ?? []).flatMap((f) =>
+                    f.tareas.map((t) => ({ id: t.id, taskName: t.tarea }))
+                  )}
+                />
+              </RoleGate>
+            }
+          />
+
           <div className="grid grid-cols-3 gap-3">
             <div className="rounded-xl border bg-card p-4">
               <p className="text-xs text-muted-foreground">Horas estimadas</p>
@@ -103,16 +118,6 @@ export default async function RequerimientoPage({
             <h2 className="mb-3 text-base font-semibold">Tareas por fase</h2>
             <TareasPorFase fases={fases} />
           </div>
-
-          {errorActividades && <ErrorDatosBanner soloBanner />}
-          <RegistroActividades
-            actividades={actividades}
-            botonAgregar={
-              <RoleGate role="admin">
-                <BotonAgregarActividad requirementId={requerimiento.id} />
-              </RoleGate>
-            }
-          />
 
           {requerimiento.dev_environment_url ? (
             <a

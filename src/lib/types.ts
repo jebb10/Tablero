@@ -60,6 +60,7 @@ export interface KPIs {
 }
 
 export interface Tarea {
+  id: string;
   tarea: string;
   detalle: string | null;
   estado: string | null;

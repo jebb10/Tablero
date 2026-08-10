@@ -11,11 +11,18 @@ import { TIPO_ACTIVIDAD_LABEL } from "@/lib/actividad-tipos";
 
 const ESTADO_INICIAL: AgregarActividadState = { error: null, success: false };
 
+export interface TareaParaActividad {
+  id: string;
+  taskName: string;
+}
+
 function ModalActividad({
   requirementId,
+  tareas,
   onClose,
 }: {
   requirementId: string;
+  tareas: TareaParaActividad[];
   onClose: () => void;
 }) {
   const accionConId = agregarActividad.bind(null, requirementId);
@@ -58,6 +65,25 @@ function ModalActividad({
             <Input id="title" name="title" placeholder="Ej. Reunión de seguimiento semanal" required />
           </div>
 
+          {tareas.length > 0 && (
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="taskId">Tarea (opcional)</Label>
+              <select
+                id="taskId"
+                name="taskId"
+                defaultValue=""
+                className="h-9 rounded-md border bg-transparent px-3 text-sm"
+              >
+                <option value="">Sin tarea específica</option>
+                {tareas.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.taskName}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="notes">Comentario / notas</Label>
             <textarea
@@ -96,7 +122,13 @@ function ModalActividad({
   );
 }
 
-export function BotonAgregarActividad({ requirementId }: { requirementId: string }) {
+export function BotonAgregarActividad({
+  requirementId,
+  tareas = [],
+}: {
+  requirementId: string;
+  tareas?: TareaParaActividad[];
+}) {
   const [modalAbierto, setModalAbierto] = useState(false);
 
   return (
@@ -106,7 +138,11 @@ export function BotonAgregarActividad({ requirementId }: { requirementId: string
         Añadir actividad
       </Button>
       {modalAbierto && (
-        <ModalActividad requirementId={requirementId} onClose={() => setModalAbierto(false)} />
+        <ModalActividad
+          requirementId={requirementId}
+          tareas={tareas}
+          onClose={() => setModalAbierto(false)}
+        />
       )}
     </>
   );

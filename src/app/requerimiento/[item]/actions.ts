@@ -19,6 +19,7 @@ export async function agregarActividad(
   const notes = formData.get("notes");
   const hoursSpentRaw = formData.get("hoursSpent");
   const loggedAtRaw = formData.get("loggedAt");
+  const taskIdRaw = formData.get("taskId");
 
   if (
     typeof eventType !== "string" ||
@@ -47,6 +48,12 @@ export async function agregarActividad(
     loggedAt = parsed.toISOString();
   }
 
+  // Extensión de C1 (2026-08-10): tarea opcional -- si se selecciona, un
+  // trigger recalcula requirement_tasks.executed_hours (ver migración
+  // 20260810120000_c1_ext_horas_por_tarea.sql). Vacío = actividad a nivel
+  // de requerimiento, comportamiento histórico sin cambios.
+  const taskId = typeof taskIdRaw === "string" && taskIdRaw.trim() ? taskIdRaw.trim() : null;
+
   const supabase = await getSupabaseClient();
   const { error } = await supabase.from("activity_logs").insert({
     requirement_id: requirementId,
@@ -56,6 +63,7 @@ export async function agregarActividad(
     hours_spent: hoursSpent,
     logged_at: loggedAt,
     created_by: profile.userId,
+    task_id: taskId,
   });
 
   if (error) {

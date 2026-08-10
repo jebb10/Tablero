@@ -59,7 +59,7 @@ export async function getRequerimientoDetalle(slug: string): Promise<Requerimien
       const { data: tareas } = await supabase
         .from("requirement_tasks")
         .select(
-          "phase_number, phase_name, task_name, detail, status, estimated_hours, due_date, completed_date, milestone, blockers, notes, sort_order, assignee"
+          "id, phase_number, phase_name, task_name, detail, status, estimated_hours, due_date, completed_date, milestone, blockers, notes, sort_order, assignee"
         )
         .eq("requirement_id", requerimiento.id);
       fases = agruparPorFase(tareas ?? []);
