@@ -120,9 +120,9 @@ decisiones equivocadas.
 |---|---|---|
 | `design-system-auth.dc.html` | Tokens/paleta base del sistema de diseño | Base, ya integrada en `globals.css` (B.3) |
 | `auth-dashboard-414.dc.html` | Login/recuperar/restablecer contraseña | Integrado (B.3) |
-| `home-resumen-general.dc.html` | Rediseño visual del home (`/`, hoy `dashboard-client.tsx`) — agrega KPI "Reabiertos" y "Salud del proyecto" que hoy no existen en el código | **Sin unidad asignada todavía** — es un rediseño de una pantalla ya construida en Fase A, no una unidad nueva del roadmap. Evaluar con el PO si se agenda como unidad propia (p.ej. "C0 — Rediseño Home") antes de tocar `dashboard-client.tsx`/`kpi-strip.tsx`. |
-| `fase-c1-gantt-planeacion.dc.html` | Ver Unidad C1.3 arriba | Cubre parcialmente C1.3 (falta estimado/confirmado y sticky) |
-| `fase-c-detalle-requerimiento.dc.html` | Ver Unidades C2.4 y C3.2 arriba | Cubre la vista de lectura; falta el modal de registro de C3.2 |
+| `home-resumen-general.dc.html` | Rediseño visual del home (`/`, hoy `dashboard-client.tsx`) — agrega KPI "Reabiertos" y "Salud del proyecto" | **✅ Implementado** en la rama `fase-c` (`PLAN_IMPLEMENTACION_FASE_C.md`, unidad "C0" de ESE plan — no confundir con la C1/C2/C3 de este documento, que siguen pendientes). |
+| `fase-c1-gantt-planeacion.dc.html` | Ver Unidad C1.3 arriba | **No implementa C1.3.** La rama `fase-c` sí agregó los rombos de hito y un indicador de texto para fecha estimada/no confirmada (unidad "C1" del otro plan), pero el resto de C1.3 (grid día/semana/mes, sticky, escala configurable) sigue sin hacer. Cubre parcialmente C1.3 (falta estimado/confirmado visual y sticky). |
+| `fase-c-detalle-requerimiento.dc.html` | Ver Unidades C2.4 y C3.2 arriba | **Parcialmente implementado.** La rama `fase-c` construyó el acordeón de tareas y el registro de actividades completo con su modal (unidades "C2"/"C3" del otro plan) — pero **no** resolvió C2.4 (los 21 heurísticos siguen sin ser navegables, `esNavegable` intacto) ni C3.2 tal como está descrito aquí (la bitácora de este documento asume que C3.3 ya corrió el trigger de `executed_hours`, que sigue pendiente). |
 
 Todos llegaron el 2026-08-09, después del cierre de B.4. Todos son maquetas estáticas con datos de
 ejemplo hardcodeados (no leen Supabase) — sirven como especificación visual/de interacción para
@@ -135,7 +135,7 @@ integrar, no como código a copiar literal.
 Nada de B/C/D se ejecuta sin esto. La Fase B modifica RLS sobre datos de producción; sin migraciones
 versionadas ni backup probado, es un cambio irreversible sin red de seguridad.
 
-**Diseño original + bitácora de verificación real de las 7 unidades: `ROADMAP_HISTORIAL.md`.** Resumen:
+**Diseño original + bitácora de verificación real de las 7 unidades: ya cerrada, detalle no conservado.** Resumen:
 
 | Unidad | Qué hizo | Cerrada |
 |---|---|---|
@@ -173,7 +173,7 @@ versionadas ni backup probado, es un cambio irreversible sin red de seguridad.
 
 ## Unidades B.1–B.6 ✅ completas — Fase B cerrada
 
-**Diseño original + bitácora de verificación real: `ROADMAP_HISTORIAL.md`.** Resumen:
+**Diseño original + bitácora de verificación real: ya cerrada, detalle no conservado (ver `supabase/RUNBOOK_AUTH.md` para la evidencia de seguridad).** Resumen:
 
 | Unidad | Qué hizo | Cerrada |
 |---|---|---|
@@ -192,7 +192,13 @@ explícitamente hasta después de cerrar Fase C.**
 **Único paso operativo pendiente**: rotar `SUPABASE_SECRET_KEY` en el Dashboard de Supabase y
 actualizar `.env.local` (acción manual del PO — ver `PLAN_CIERRE_FASE_B.md`).
 
-**Siguiente fase: Fase C** (pantallas de escritura).
+**Siguiente fase: Fase C** (pantallas de escritura) — **en curso**: Home,
+Gantt visual (hitos) y Detalle (acordeón + registro de actividades) ya están
+implementados en la rama local `fase-c` (aún sin mergear), ver
+`PLAN_IMPLEMENTACION_FASE_C.md` (ejecutado) y "Estado actual" de
+`CLAUDE.md`. **Esas unidades no son las C1/C2/C3 de este documento** —las
+unidades de abajo (Gantt de fechas reales, CRUD, bitácora de horas
+ejecutadas) siguen pendientes tal cual están diseñadas.
 
 ---
 

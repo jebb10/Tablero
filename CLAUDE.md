@@ -8,7 +8,7 @@ el detalle de tareas por fase al hacer drill-down. Este es un proyecto **vivo,
 construido por fases** — no asumas que la fase actual es la versión final;
 consulta siempre "Estado actual" abajo antes de proponer cambios grandes.
 
-## Estado actual: Fase 0 y Fase B completas
+## Estado actual: Fase 0 y Fase B completas; Fase C en curso (rama `fase-c`, sin mergear)
 
 - Desplegado en Vercel: [tablero-pi.vercel.app](https://tablero-pi.vercel.app/)
   (repo: `https://github.com/jebb10/Tablero.git`). **RLS ya exige sesión
@@ -45,12 +45,13 @@ consulta siempre "Estado actual" abajo antes de proponer cambios grandes.
 - El PO decidió revertir la decisión de "sin BD, sin multi-proyecto" de la
   antigua Fase 5 (ver más abajo) para convertir esto en una aplicación real:
   multi-proyecto, con login por roles y escritura. La migración a Supabase
-  (Fase A del nuevo roadmap) y la Fase 0 (fundaciones: migraciones
+  (Fase A del nuevo roadmap), la Fase 0 (fundaciones: migraciones
   versionadas, tipos generados, CI, backup, andamiaje compartido — ver más
-  abajo) ya están completas; faltan Fase B (auth/roles), Fase C (pantallas
-  de escritura) y Fase D (documentos versionados) — ver `ROADMAP_V2.md`
-  para el diseño vigente completo y las decisiones tomadas
-  (`ROADMAP_SUPABASE.md` queda como historial, superado).
+  abajo) y la Fase B (auth/roles) ya están completas; Fase C (pantallas de
+  escritura) está en curso (ver más abajo) y Fase D (documentos versionados)
+  sigue pendiente — ver `ROADMAP_V2.md` para el diseño vigente completo y
+  las decisiones tomadas (`ROADMAP_SUPABASE.md` queda como historial,
+  superado).
 - Lee de un proyecto Supabase (Postgres + API REST), ver "Fuente de datos"
   abajo. **El Google Sheet / `.xlsx` que se usaba antes de la Fase A ya no
   existe** — el archivo (`legado/REQUERIMIENTOS BOLSAS DE HORAS 414.xlsx`)
@@ -70,12 +71,35 @@ consulta siempre "Estado actual" abajo antes de proponer cambios grandes.
   hojas Gantt ocultas del Excel no fue viable). Cuando se retome este
   dashboard, este es el punto a resolver antes que nada, con las opciones
   ya evaluadas ahí.
-- **Sigue faltando** (ver `ROADMAP_V2.md`, fuente de verdad vigente — anula
-  a `ROADMAP_SUPABASE.md`): Fase C (pantallas de escritura — la UI espera
-  componentes sincronizados desde el sistema de diseño del PO en
-  claude.ai/design; el de B.3/B.5 ya llegó, el resto de Fase C sigue
-  pendiente), Fase D (documentos versionados en Storage). Fase 0 y Fase B
-  (fundaciones y auth/roles) ya están completas.
+- **Fase C está en curso, en la rama local `fase-c` (aún sin mergear a
+  `main` ni desplegada)**: ya implementa Home (KPIs "Reabiertos"/"Salud del
+  proyecto", fase actual, hitos próximos — `kpi-strip.tsx`,
+  `dashboard-data.ts`), el Gantt visual (rombos de hito, indicador de texto
+  "fecha estimada, no confirmada" para `planned_dates_confirmed = false` —
+  `gantt-timeline.tsx`), el detalle (acordeón de tareas por fase con TODAS
+  las tareas, no solo las de la fase en curso — `tareas-por-fase.tsx`,
+  reemplaza a `fase-stepper.tsx`, ya borrado) y el registro de actividades
+  (modal "Añadir actividad", solo Admin vía `RoleGate`, con el autor visible
+  para el Viewer vía la función `nombre_autor()`) — todo contra el proyecto
+  Supabase real, con 2 migraciones ya aplicadas
+  (`20260809192913_fase_c_campos_y_activity_logs.sql`,
+  `20260809221243_fix_autor_actividad_visible_a_viewer.sql`).
+  **Esto NO es lo mismo que las unidades C1 (Gantt de fechas
+  reales)/C2 (CRUD de requerimientos y tareas)/C3 (bitácora de horas
+  ejecutadas vía trigger) de `ROADMAP_V2.md`, que siguen pendientes** — son
+  dos desgloses distintos de "Fase C" con el mismo prefijo, no confundirlos
+  (ver `PLAN_IMPLEMENTACION_FASE_C.md`, ya marcado como ejecutado, para el
+  detalle exacto de lo implementado). Verificado en código: acordeón
+  completo, botón de actividad gateado por rol, sin referencias colgantes a
+  `documentation_folder_url` (columna eliminada en la migración). **Pendiente
+  de verificar en vivo** (no bloqueante): KPI "Reabiertos" tras reabrir un
+  requerimiento, cambio de color de "Salud del proyecto" con una tarea
+  vencida, autor correcto en una actividad nueva, y que un Viewer no pueda
+  insertar en `activity_logs` vía API directa (extender
+  `scripts/verificar_seguridad_fase_b.mjs`). **Sigue faltando** (ver
+  `ROADMAP_V2.md`, fuente de verdad vigente de lo pendiente): las unidades
+  C1/C2/C3 recién mencionadas y Fase D (documentos versionados en Storage).
+  Fase 0 y Fase B (fundaciones y auth/roles) ya están completas.
 
 ## Fuente de datos
 
@@ -240,8 +264,13 @@ para repetir la verificación: `scripts/verificar_seguridad_fase_b.mjs`
 | `src/components/data-quality-panel.tsx` | Panel colapsable de calidad de datos — **solo evalúa los 7 requerimientos con hoja de detalle real**, nunca los 21 heurísticos. |
 | `src/components/error-datos-banner.tsx` | `ErrorDatosBanner` — Banner de error + botón Reintentar (llama a `reintentar()`, solo hace `refresh()` — no confundir con el antiguo botón "Sincronizar", que ya no existe), usado standalone (sin datos previos) o embebido en `dashboard-client.tsx` (con datos previos atenuados). |
 | `src/components/pdf-report.tsx` | Reporte para impresión (`hidden print:block`), incluye los 28 requerimientos, sin el panel de calidad, sin numeración de página. |
-| `src/components/fase-stepper.tsx` | Línea de tiempo vertical de fases en el drill-down. |
-| `src/app/requerimiento/[item]/page.tsx` | Página de drill-down por requerimiento (RN-04/05). Llama a `getRequerimientoDetalle(slug)` (`src/lib/requerimiento-data.ts`) → `<ErrorDatosBanner soloBanner />` si falla. |
+| `src/components/tareas-por-fase.tsx` | `TareasPorFase` (Fase C) — acordeón cliente de las 5 fases reales, TODAS sus tareas visibles (no solo la fase en curso), fases no completadas abiertas por defecto. Reemplaza a `fase-stepper.tsx` (ya borrado, sin consumidores). |
+| `src/lib/actividades-data.ts` | `getActividades(requirementId)` (Fase C) — consulta `activity_logs` por requerimiento, resuelve el nombre del autor vía `nombre_autor()` (RPC security-definer, visible también para el Viewer). |
+| `src/lib/actividad-tipos.ts` | `TIPOS_ACTIVIDAD_VALIDOS`/`TIPO_ACTIVIDAD_LABEL` (Fase C) — fuente única, antes duplicada en dos componentes. |
+| `src/components/boton-agregar-actividad.tsx` | `BotonAgregarActividad` (Fase C) — modal cliente con `useActionState` sobre `agregarActividad()`; envuelto en `<RoleGate role="admin">` desde `page.tsx`, nunca llega al payload RSC de un Viewer. |
+| `src/components/registro-actividades.tsx` | `RegistroActividades` (Fase C) — tabla de bitácora por requerimiento, recibe el botón de agregar ya gateado por rol como children. |
+| `src/app/requerimiento/[item]/page.tsx` | Página de drill-down por requerimiento (RN-04/05). Llama a `getRequerimientoDetalle(slug)` (`src/lib/requerimiento-data.ts`) → `<ErrorDatosBanner soloBanner />` si falla; ídem para `getActividades()` (Fase C). |
+| `src/app/requerimiento/[item]/actions.ts` | Server Action `agregarActividad()` (Fase C) — `requireAdmin()` → valida tipo/título/horas/fecha → `insert` en `activity_logs` con `created_by` → `refresh()`. |
 | `src/app/actions.ts` | Server Action `reintentar()` (`refresh()`) — usada solo por el banner de error. |
 | `public/fonts/montserrat-{400,500,600,700}.woff2` | Montserrat auto-hospedada (no `next/font/google`) — cargada vía `next/font/local` en `layout.tsx`. |
 
@@ -318,31 +347,35 @@ planteadas:
   con ensayo de restauración real verificado) completadas 2026-08-09. Diseño
   completo en `ROADMAP_V2.md`. Siguiente: Fase B (Auth).
 - **Fase B — Supabase Auth + roles (Admin/Viewer):** ✅ **completa**
-  (2026-08-09). Detalle de cada unidad (fechas, verificación en vivo,
-  hallazgos) archivado en `ROADMAP_HISTORIAL.md` para no inflar este
-  documento. Resumen: clientes SSR + `proxy.ts` (B.1), `profiles` +
-  `is_admin()` + usuarios reales (B.2), `/login` + logout + recuperar/
-  restablecer contraseña (B.3, alcance ampliado respecto al diseño
-  original — ver historial), flip de RLS a solo-autenticados (B.4,
-  2026-08-09: `projects`/`requirements`/`requirement_tasks` ya no son
-  legibles con la anon key, trigger `updated_at` activado), `RoleGate`
-  ocultando contenido solo-Admin en la UI (B.5), checklist de seguridad de
-  11 puntos con evidencia real contra producción (B.6, 11/11 en verde —
-  ver "Seguridad" arriba y `supabase/RUNBOOK_AUTH.md`). Único pendiente
+  (2026-08-09). El detalle de verificación en vivo de cada unidad no se
+  conserva como documento aparte (lo esencial ya vive en "Seguridad" arriba
+  y en `supabase/RUNBOOK_AUTH.md`). Resumen: clientes SSR + `proxy.ts` (B.1),
+  `profiles` + `is_admin()` + usuarios reales (B.2), `/login` + logout +
+  recuperar/restablecer contraseña (B.3, alcance ampliado respecto al diseño
+  original), flip de RLS a solo-autenticados (B.4, 2026-08-09:
+  `projects`/`requirements`/`requirement_tasks` ya no son legibles con la
+  anon key, trigger `updated_at` activado), `RoleGate` ocultando contenido
+  solo-Admin en la UI (B.5), checklist de seguridad de 11 puntos con
+  evidencia real contra producción (B.6, 11/11 en verde). Único pendiente
   conocido, pospuesto explícitamente por el PO: SMTP propio en Supabase,
   hasta después de cerrar Fase C. Desde la Unidad B.1, Fase B usó rama +
   PR (no push directo a `main`).
-- **Fase C — Pantallas de escritura (CRUD):** pendiente. Diseño completo en
-  `ROADMAP_V2.md`.
+- **Fase C — Pantallas de escritura:** en curso, en la rama local `fase-c`
+  (aún sin mergear a `main`). Home/Gantt-visual/Detalle/Registro de
+  actividades ya implementados — ver "Estado actual" arriba y
+  `PLAN_IMPLEMENTACION_FASE_C.md` (ya marcado como ejecutado). Las unidades
+  C1 (Gantt de fechas reales)/C2 (CRUD de requerimientos y tareas)/C3
+  (bitácora de horas ejecutadas) de `ROADMAP_V2.md` siguen pendientes —
+  diseño completo ahí.
 - **Fase D — Documentos versionados (sin versionado real: subir reemplaza y
   borra el anterior):** pendiente. Diseño completo en `ROADMAP_V2.md`.
 
 Resumen ejecutivo de la Fase A: `ROADMAP_SUPABASE.md` (en la raíz de este
 repo) — queda como historial, **superado**. Diseño vigente de lo que falta
-(B.4 en adelante): `ROADMAP_V2.md` (en la raíz de este repo) — se mantiene
+(C1 en adelante): `ROADMAP_V2.md` (en la raíz de este repo) — se mantiene
 liviano a propósito, solo con el diseño de unidades pendientes; incluye la
 tabla de 14 puntos donde `ROADMAP_SUPABASE.md` contradice lo que hay en
-disco. **Bitácora completa de todas las unidades ya cerradas (0.0–0.6, Fase
-A, B.1–B.3): `ROADMAP_HISTORIAL.md`** — solo hace falta abrirlo si se
-necesita el detalle exacto de cómo se ejecutó algo ya hecho, no para seguir
-trabajando.
+disco. El detalle de verificación en vivo de las unidades ya cerradas (Fase
+0, Fase B) no se conserva como documento aparte — lo esencial ya vive en
+`supabase/RUNBOOK_AUTH.md` y en los resúmenes de arriba. Lo implementado de
+Fase C vive en `PLAN_IMPLEMENTACION_FASE_C.md` (ejecutado, rama `fase-c`).
