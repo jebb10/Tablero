@@ -14,7 +14,7 @@ import {
   type CrearTareaState,
   type EliminarTareaState,
   type GuardarFechasState,
-} from "@/app/planeacion/[requerimiento]/editar/actions";
+} from "@/app/actions/tasks";
 import type { TareaParaEdicion } from "@/lib/planeacion-data";
 import { FASES_ORDEN } from "@/lib/fases-orden";
 
