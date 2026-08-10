@@ -364,6 +364,20 @@ pasan de rojo a vencido. Puede ser un cambio visual notable; avisar al PO antes 
 
 ## Unidad C2.1 — Estado de tarea: de texto libre a conjunto canónico
 
+**✅ EJECUTADA Y VERIFICADA (2026-08-10)** — ver `PLAN_EJECUCION_C2_C3.md` para el detalle real de
+ejecución. Dos diferencias frente al diseño de abajo, decididas con el PO tras correr la consulta real:
+1. Los 165 valores reales (`Completada` 148, `En curso` 9, `Pendiente` 5, `No iniciada` 3) ya
+   coincidían exactamente con nombres canónicos — **no hizo falta ningún `UPDATE` de normalización**,
+   se fue directo al `CHECK constraint`.
+2. El conjunto canónico final quedó en **6 valores** (`No iniciada`, `Pendiente`, `En curso`,
+   `Bloqueada`, `Completada`, `Cancelada`) — `Pendiente`/`No iniciada` se mantuvieron como estados
+   separados (no se fusionaron), y `Bloqueada`/`Cancelada` se incluyeron sin uso real hoy, para
+   habilitarlos desde el formulario de edición de C2.2.
+
+Además, `Tarea.id` **ya estaba propagado** en todo el código (tipo, mapeo, `select`, `key` de React) —
+el punto 5/contradicción #13 de este documento ya no aplicaba, el roadmap estaba desactualizado en
+ese punto.
+
 **Decisión firme: constreñir.** El código **ya se comporta como si fuera un enum** — `fases.ts:32` y
 `fase-stepper.tsx:27` comparan `status.toLowerCase() === "completada"`. Con texto libre, un
 "Completado" (masculino) o "completada " (con espacio) escrito desde el nuevo formulario

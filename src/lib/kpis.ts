@@ -1,4 +1,5 @@
 import type { CalidadDatos, Estado, KPIs, Requerimiento, SaludProyecto } from "./types";
+import { estadoEsCompletada } from "./estados-tarea";
 
 interface TareaParaSalud {
   status: string;
@@ -51,7 +52,7 @@ export function getKPIs(
   }
 
   const vencidas = tareas.filter((t) => {
-    if (t.status.toLowerCase() === "completada") return false;
+    if (estadoEsCompletada(t.status)) return false;
     const fechaStr = t.planned_end_date ?? t.due_date;
     if (!fechaStr) return false;
     return new Date(fechaStr) < hoy;

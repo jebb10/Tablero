@@ -386,6 +386,21 @@ planteadas:
   #10). Ver "Estado actual" arriba para el detalle completo. C2 (CRUD de
   requerimientos y tareas)/C3 (bitácora de horas ejecutadas) de
   `ROADMAP_V2.md` siguen pendientes — diseño completo ahí.
+- **Unidad C2.1 — Estado de tarea a conjunto canónico:** ✅ **completa**
+  (2026-08-10, rama `fase-c2-1`). `requirement_tasks.status` pasa de texto
+  libre a un `CHECK constraint` de 6 valores (`No iniciada`, `Pendiente`,
+  `En curso`, `Bloqueada`, `Completada`, `Cancelada`) — los 165 valores
+  reales ya coincidían exactamente, sin necesidad de `UPDATE` de
+  normalización. Nuevo `src/lib/estados-tarea.ts`
+  (`ESTADOS_TAREA`/`estadoEsCompletada()`) reemplaza los 6 sitios dispersos
+  que comparaban `status.toLowerCase() === "completada"` (o, en un caso,
+  sin normalizar). Resto de C2 (C2.5/C2.2/C2.4/C2.3) y C3 siguen
+  pendientes — ver `PLAN_EJECUCION_C2_C3.md` (plan vigente de esta ronda,
+  en la raíz del repo) para el detalle y el estado de ejecución unidad por
+  unidad. **Fuera de plan, resuelto en el camino**: `npm run lint` estaba
+  roto en `main` desde el PR #10 por una versión más nueva de
+  `eslint-config-next` (PR #11, rama `fix-lint-c1`, mergeado antes de
+  C2.1, sin cambio de comportamiento).
 - **Fase D — Documentos versionados (sin versionado real: subir reemplaza y
   borra el anterior):** pendiente. Diseño completo en `ROADMAP_V2.md`.
 
