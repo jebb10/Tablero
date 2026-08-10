@@ -128,7 +128,7 @@ consulta siempre "Estado actual" abajo antes de proponer cambios grandes.
   lint` estaba roto en `main` desde el PR #10 por reglas nuevas de
   `eslint-config-next`, sin cambio de comportamiento.
 - **✅ Unidad C2.5 (reestructuración de Server Actions + componentes
-  shadcn) completa (2026-08-10, rama `fase-c2-5`)**: las Server Actions
+  shadcn) completa (2026-08-10, PR #13, rama `fase-c2-5`)**: las Server Actions
   del proyecto (antes repartidas en `src/app/actions.ts`,
   `src/app/requerimiento/[item]/actions.ts` y
   `src/app/planeacion/[requerimiento]/editar/actions.ts`) se consolidaron
@@ -436,7 +436,7 @@ planteadas:
   `eslint-config-next` (PR #11, rama `fix-lint-c1`, mergeado antes de
   C2.1, sin cambio de comportamiento).
 - **Unidad C2.5 — Reestructuración de Server Actions + componentes
-  shadcn:** ✅ **completa** (2026-08-10, rama `fase-c2-5`). Ver "Estado
+  shadcn:** ✅ **completa** (2026-08-10, PR #13, rama `fase-c2-5`). Ver "Estado
   actual" arriba para el detalle completo, incluyendo el cuidado a tener
   en cuenta con `npx shadcn add` sobreescribiendo componentes ya
   personalizados.

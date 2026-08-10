@@ -10,7 +10,7 @@
 |---|---|
 | Paso 0 (housekeeping `.env.local`) | ✅ Hecho (2026-08-10) |
 | C2.1 | ✅ Hecho (2026-08-10, PR #12) |
-| C2.5 | ✅ Hecho (2026-08-10, rama `fase-c2-5`) |
+| C2.5 | ✅ Hecho (2026-08-10, PR #13, rama `fase-c2-5`) |
 | C2.2 | ⬜ Pendiente — **siguiente unidad a ejecutar** |
 | C2.4 | ⬜ Pendiente |
 | C2.3 | ⬜ Pendiente |
