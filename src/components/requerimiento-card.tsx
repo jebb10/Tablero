@@ -8,7 +8,8 @@ import type { Requerimiento } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const SEMAFORO_TITULO: Record<Semaforo, string> = {
-  rojo: "Fecha límite vencida o próxima",
+  vencido: "Fecha límite vencida",
+  rojo: "Fecha límite próxima (≤3 días)",
   amarillo: "Fecha límite cercana",
   verde: "Fecha límite lejana",
   "sin-fecha": "Sin fecha límite",

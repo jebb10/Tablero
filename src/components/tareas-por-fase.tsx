@@ -61,11 +61,11 @@ export function TareasPorFase({ fases }: { fases: Fase[] }) {
                     Sin tareas registradas en esta fase.
                   </p>
                 ) : (
-                  fase.tareas.map((t, idx) => {
+                  fase.tareas.map((t) => {
                     const fecha = formatearFecha(t.fechaLimite);
                     const bloqueo = t.bloqueantes ?? t.notas;
                     return (
-                      <div key={idx} className="flex flex-col gap-1 p-3.5">
+                      <div key={t.id} className="flex flex-col gap-1 p-3.5">
                         <div className="flex flex-wrap items-baseline justify-between gap-2">
                           <p className="text-sm font-medium">{t.tarea}</p>
                           {t.estado && (

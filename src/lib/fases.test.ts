@@ -3,6 +3,7 @@ import { agruparPorFase, type RequirementTaskRow } from "./fases";
 
 function tarea(overrides: Partial<RequirementTaskRow> = {}): RequirementTaskRow {
   return {
+    id: "tarea-test",
     phase_number: 1,
     phase_name: "Requerimientos",
     task_name: "Tarea de prueba",

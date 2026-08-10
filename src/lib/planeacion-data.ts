@@ -1,4 +1,5 @@
 import { calcularSemaforo, type Semaforo } from "./semaforo";
+import { hoyLocal } from "./fechas";
 import { PROJECT_SLUG } from "./project";
 import { getSupabaseClient } from "./supabase/server";
 import { FASES_ORDEN } from "./fases-orden";
@@ -12,6 +13,9 @@ export interface PlaneacionTarea {
   semaforo: Semaforo;
   milestone: string | null;
   plannedDatesConfirmed: boolean;
+  assignee: string | null;
+  estimatedHours: number | null;
+  executedHours: number;
 }
 
 export interface PlaneacionFase {
@@ -23,8 +27,22 @@ export interface PlaneacionFase {
 export interface PlaneacionRequerimiento {
   id: string;
   code: string;
+  slug: string;
   title: string;
   fases: PlaneacionFase[];
+  /** true si alguna tarea tiene executed_hours > 0 (extensión de C1, ver
+   * migración 20260810120000_c1_ext_horas_por_tarea.sql). */
+  tieneConsumo: boolean;
+}
+
+export interface TareaParaEdicion {
+  id: string;
+  taskName: string;
+  phaseNumber: number;
+  phaseName: string;
+  dueDate: string | null;
+  plannedStartDate: string | null;
+  plannedEndDate: string | null;
 }
 
 export async function getPlaneacionData(): Promise<{
@@ -43,7 +61,7 @@ export async function getPlaneacionData(): Promise<{
 
     const { data: requerimientos, error: errorRequerimientos } = await supabase
       .from("requirements")
-      .select("id, code, title")
+      .select("id, code, slug, title")
       .eq("project_id", proyecto.id)
       .eq("has_detail_tracking", true)
       .order("code");
@@ -56,7 +74,7 @@ export async function getPlaneacionData(): Promise<{
     const { data: tareas, error: errorTareas } = await supabase
       .from("requirement_tasks")
       .select(
-        "id, requirement_id, phase_number, phase_name, task_name, status, due_date, planned_start_date, planned_end_date, sort_order, milestone, planned_dates_confirmed"
+        "id, requirement_id, phase_number, phase_name, task_name, status, due_date, planned_start_date, planned_end_date, sort_order, milestone, planned_dates_confirmed, assignee, estimated_hours, executed_hours"
       )
       .in("requirement_id", ids);
     if (errorTareas) throw errorTareas;
@@ -89,19 +107,82 @@ export async function getPlaneacionData(): Promise<{
               status: t.status,
               start,
               end,
-              semaforo: calcularSemaforo(end),
+              // completada: solo a nivel de tarea (C1.4) -- una tarea
+              // Completada nunca se pinta vencida, sin importar la fecha.
+              semaforo: calcularSemaforo(end, hoyLocal(), t.status === "Completada"),
               milestone: t.milestone,
               plannedDatesConfirmed: t.planned_dates_confirmed,
+              assignee: t.assignee,
+              estimatedHours: t.estimated_hours,
+              executedHours: t.executed_hours,
             };
           });
         return { phaseNumber: numero, phaseName: nombre, tareas: tareasFase };
       });
 
-      return { id: req.id, code: req.code, title: req.title, fases };
+      const tieneConsumo = fases.some((f) => f.tareas.some((t) => t.executedHours > 0));
+
+      return { id: req.id, code: req.code, slug: req.slug, title: req.title, fases, tieneConsumo };
     });
 
     return { requerimientos: resultado, error: false };
   } catch {
     return { requerimientos: [], error: true };
+  }
+}
+
+/** Unidad C1.2 — datos para la pantalla de edición de fechas planeadas de
+ * un requerimiento. `null` si el requerimiento no existe o hay error. */
+export async function getTareasParaEdicion(slug: string): Promise<{
+  id: string;
+  code: string;
+  title: string;
+  tareas: TareaParaEdicion[];
+} | null> {
+  try {
+    const supabase = await getSupabaseClient();
+
+    const { data: proyecto, error: errorProyecto } = await supabase
+      .from("projects")
+      .select("id")
+      .eq("slug", PROJECT_SLUG)
+      .single();
+    if (errorProyecto || !proyecto) throw errorProyecto ?? new Error("Proyecto no encontrado");
+
+    const { data: requerimiento, error: errorRequerimiento } = await supabase
+      .from("requirements")
+      .select("id, code, title")
+      .eq("project_id", proyecto.id)
+      .eq("slug", slug)
+      .maybeSingle();
+    if (errorRequerimiento) throw errorRequerimiento;
+    if (!requerimiento) return null;
+
+    const { data: tareas, error: errorTareas } = await supabase
+      .from("requirement_tasks")
+      .select(
+        "id, task_name, phase_number, phase_name, sort_order, due_date, planned_start_date, planned_end_date"
+      )
+      .eq("requirement_id", requerimiento.id)
+      .order("phase_number")
+      .order("sort_order");
+    if (errorTareas) throw errorTareas;
+
+    return {
+      id: requerimiento.id,
+      code: requerimiento.code,
+      title: requerimiento.title,
+      tareas: (tareas ?? []).map((t) => ({
+        id: t.id,
+        taskName: t.task_name,
+        phaseNumber: t.phase_number,
+        phaseName: t.phase_name,
+        dueDate: t.due_date,
+        plannedStartDate: t.planned_start_date,
+        plannedEndDate: t.planned_end_date,
+      })),
+    };
+  } catch {
+    return null;
   }
 }
