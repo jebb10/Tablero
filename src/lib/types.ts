@@ -26,12 +26,24 @@ export interface Requerimiento {
   sinTareas: boolean;
   fechaLimite: Date | null;
   semaforo: Semaforo;
+  reabierto: number;
+  faseActual: string | null;
 }
 
 export interface CalidadDatos {
   camposFaltantes: number;
   requerimientosAfectados: number;
   filas: { req: string; campo: string }[];
+}
+
+export type SaludProyecto = "verde" | "amarillo" | "rojo";
+
+export interface HitoProximo {
+  nombre: string;
+  requerimientoCodigo: string;
+  requerimientoNombre: string;
+  requerimientoSlug: string;
+  fecha: Date | null;
 }
 
 export interface KPIs {
@@ -41,6 +53,10 @@ export interface KPIs {
   horasEjecutadasTotal: number;
   bloqueados: number;
   calidad: CalidadDatos;
+  reabiertos: number;
+  vencidas: number;
+  entregasIncumplidas: number;
+  salud: SaludProyecto;
 }
 
 export interface Tarea {
@@ -53,6 +69,7 @@ export interface Tarea {
   hito: string | null;
   notas: string | null;
   bloqueantes: string | null;
+  asignado: string | null;
 }
 
 export type EstadoFase = "completada" | "en-curso" | "pendiente";

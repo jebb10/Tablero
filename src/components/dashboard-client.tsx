@@ -1,7 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
-import { ChevronDown, ChevronUp, FileDown, Search } from "lucide-react";
+import { ChevronDown, ChevronUp, Diamond, FileDown, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,7 +18,8 @@ import { ErrorDatosBanner } from "@/components/error-datos-banner";
 import { PdfReport } from "@/components/pdf-report";
 import { RequerimientoCard } from "@/components/requerimiento-card";
 import { cn } from "@/lib/utils";
-import type { Estado, KPIs, Requerimiento } from "@/lib/types";
+import type { Estado, HitoProximo, KPIs, Requerimiento } from "@/lib/types";
+import { SEMAFORO_TEXT_CLASS } from "@/lib/semaforo";
 
 const BLOQUES: { estado: Estado; etiqueta: string; dot: string }[] = [
   { estado: "En curso", etiqueta: "En curso", dot: "bg-status-en-curso" },
@@ -43,13 +45,20 @@ function ordenarPorFechaLimite(a: Requerimiento, b: Requerimiento): number {
   return a.nombre.localeCompare(b.nombre);
 }
 
+function formatearFecha(fecha: Date | null): string {
+  if (!fecha) return "Sin fecha";
+  return new Intl.DateTimeFormat("es-CO", { day: "2-digit", month: "short" }).format(fecha);
+}
+
 export function DashboardClient({
   requerimientos,
   kpis,
+  hitosProximos,
   error,
 }: {
   requerimientos: Requerimiento[];
   kpis: KPIs;
+  hitosProximos: HitoProximo[];
   error?: boolean;
 }) {
   const [busqueda, setBusqueda] = useState("");
@@ -86,6 +95,15 @@ export function DashboardClient({
     [filtrados]
   );
 
+  const proximasFechas = useMemo(
+    () =>
+      requerimientos
+        .filter((r) => r.fechaLimite !== null)
+        .sort(ordenarPorFechaLimite)
+        .slice(0, 4),
+    [requerimientos]
+  );
+
   return (
     <div className="flex flex-col gap-6">
       {error && <ErrorDatosBanner />}
@@ -107,6 +125,57 @@ export function DashboardClient({
         </div>
 
         <DataQualityPanel calidad={kpis.calidad} />
+
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div className="flex flex-col gap-2.5 rounded-xl border bg-card p-4">
+            <h2 className="text-sm font-semibold">Próximas fechas límite</h2>
+            {proximasFechas.length === 0 ? (
+              <p className="text-xs text-muted-foreground">Sin fechas límite registradas.</p>
+            ) : (
+              proximasFechas.map((r) => (
+                <Link
+                  key={r.item}
+                  href={r.tieneDetalle ? `/requerimiento/${r.slug}` : "#"}
+                  className={cn(
+                    "flex items-center justify-between gap-2 rounded-lg bg-muted/40 px-3 py-2",
+                    !r.tieneDetalle && "pointer-events-none"
+                  )}
+                >
+                  <div>
+                    <p className="text-sm font-medium leading-tight">{r.nombre}</p>
+                    <p className="text-xs text-muted-foreground">{r.item}</p>
+                  </div>
+                  <span className={cn("text-xs font-semibold whitespace-nowrap", SEMAFORO_TEXT_CLASS[r.semaforo])}>
+                    {formatearFecha(r.fechaLimite)}
+                  </span>
+                </Link>
+              ))
+            )}
+          </div>
+          <div className="flex flex-col gap-2.5 rounded-xl border bg-card p-4">
+            <h2 className="text-sm font-semibold">Hitos próximos</h2>
+            {hitosProximos.length === 0 ? (
+              <p className="text-xs text-muted-foreground">Sin hitos próximos registrados.</p>
+            ) : (
+              hitosProximos.map((h, i) => (
+                <Link
+                  key={`${h.requerimientoCodigo}-${i}`}
+                  href={h.requerimientoSlug ? `/requerimiento/${h.requerimientoSlug}` : "#"}
+                  className="flex items-center gap-2.5 rounded-lg bg-muted/40 px-3 py-2"
+                >
+                  <Diamond className="h-2.5 w-2.5 shrink-0 fill-primary text-primary" />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium leading-tight">{h.nombre}</p>
+                    <p className="text-xs text-muted-foreground">{h.requerimientoCodigo}</p>
+                  </div>
+                  <span className="whitespace-nowrap text-xs text-muted-foreground">
+                    {formatearFecha(h.fecha)}
+                  </span>
+                </Link>
+              ))
+            )}
+          </div>
+        </div>
 
         <div className="flex flex-wrap items-center gap-2">
         <div className="relative flex-1 min-w-[16rem]">

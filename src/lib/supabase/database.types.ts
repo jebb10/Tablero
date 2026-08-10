@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       activity_logs: {
         Row: {
+          created_by: string | null
           event_type: string
           hours_spent: number | null
           id: string
@@ -25,6 +26,7 @@ export type Database = {
           title: string
         }
         Insert: {
+          created_by?: string | null
           event_type: string
           hours_spent?: number | null
           id?: string
@@ -34,6 +36,7 @@ export type Database = {
           title: string
         }
         Update: {
+          created_by?: string | null
           event_type?: string
           hours_spent?: number | null
           id?: string
@@ -134,6 +137,7 @@ export type Database = {
       }
       requirement_tasks: {
         Row: {
+          assignee: string | null
           blockers: string | null
           completed_date: string | null
           created_at: string
@@ -145,14 +149,17 @@ export type Database = {
           notes: string | null
           phase_name: string
           phase_number: number
+          planned_dates_confirmed: boolean
           planned_end_date: string | null
           planned_start_date: string | null
           requirement_id: string
           sort_order: number
           status: string
           task_name: string
+          updated_at: string
         }
         Insert: {
+          assignee?: string | null
           blockers?: string | null
           completed_date?: string | null
           created_at?: string
@@ -164,14 +171,17 @@ export type Database = {
           notes?: string | null
           phase_name: string
           phase_number: number
+          planned_dates_confirmed?: boolean
           planned_end_date?: string | null
           planned_start_date?: string | null
           requirement_id: string
           sort_order?: number
           status?: string
           task_name: string
+          updated_at?: string
         }
         Update: {
+          assignee?: string | null
           blockers?: string | null
           completed_date?: string | null
           created_at?: string
@@ -183,12 +193,14 @@ export type Database = {
           notes?: string | null
           phase_name?: string
           phase_number?: number
+          planned_dates_confirmed?: boolean
           planned_end_date?: string | null
           planned_start_date?: string | null
           requirement_id?: string
           sort_order?: number
           status?: string
           task_name?: string
+          updated_at?: string
         }
         Relationships: [
           {
@@ -202,14 +214,16 @@ export type Database = {
       }
       requirements: {
         Row: {
+          assignees: string[] | null
           billing_date: string | null
           category: string | null
+          client_stakeholder: string | null
           code: string
           complexity: string | null
           created_at: string
           deadline: string | null
+          description: string | null
           dev_environment_url: string | null
-          documentation_folder_url: string | null
           estimated_hours: number | null
           executed_hours: number | null
           has_detail_tracking: boolean
@@ -218,20 +232,23 @@ export type Database = {
           notes: string | null
           parent_requirement_id: string | null
           project_id: string
+          reopened_count: number
           slug: string
           status: string
           title: string
           updated_at: string
         }
         Insert: {
+          assignees?: string[] | null
           billing_date?: string | null
           category?: string | null
+          client_stakeholder?: string | null
           code: string
           complexity?: string | null
           created_at?: string
           deadline?: string | null
+          description?: string | null
           dev_environment_url?: string | null
-          documentation_folder_url?: string | null
           estimated_hours?: number | null
           executed_hours?: number | null
           has_detail_tracking?: boolean
@@ -240,20 +257,23 @@ export type Database = {
           notes?: string | null
           parent_requirement_id?: string | null
           project_id: string
+          reopened_count?: number
           slug: string
           status: string
           title: string
           updated_at?: string
         }
         Update: {
+          assignees?: string[] | null
           billing_date?: string | null
           category?: string | null
+          client_stakeholder?: string | null
           code?: string
           complexity?: string | null
           created_at?: string
           deadline?: string | null
+          description?: string | null
           dev_environment_url?: string | null
-          documentation_folder_url?: string | null
           estimated_hours?: number | null
           executed_hours?: number | null
           has_detail_tracking?: boolean
@@ -262,6 +282,7 @@ export type Database = {
           notes?: string | null
           parent_requirement_id?: string | null
           project_id?: string
+          reopened_count?: number
           slug?: string
           status?: string
           title?: string
@@ -290,6 +311,7 @@ export type Database = {
     }
     Functions: {
       is_admin: { Args: never; Returns: boolean }
+      nombre_autor: { Args: { p_user_id: string }; Returns: string }
     }
     Enums: {
       [_ in never]: never

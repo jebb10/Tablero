@@ -14,6 +14,11 @@ export type RequerimientoDetalle = Pick<
   | "has_detail_tracking"
   | "estimated_hours"
   | "executed_hours"
+  | "status"
+  | "description"
+  | "client_stakeholder"
+  | "assignees"
+  | "dev_environment_url"
 >;
 
 export interface RequerimientoDetalleResult {
@@ -41,7 +46,7 @@ export async function getRequerimientoDetalle(slug: string): Promise<Requerimien
     const { data: requerimiento, error: errorRequerimiento } = await supabase
       .from("requirements")
       .select(
-        "id, code, title, month_label, complexity, has_detail_tracking, estimated_hours, executed_hours"
+        "id, code, title, month_label, complexity, has_detail_tracking, estimated_hours, executed_hours, status, description, client_stakeholder, assignees, dev_environment_url"
       )
       .eq("project_id", proyecto.id)
       .eq("slug", slug)
@@ -54,7 +59,7 @@ export async function getRequerimientoDetalle(slug: string): Promise<Requerimien
       const { data: tareas } = await supabase
         .from("requirement_tasks")
         .select(
-          "phase_number, phase_name, task_name, detail, status, estimated_hours, due_date, completed_date, milestone, blockers, notes, sort_order"
+          "phase_number, phase_name, task_name, detail, status, estimated_hours, due_date, completed_date, milestone, blockers, notes, sort_order, assignee"
         )
         .eq("requirement_id", requerimiento.id);
       fases = agruparPorFase(tareas ?? []);

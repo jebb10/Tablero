@@ -15,6 +15,7 @@ function tarea(overrides: Partial<RequirementTaskRow> = {}): RequirementTaskRow 
     blockers: null,
     notes: null,
     sort_order: 0,
+    assignee: null,
     ...overrides,
   };
 }

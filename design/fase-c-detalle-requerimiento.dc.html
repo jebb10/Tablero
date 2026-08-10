@@ -26,8 +26,8 @@
   <div style="background:#fff; border-bottom:1px solid #E1E5EA; padding:0 32px; display:flex; align-items:center; gap:28px; height:60px;">
     <div style="font-weight:700; font-size:15px;">Dashboard 414</div>
     <nav style="display:flex; gap:4px; flex:1;">
-      <a href="Home - Resumen General.dc.html" style="padding:8px 14px; border-radius:8px; color:#627887; font-size:13px; font-weight:600;">Resumen</a>
-      <a href="Gantt - Planeacion.dc.html" style="padding:8px 14px; border-radius:8px; color:#627887; font-size:13px; font-weight:600;">Planeación</a>
+      <a href="home-resumen-general.dc.html" style="padding:8px 14px; border-radius:8px; color:#627887; font-size:13px; font-weight:600;">Resumen</a>
+      <a href="fase-c1-gantt-planeacion.dc.html" style="padding:8px 14px; border-radius:8px; color:#627887; font-size:13px; font-weight:600;">Planeación</a>
     </nav>
     <span style="font-size:13px; color:#627887;">Ana Torres</span>
     <span style="font-size:12px; font-weight:600; padding:3px 10px; border-radius:999px; background:#FFF3E8; color:#8A4300;">Admin</span>
@@ -35,7 +35,7 @@
 
   <main style="max-width:1100px; margin:0 auto; padding:28px 32px 64px; display:flex; flex-direction:column; gap:22px;">
 
-    <a href="Home - Resumen General.dc.html" style="display:flex; align-items:center; gap:6px; font-size:13px; color:#627887; width:fit-content;">← Volver al resumen</a>
+    <a href="home-resumen-general.dc.html" style="display:flex; align-items:center; gap:6px; font-size:13px; color:#627887; width:fit-content;">← Volver al resumen</a>
 
     <header style="display:flex; align-items:start; justify-content:space-between; gap:16px; flex-wrap:wrap;">
       <div>
@@ -85,53 +85,56 @@
     </section>
 
     <section style="background:#fff; border:1px solid #E1E5EA; border-radius:14px; padding:22px 24px;">
-      <h2 style="font-size:15px; font-weight:700; margin:0 0 16px;">Fases del requerimiento</h2>
-      <ol style="list-style:none; margin:0; padding:0; display:flex; flex-direction:column;">
-        <sc-for list="{{ fasesStepper }}" as="fase" hint-placeholder-count="3">
-          <li style="position:relative; padding:0 0 22px 30px;">
-            <span style="position:absolute; left:8px; top:20px; bottom:0; width:1px; background:#E1E5EA;"></span>
-            <span style="position:absolute; left:0; top:2px; width:18px; height:18px; border-radius:50%; background:{{ fase.dotBg }}; display:flex; align-items:center; justify-content:center; font-size:11px; color:#fff; font-weight:700;">{{ fase.dotLabel }}</span>
-            <div style="display:flex; align-items:baseline; justify-content:space-between; gap:8px;">
-              <h3 style="font-size:14px; font-weight:700; margin:0;">{{ fase.nombre }}</h3>
-              <span style="font-size:12px; font-weight:600; color:{{ fase.estadoColor }};">{{ fase.estadoLabel }}</span>
-            </div>
-            <sc-for list="{{ fase.tareasActivas }}" as="t" hint-placeholder-count="1">
-              <div style="margin-top:8px; border-radius:8px; background:#F7F8FA; padding:8px 10px; font-size:13px;">
-                <span style="font-weight:600;">{{ t.nombre }}</span>
-                <span style="color:#627887;"> — {{ t.detalle }}</span>
+      <h2 style="font-size:15px; font-weight:700; margin:0 0 4px;">Tareas por fase</h2>
+      <p style="font-size:12px; color:#627887; margin:0 0 16px;">Las 5 fases del proyecto — cada una se puede expandir o cerrar</p>
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <sc-for list="{{ fases }}" as="fase" hint-placeholder-count="5">
+          <div style="border:1px solid #E1E5EA; border-radius:10px; overflow:hidden;">
+            <button onClick="{{ fase.onToggle }}" style="width:100%; display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px 14px; border:none; background:#F7F8FA; cursor:pointer; font-family:inherit;">
+              <div style="display:flex; align-items:center; gap:10px;">
+                <span style="width:18px; height:18px; border-radius:50%; background:{{ fase.dotBg }}; display:flex; align-items:center; justify-content:center; font-size:11px; color:#fff; font-weight:700; flex-shrink:0;">{{ fase.dotLabel }}</span>
+                <h3 style="font-size:14px; font-weight:700; margin:0; color:#1B3B51;">{{ fase.nombre }}</h3>
+                <span style="font-size:12px; font-weight:600; color:{{ fase.estadoColor }};">{{ fase.estadoLabel }}</span>
+                <span style="font-size:12px; color:#627887;">{{ fase.tareas.length }} tareas</span>
               </div>
-            </sc-for>
-          </li>
+              <span style="font-size:13px; color:#627887; transform:{{ fase.chevron }}; transition:transform 0.15s;">▾</span>
+            </button>
+            <sc-if value="{{ fase.abierta }}" hint-placeholder-val="{{ true }}">
+              <div style="display:grid; grid-template-columns:1.6fr 2fr 1fr 1fr 1fr 0.7fr; gap:8px; padding:10px 14px 4px; font-size:11px; font-weight:700; color:#627887; text-transform:uppercase; letter-spacing:0.03em; border-bottom:1px solid #E1E5EA;">
+                <span>Nombre</span><span>Descripción</span><span>Estado</span><span>Asignado</span><span>Fecha límite</span><span>Horas</span>
+              </div>
+              <sc-for list="{{ fase.tareas }}" as="t" hint-placeholder-count="3">
+                <div style="padding:10px 14px; border-bottom:1px solid #F1F2F5;">
+                  <div style="display:grid; grid-template-columns:1.6fr 2fr 1fr 1fr 1fr 0.7fr; gap:8px; font-size:13px; align-items:center;">
+                    <span style="font-weight:600;">{{ t.nombre }}</span>
+                    <span style="color:#627887; font-size:12.5px;">{{ t.detalle }}</span>
+                    <span style="font-size:12px; font-weight:600; color:{{ t.estadoColor }};">{{ t.estado }}</span>
+                    <span style="font-size:12.5px;">{{ t.asignado }}</span>
+                    <span style="font-size:12.5px; color:#627887;">{{ t.fecha }}</span>
+                    <span style="font-family:ui-monospace,monospace; font-size:12.5px;">{{ t.horas }}h</span>
+                  </div>
+                  <sc-if value="{{ t.bloqueo }}" hint-placeholder-val="{{ false }}">
+                    <div style="margin-top:6px; display:flex; align-items:start; gap:6px; font-size:12px; color:#C43D3D;">
+                      <span>⚠</span><span>{{ t.bloqueo }}</span>
+                    </div>
+                  </sc-if>
+                </div>
+              </sc-for>
+              <sc-if value="{{ fase.vacia }}" hint-placeholder-val="{{ false }}">
+                <p style="padding:14px; font-size:13px; color:#627887; margin:0;">Sin tareas registradas en esta fase.</p>
+              </sc-if>
+            </sc-if>
+          </div>
         </sc-for>
-      </ol>
+      </div>
     </section>
 
     <section style="background:#fff; border:1px solid #E1E5EA; border-radius:14px; padding:22px 24px;">
-      <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:14px;">
-        <h2 style="font-size:15px; font-weight:700; margin:0;">Tareas</h2>
-        <div style="display:flex; gap:8px; flex-wrap:wrap;">
-          <sc-for list="{{ areas }}" as="a" hint-placeholder-count="4">
-            <button onClick="{{ a.onClick }}" style="height:30px; padding:0 12px; border-radius:999px; border:1px solid #E1E5EA; font-size:12px; font-weight:600; font-family:inherit; cursor:pointer; background:{{ a.bg }}; color:{{ a.color }};">{{ a.nombre }}</button>
-          </sc-for>
-        </div>
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:16px;">
+        <h2 style="font-size:15px; font-weight:700; margin:0;">Registro de actividades</h2>
+        <button onClick="{{ abrirModalActividad }}" style="display:flex; align-items:center; gap:6px; height:36px; padding:0 14px; border-radius:8px; border:none; background:#FF7500; color:#fff; font-size:13px; font-weight:600; font-family:inherit; cursor:pointer;">+ Añadir actividad</button>
       </div>
-      <div style="display:grid; grid-template-columns:1.6fr 2fr 1fr 1fr 1fr 0.7fr; gap:8px; padding:0 10px 8px; font-size:11px; font-weight:700; color:#627887; text-transform:uppercase; letter-spacing:0.03em; border-bottom:1px solid #E1E5EA;">
-        <span>Nombre</span><span>Descripción</span><span>Estado</span><span>Asignado</span><span>Fecha límite</span><span>Horas</span>
-      </div>
-      <sc-for list="{{ tareasVisibles }}" as="t" hint-placeholder-count="6">
-        <div style="display:grid; grid-template-columns:1.6fr 2fr 1fr 1fr 1fr 0.7fr; gap:8px; padding:10px; font-size:13px; border-bottom:1px solid #F1F2F5; align-items:center;">
-          <span style="font-weight:600;">{{ t.nombre }}</span>
-          <span style="color:#627887; font-size:12.5px;">{{ t.descripcion }}</span>
-          <span style="font-size:12px; font-weight:600; color:{{ t.estadoColor }};">{{ t.estado }}</span>
-          <span style="font-size:12.5px;">{{ t.asignado }}</span>
-          <span style="font-size:12.5px; color:#627887;">{{ t.fecha }}</span>
-          <span style="font-family:ui-monospace,monospace; font-size:12.5px;">{{ t.horas }}h</span>
-        </div>
-      </sc-for>
-    </section>
-
-    <section style="background:#fff; border:1px solid #E1E5EA; border-radius:14px; padding:22px 24px;">
-      <h2 style="font-size:15px; font-weight:700; margin:0 0 16px;">Registro de actividades</h2>
+      <p style="font-size:11px; font-weight:600; color:#8A4300; background:#FFF3E8; display:inline-block; padding:3px 10px; border-radius:999px; margin:0 0 12px;">Solo Admin — el Viewer ve esta tabla, sin el botón de añadir</p>
       <div style="display:grid; grid-template-columns:0.8fr 0.9fr 0.9fr 0.6fr 2fr; gap:8px; padding:0 10px 8px; font-size:11px; font-weight:700; color:#627887; text-transform:uppercase; letter-spacing:0.03em; border-bottom:1px solid #E1E5EA;">
         <span>Fecha</span><span>Tipo</span><span>Autor</span><span>Horas</span><span>Comentario</span>
       </div>
@@ -146,47 +149,84 @@
       </sc-for>
     </section>
 
-    <section style="display:flex; gap:12px; flex-wrap:wrap;">
-      <a href="#" style="display:flex; align-items:center; gap:8px; height:40px; padding:0 16px; border-radius:10px; border:1px solid #E1E5EA; background:#fff; font-size:13px; font-weight:600; color:#1B3B51;">📎 Datos de prueba</a>
-      <a href="#" style="display:flex; align-items:center; gap:8px; height:40px; padding:0 16px; border-radius:10px; border:1px solid #E1E5EA; background:#fff; font-size:13px; font-weight:600; color:#1B3B51;">↗ Ver en Jira</a>
-      <a href="#" style="display:flex; align-items:center; gap:8px; height:40px; padding:0 16px; border-radius:10px; border:1px solid #E1E5EA; background:#fff; font-size:13px; font-weight:600; color:#1B3B51;">↗ Ver en GitHub</a>
+    <section>
+      <a href="#" style="display:flex; align-items:center; gap:8px; height:40px; padding:0 16px; border-radius:10px; border:1px solid #E1E5EA; background:#fff; font-size:13px; font-weight:600; color:#1B3B51; width:fit-content;">🔗 Link del desarrollo</a>
     </section>
 
   </main>
+
+  <sc-if value="{{ modalActividad }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed; inset:0; background:rgba(27,59,81,0.35); display:flex; align-items:center; justify-content:center; z-index:20;">
+      <div style="background:#fff; border-radius:14px; padding:24px; width:420px; max-width:92vw; box-shadow:0 12px 32px rgba(27,59,81,0.25);">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+          <h2 style="font-size:16px; font-weight:700; margin:0;">Añadir actividad</h2>
+          <button onClick="{{ cerrarModalActividad }}" style="border:none; background:none; font-size:16px; cursor:pointer; color:#627887;">✕</button>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:12px;">
+          <label style="display:flex; flex-direction:column; gap:4px; font-size:12px; font-weight:600; color:#627887;">Tipo
+            <select style="height:38px; padding:0 10px; border-radius:8px; border:1px solid #E1E5EA; font-size:13px; font-family:inherit;">
+              <option>Seguimiento</option>
+              <option>Presentación de flujo</option>
+              <option>Gestión documental</option>
+              <option>Refinamiento técnico</option>
+              <option>Otro</option>
+            </select>
+          </label>
+          <label style="display:flex; flex-direction:column; gap:4px; font-size:12px; font-weight:600; color:#627887;">Título
+            <input placeholder="Ej. Reunión de seguimiento semanal" style="height:38px; padding:0 10px; border-radius:8px; border:1px solid #E1E5EA; font-size:13px; font-family:inherit;" />
+          </label>
+          <label style="display:flex; flex-direction:column; gap:4px; font-size:12px; font-weight:600; color:#627887;">Comentario / notas
+            <textarea rows="3" style="padding:8px 10px; border-radius:8px; border:1px solid #E1E5EA; font-size:13px; font-family:inherit; resize:vertical;"></textarea>
+          </label>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <label style="display:flex; flex-direction:column; gap:4px; font-size:12px; font-weight:600; color:#627887;">Horas
+              <input type="number" step="0.5" min="0" style="height:38px; padding:0 10px; border-radius:8px; border:1px solid #E1E5EA; font-size:13px; font-family:inherit;" />
+            </label>
+            <label style="display:flex; flex-direction:column; gap:4px; font-size:12px; font-weight:600; color:#627887;">Fecha
+              <input type="date" style="height:38px; padding:0 10px; border-radius:8px; border:1px solid #E1E5EA; font-size:13px; font-family:inherit;" />
+            </label>
+          </div>
+        </div>
+        <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+          <button onClick="{{ cerrarModalActividad }}" style="height:38px; padding:0 16px; border-radius:8px; border:1px solid #E1E5EA; background:#fff; font-size:13px; font-weight:600; font-family:inherit; cursor:pointer; color:#627887;">Cancelar</button>
+          <button onClick="{{ cerrarModalActividad }}" style="height:38px; padding:0 16px; border-radius:8px; border:none; background:#FF7500; color:#fff; font-size:13px; font-weight:600; font-family:inherit; cursor:pointer;">Guardar</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
 </div>
 
 </x-dc>
 <script type="text/x-dc" data-dc-script>
 const FASES = [
-  { nombre: "Análisis", estimadas: 10, ejecutadas: 8, estado: "completada" },
+  { nombre: "Requerimientos", estimadas: 6, ejecutadas: 6, estado: "completada" },
+  { nombre: "Diseño", estimadas: 8, ejecutadas: 8, estado: "completada" },
   { nombre: "Desarrollo", estimadas: 30, ejecutadas: 25, estado: "en-curso" },
   { nombre: "QA", estimadas: 15, ejecutadas: 1, estado: "pendiente" },
+  { nombre: "Producción", estimadas: 5, ejecutadas: 0, estado: "pendiente" },
 ];
 
-const TAREAS_ACTIVAS_POR_FASE = {
-  "Desarrollo": [{ nombre: "Integración pasarela PSE", detalle: "en revisión de seguridad" }],
-};
-
+// nombre/detalle → columnas reales requirement_tasks.task_name / .detail
+// bloqueo → requirement_tasks.blockers ?? requirement_tasks.notes (igual que fase-stepper.tsx hoy)
 const TAREAS = [
-  { nombre: "Levantamiento requisitos PCI", descripcion: "Documentar alcance de certificación", estado: "Completada", area: "Backend", asignado: "L. Ramírez", fecha: "04 ago", horas: 8, estadoColor: "oklch(0.5 0.15 150)" },
-  { nombre: "Diseño de API de pagos", descripcion: "Contrato REST para PSE", estado: "Completada", area: "Backend", asignado: "J. Gómez", fecha: "06 ago", horas: 10, estadoColor: "oklch(0.5 0.15 150)" },
-  { nombre: "Integración pasarela PSE", descripcion: "Conexión con endpoints del banco", estado: "En curso", area: "Backend", asignado: "J. Gómez", fecha: "14 ago", horas: 14, estadoColor: "oklch(0.5 0.14 250)" },
-  { nombre: "Pantalla de confirmación de pago", descripcion: "UI de resultado de transacción", estado: "En curso", area: "Frontend", asignado: "P. León", fecha: "13 ago", horas: 6, estadoColor: "oklch(0.5 0.14 250)" },
-  { nombre: "Plan de pruebas de carga", descripcion: "Escenarios de concurrencia", estado: "Pendiente", area: "QA", asignado: "C. Duarte", fecha: "18 ago", horas: 0, estadoColor: "#627887" },
-  { nombre: "Pruebas de seguridad PCI", descripcion: "Checklist de certificación", estado: "Pendiente", area: "QA", asignado: "C. Duarte", fecha: "20 ago", horas: 0, estadoColor: "#627887" },
+  { fase: "Requerimientos", nombre: "Levantamiento requisitos PCI", detalle: "Documentar alcance de certificación", estado: "Completada", asignado: "L. Ramírez", fecha: "04 ago", horas: 8, estadoColor: "oklch(0.5 0.15 150)", bloqueo: null },
+  { fase: "Diseño", nombre: "Diseño de API de pagos", detalle: "Contrato REST para PSE", estado: "Completada", asignado: "J. Gómez", fecha: "06 ago", horas: 10, estadoColor: "oklch(0.5 0.15 150)", bloqueo: null },
+  { fase: "Desarrollo", nombre: "Integración pasarela PSE", detalle: "en revisión de seguridad", estado: "En curso", asignado: "J. Gómez", fecha: "14 ago", horas: 14, estadoColor: "oklch(0.5 0.14 250)", bloqueo: "Espera de WS del banco para ambiente de pruebas." },
+  { fase: "Desarrollo", nombre: "Pantalla de confirmación de pago", detalle: "UI de resultado de transacción", estado: "En curso", asignado: "P. León", fecha: "13 ago", horas: 6, estadoColor: "oklch(0.5 0.14 250)", bloqueo: null },
+  { fase: "QA", nombre: "Plan de pruebas de carga", detalle: "Escenarios de concurrencia", estado: "Pendiente", asignado: "C. Duarte", fecha: "18 ago", horas: 0, estadoColor: "#627887", bloqueo: null },
+  { fase: "QA", nombre: "Pruebas de seguridad PCI", detalle: "Checklist de certificación", estado: "Pendiente", asignado: "C. Duarte", fecha: "20 ago", horas: 0, estadoColor: "#627887", bloqueo: null },
+  { fase: "Producción", nombre: "Despliegue a producción", detalle: "Ventana de mantenimiento coordinada", estado: "Pendiente", asignado: "J. Gómez", fecha: "25 ago", horas: 0, estadoColor: "#627887", bloqueo: null },
 ];
 
 const ACTIVIDADES = [
-  { fecha: "08 ago", tipo: "Desarrollo", autor: "J. Gómez", horas: "5h", comentario: "Avance en integración de endpoints de PSE." },
-  { fecha: "07 ago", tipo: "Reunión", autor: "L. Ramírez", horas: "1h", comentario: "Seguimiento semanal con stakeholder." },
-  { fecha: "06 ago", tipo: "Desarrollo", autor: "P. León", horas: "4h", comentario: "Maquetación pantalla de confirmación." },
-  { fecha: "05 ago", tipo: "Comentario", autor: "C. Duarte", horas: "—", comentario: "Bloqueo temporal por credenciales de ambiente de pruebas." },
+  { fecha: "08 ago", tipo: "Seguimiento", autor: "J. Gómez", horas: "5h", comentario: "Avance en integración de endpoints de PSE." },
+  { fecha: "07 ago", tipo: "Seguimiento", autor: "L. Ramírez", horas: "1h", comentario: "Seguimiento semanal con stakeholder." },
+  { fecha: "06 ago", tipo: "Refinamiento técnico", autor: "P. León", horas: "4h", comentario: "Maquetación pantalla de confirmación." },
+  { fecha: "05 ago", tipo: "Otro", autor: "C. Duarte", horas: "—", comentario: "Bloqueo temporal por credenciales de ambiente de pruebas." },
 ];
 
-const AREAS_DEF = ["Todas", "Frontend", "Backend", "QA"];
-
 class Component extends DCLogic {
-  state = { areaActiva: "Todas" };
+  state = { fasesCerradas: { "Requerimientos": true, "Diseño": true }, modalActividad: false };
 
   renderVals() {
     const fasesHoras = FASES.map((f) => ({ ...f, pct: Math.min(Math.round((f.ejecutadas / f.estimadas) * 100), 100), color: f.ejecutadas > f.estimadas ? "oklch(0.55 0.2 25)" : "#FF7500" }));
@@ -195,25 +235,31 @@ class Component extends DCLogic {
     const estadoLabelMap = { completada: "Completado", "en-curso": "En curso", pendiente: "Pendiente" };
     const estadoColorMap = { completada: "oklch(0.5 0.15 150)", "en-curso": "oklch(0.5 0.14 250)", pendiente: "#627887" };
 
-    const fasesStepper = FASES.map((f) => ({
-      nombre: f.nombre,
-      dotBg: dotMap[f.estado].bg,
-      dotLabel: dotMap[f.estado].label,
-      estadoLabel: estadoLabelMap[f.estado],
-      estadoColor: estadoColorMap[f.estado],
-      tareasActivas: TAREAS_ACTIVAS_POR_FASE[f.nombre] || [],
-    }));
+    const fases = FASES.map((f) => {
+      const abierta = !this.state.fasesCerradas[f.nombre];
+      const tareas = TAREAS.filter((t) => t.fase === f.nombre);
+      return {
+        nombre: f.nombre,
+        dotBg: dotMap[f.estado].bg,
+        dotLabel: dotMap[f.estado].label,
+        estadoLabel: estadoLabelMap[f.estado],
+        estadoColor: estadoColorMap[f.estado],
+        abierta,
+        chevron: abierta ? "rotate(180deg)" : "rotate(0deg)",
+        tareas,
+        vacia: tareas.length === 0,
+        onToggle: () => this.setState({ fasesCerradas: { ...this.state.fasesCerradas, [f.nombre]: abierta } }),
+      };
+    });
 
-    const areas = AREAS_DEF.map((a) => ({
-      nombre: a,
-      onClick: () => this.setState({ areaActiva: a }),
-      bg: this.state.areaActiva === a ? "#FFF3E8" : "#fff",
-      color: this.state.areaActiva === a ? "#CC5E00" : "#627887",
-    }));
-
-    const tareasVisibles = TAREAS.filter((t) => this.state.areaActiva === "Todas" || t.area === this.state.areaActiva);
-
-    return { fasesHoras, fasesStepper, areas, tareasVisibles, actividades: ACTIVIDADES };
+    return {
+      fasesHoras,
+      fases,
+      actividades: ACTIVIDADES,
+      modalActividad: this.state.modalActividad,
+      abrirModalActividad: () => this.setState({ modalActividad: true }),
+      cerrarModalActividad: () => this.setState({ modalActividad: false }),
+    };
   }
 }
 
