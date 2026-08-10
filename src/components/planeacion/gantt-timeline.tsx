@@ -65,6 +65,10 @@ export function GanttTimeline({ requerimiento }: { requerimiento: PlaneacionRequ
                     ANCHO_MIN_PX
                   );
 
+              const offsetHitoPx = sinFecha
+                ? 0
+                : ((tarea.end!.getTime() - minFecha.getTime()) / DIA_MS) * PX_POR_DIA;
+
               return (
                 <div
                   key={tarea.id}
@@ -77,9 +81,23 @@ export function GanttTimeline({ requerimiento }: { requerimiento: PlaneacionRequ
                   <div className="relative h-3 flex-1">
                     {!sinFecha && (
                       <div
-                        className={cn("absolute h-3 rounded-sm", SEMAFORO_BAR[tarea.semaforo])}
+                        className={cn(
+                          "absolute h-3 rounded-sm",
+                          SEMAFORO_BAR[tarea.semaforo],
+                          !tarea.plannedDatesConfirmed &&
+                            "text-white/50 bg-[repeating-linear-gradient(45deg,currentColor,currentColor_3px,transparent_3px,transparent_6px)]"
+                        )}
                         style={{ left: offsetPx, width: anchoPx }}
-                        title={`${tarea.status}${tarea.start ? ` — ${formatearFecha(tarea.start)}` : ""}`}
+                        title={`${tarea.status}${tarea.start ? ` — ${formatearFecha(tarea.start)}` : ""}${
+                          tarea.plannedDatesConfirmed ? "" : " (fecha estimada, no confirmada)"
+                        }`}
+                      />
+                    )}
+                    {tarea.milestone && (
+                      <span
+                        className="absolute top-1/2 h-2.5 w-2.5 -translate-y-1/2 rotate-45 bg-primary"
+                        style={{ left: offsetHitoPx }}
+                        title={`Hito: ${tarea.milestone}`}
                       />
                     )}
                   </div>

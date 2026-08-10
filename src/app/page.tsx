@@ -7,7 +7,8 @@ import { getDashboardData } from "@/lib/dashboard-data";
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const { requerimientos, kpis, error, ultimoResultadoNulo } = await getDashboardData();
+  const { requerimientos, kpis, hitosProximos, error, ultimoResultadoNulo } =
+    await getDashboardData();
 
   return (
     <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6 p-6">
@@ -22,7 +23,12 @@ export default async function Home() {
       {ultimoResultadoNulo ? (
         <ErrorDatosBanner soloBanner />
       ) : (
-        <DashboardClient requerimientos={requerimientos} kpis={kpis} error={error} />
+        <DashboardClient
+          requerimientos={requerimientos}
+          kpis={kpis}
+          hitosProximos={hitosProximos}
+          error={error}
+        />
       )}
     </main>
   );

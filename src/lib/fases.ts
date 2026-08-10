@@ -16,6 +16,7 @@ export type RequirementTaskRow = Pick<
   | "blockers"
   | "notes"
   | "sort_order"
+  | "assignee"
 >;
 
 function toDate(v: string | null): Date | null {
@@ -28,7 +29,7 @@ function estadoDeFase(tareas: Tarea[]): EstadoFase {
   return "en-curso";
 }
 
-/** Agrupa las filas planas de requirement_tasks en el shape Fase[] que consume FaseStepper / el Gantt. */
+/** Agrupa las filas planas de requirement_tasks en el shape Fase[] que consume TareasPorFase. */
 export function agruparPorFase(filas: RequirementTaskRow[]): Fase[] {
   const porNumero = new Map<number, RequirementTaskRow[]>();
   for (const fila of filas) {
@@ -49,6 +50,7 @@ export function agruparPorFase(filas: RequirementTaskRow[]): Fase[] {
       hito: f.milestone,
       notas: f.notes,
       bloqueantes: f.blockers,
+      asignado: f.assignee,
     }));
 
     const horasEstimadas = filasFase.length
@@ -62,4 +64,36 @@ export function agruparPorFase(filas: RequirementTaskRow[]): Fase[] {
       estado: estadoDeFase(tareas),
     };
   });
+}
+
+/**
+ * Fase actual de un requerimiento: la primera fase (en orden de FASES_ORDEN)
+ * cuyas tareas no estén todas en "Completada". Si todas las fases con
+ * tareas están completas, devuelve la última fase con tareas registradas.
+ * `null` si el requerimiento no tiene ninguna tarea (los 21 heurísticos).
+ */
+export function calcularFaseActual(
+  tareas: { phase_number: number; status: string }[]
+): string | null {
+  if (tareas.length === 0) return null;
+
+  const porNumero = new Map<number, { phase_number: number; status: string }[]>();
+  for (const t of tareas) {
+    const lista = porNumero.get(t.phase_number) ?? [];
+    lista.push(t);
+    porNumero.set(t.phase_number, lista);
+  }
+
+  for (const { numero, nombre } of FASES_ORDEN) {
+    const tareasFase = porNumero.get(numero) ?? [];
+    if (
+      tareasFase.length > 0 &&
+      !tareasFase.every((t) => t.status.toLowerCase() === "completada")
+    ) {
+      return nombre;
+    }
+  }
+
+  const numerosConTareas = Array.from(porNumero.keys()).sort((a, b) => b - a);
+  return FASES_ORDEN.find((f) => f.numero === numerosConTareas[0])?.nombre ?? null;
 }

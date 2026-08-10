@@ -22,6 +22,8 @@ function req(overrides: Partial<Requerimiento> = {}): Requerimiento {
     sinTareas: false,
     fechaLimite: null,
     semaforo: "sin-fecha",
+    reabierto: 0,
+    faseActual: null,
     ...overrides,
   };
 }

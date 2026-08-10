@@ -10,6 +10,8 @@ export interface PlaneacionTarea {
   start: Date | null;
   end: Date | null;
   semaforo: Semaforo;
+  milestone: string | null;
+  plannedDatesConfirmed: boolean;
 }
 
 export interface PlaneacionFase {
@@ -54,7 +56,7 @@ export async function getPlaneacionData(): Promise<{
     const { data: tareas, error: errorTareas } = await supabase
       .from("requirement_tasks")
       .select(
-        "id, requirement_id, phase_number, phase_name, task_name, status, due_date, planned_start_date, planned_end_date, sort_order"
+        "id, requirement_id, phase_number, phase_name, task_name, status, due_date, planned_start_date, planned_end_date, sort_order, milestone, planned_dates_confirmed"
       )
       .in("requirement_id", ids);
     if (errorTareas) throw errorTareas;
@@ -88,6 +90,8 @@ export async function getPlaneacionData(): Promise<{
               start,
               end,
               semaforo: calcularSemaforo(end),
+              milestone: t.milestone,
+              plannedDatesConfirmed: t.planned_dates_confirmed,
             };
           });
         return { phaseNumber: numero, phaseName: nombre, tareas: tareasFase };

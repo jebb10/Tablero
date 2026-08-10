@@ -61,11 +61,19 @@ export function RequerimientoCard({ req }: { req: Requerimiento }) {
         {req.nombre}
       </p>
 
-      {req.mes && (
-        <Badge variant="secondary" className="h-[18px] w-fit text-[10.5px]">
-          {req.mes}
+      <div className="flex flex-wrap items-center gap-1.5">
+        {req.mes && (
+          <Badge variant="secondary" className="h-[18px] w-fit text-[10.5px]">
+            {req.mes}
+          </Badge>
+        )}
+        <Badge
+          variant={req.faseActual ? "outline" : "secondary"}
+          className="h-[18px] w-fit text-[10.5px] font-normal"
+        >
+          {req.faseActual ?? "Sin fase registrada"}
         </Badge>
-      )}
+      </div>
 
       {req.tieneDetalle ? (
         req.sinTareas ? (

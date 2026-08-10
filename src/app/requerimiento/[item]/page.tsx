@@ -1,9 +1,15 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Link2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { ErrorDatosBanner } from "@/components/error-datos-banner";
-import { FaseStepper } from "@/components/fase-stepper";
+import { TareasPorFase } from "@/components/tareas-por-fase";
+import { RegistroActividades } from "@/components/registro-actividades";
+import { BotonAgregarActividad } from "@/components/boton-agregar-actividad";
+import { RoleGate } from "@/components/auth/role-gate";
 import { getRequerimientoDetalle } from "@/lib/requerimiento-data";
+import { getActividades } from "@/lib/actividades-data";
+import { dbAEstado } from "@/lib/estados";
 
 export const dynamic = "force-dynamic";
 
@@ -27,6 +33,13 @@ export default async function RequerimientoPage({
     notFound();
   }
 
+  const { actividades } = await getActividades(requerimiento.id);
+
+  const horasEstimadas = requerimiento.estimated_hours;
+  const horasEjecutadas = requerimiento.executed_hours;
+  const horasRestantes =
+    horasEstimadas !== null && horasEjecutadas !== null ? horasEstimadas - horasEjecutadas : null;
+
   return (
     <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 p-6">
       <Link
@@ -37,9 +50,29 @@ export default async function RequerimientoPage({
         Volver al dashboard
       </Link>
 
-      <header>
+      <header className="flex flex-col gap-2">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-semibold text-muted-foreground">{requerimiento.code}</span>
+          <Badge variant="secondary">{dbAEstado(requerimiento.status)}</Badge>
+        </div>
         <h1 className="text-2xl font-bold tracking-tight">{requerimiento.title}</h1>
-        <p className="text-sm text-muted-foreground">{requerimiento.code}</p>
+        {requerimiento.description && (
+          <p className="max-w-xl text-sm text-muted-foreground">{requerimiento.description}</p>
+        )}
+        <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
+          {requerimiento.client_stakeholder && (
+            <span>
+              <span className="text-muted-foreground">Cliente:</span>{" "}
+              {requerimiento.client_stakeholder}
+            </span>
+          )}
+          {requerimiento.assignees && requerimiento.assignees.length > 0 && (
+            <span>
+              <span className="text-muted-foreground">Asignado:</span>{" "}
+              {requerimiento.assignees.join(", ")}
+            </span>
+          )}
+        </div>
       </header>
 
       {!fases ? (
@@ -51,33 +84,51 @@ export default async function RequerimientoPage({
         </div>
       ) : (
         <>
-          <div className="flex flex-wrap gap-x-6 gap-y-1 rounded-lg border bg-card p-4 text-sm">
-            {requerimiento.month_label && (
-              <span>
-                <span className="text-muted-foreground">Mes:</span> {requerimiento.month_label}
-              </span>
-            )}
-            {requerimiento.complexity && (
-              <span>
-                <span className="text-muted-foreground">Complejidad:</span>{" "}
-                {requerimiento.complexity}
-              </span>
-            )}
-            {requerimiento.estimated_hours !== null && (
-              <span>
-                <span className="text-muted-foreground">Horas estimadas:</span>{" "}
-                {requerimiento.estimated_hours}
-              </span>
-            )}
-            {requerimiento.executed_hours !== null && (
-              <span>
-                <span className="text-muted-foreground">Horas consumidas:</span>{" "}
-                {requerimiento.executed_hours}
-              </span>
-            )}
+          <div className="grid grid-cols-3 gap-3">
+            <div className="rounded-xl border bg-card p-4">
+              <p className="text-xs text-muted-foreground">Horas estimadas</p>
+              <p className="text-xl font-bold">{horasEstimadas ?? "—"}h</p>
+            </div>
+            <div className="rounded-xl border bg-card p-4">
+              <p className="text-xs text-muted-foreground">Horas consumidas</p>
+              <p className="text-xl font-bold">{horasEjecutadas ?? "—"}h</p>
+            </div>
+            <div className="rounded-xl border bg-card p-4">
+              <p className="text-xs text-muted-foreground">Horas restantes</p>
+              <p className="text-xl font-bold">{horasRestantes ?? "—"}h</p>
+            </div>
           </div>
 
-          <FaseStepper fases={fases} />
+          <div className="rounded-xl border bg-card p-5">
+            <h2 className="mb-3 text-base font-semibold">Tareas por fase</h2>
+            <TareasPorFase fases={fases} />
+          </div>
+
+          <RegistroActividades
+            actividades={actividades}
+            botonAgregar={
+              <RoleGate role="admin">
+                <BotonAgregarActividad requirementId={requerimiento.id} />
+              </RoleGate>
+            }
+          />
+
+          {requerimiento.dev_environment_url ? (
+            <a
+              href={requerimiento.dev_environment_url}
+              target="_blank"
+              rel="noreferrer"
+              className="flex w-fit items-center gap-2 rounded-lg border bg-card px-4 py-2 text-sm font-medium"
+            >
+              <Link2 className="h-4 w-4" />
+              Link del desarrollo
+            </a>
+          ) : (
+            <span className="flex w-fit items-center gap-2 rounded-lg border bg-muted/40 px-4 py-2 text-sm text-muted-foreground">
+              <Link2 className="h-4 w-4" />
+              Sin enlace configurado
+            </span>
+          )}
         </>
       )}
     </main>
