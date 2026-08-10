@@ -28,7 +28,7 @@
     <div style="font-weight:700; font-size:15px; letter-spacing:0.01em;">Dashboard 414</div>
     <nav style="display:flex; gap:4px; flex:1;">
       <span style="padding:8px 14px; border-radius:8px; background:#FFF3E8; color:#CC5E00; font-size:13px; font-weight:600;">Resumen</span>
-      <a href="Gantt - Planeacion.dc.html" style="padding:8px 14px; border-radius:8px; color:#627887; font-size:13px; font-weight:600;">Planeación</a>
+      <a href="fase-c1-gantt-planeacion.dc.html" style="padding:8px 14px; border-radius:8px; color:#627887; font-size:13px; font-weight:600;">Planeación</a>
     </nav>
     <span style="font-size:13px; color:#627887;">Ana Torres</span>
     <span style="font-size:12px; font-weight:600; padding:3px 10px; border-radius:999px; background:#FFF3E8; color:#8A4300;">Admin</span>
@@ -70,31 +70,12 @@
       </div>
     </section>
 
-    <section style="background:#fff; border:1px solid #E1E5EA; border-radius:14px; padding:22px 24px; box-shadow:0 1px 3px rgba(27,59,81,0.06);">
-      <h2 style="font-size:15px; font-weight:700; margin:0 0 4px;">Avance por requerimiento</h2>
-      <p style="font-size:12px; color:#627887; margin:0 0 18px;">Calculado en base a horas estimadas vs. consumidas</p>
-      <div style="display:flex; flex-direction:column; gap:12px;">
-        <sc-for list="{{ avanceChart }}" as="r" hint-placeholder-count="6">
-          <div style="display:grid; grid-template-columns:200px 1fr 90px; align-items:center; gap:14px;">
-            <div style="display:flex; flex-direction:column; gap:2px; min-width:0;">
-              <span style="font-size:13px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ r.nombre }}</span>
-              <span style="font-size:11px; color:#627887;">{{ r.fase }}</span>
-            </div>
-            <div style="height:10px; border-radius:999px; background:#EDEFF2; overflow:hidden;">
-              <div style="height:100%; border-radius:999px; background:{{ r.barColor }}; width:{{ r.avance }}%;"></div>
-            </div>
-            <span style="font-size:13px; font-weight:700; text-align:right; color:{{ r.barColor }};">{{ r.avance }}%</span>
-          </div>
-        </sc-for>
-      </div>
-    </section>
-
     <section style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
       <div style="background:#fff; border:1px solid #E1E5EA; border-radius:14px; padding:20px 22px; box-shadow:0 1px 3px rgba(27,59,81,0.06);">
         <h2 style="font-size:15px; font-weight:700; margin:0 0 14px;">Próximas fechas límite</h2>
         <div style="display:flex; flex-direction:column; gap:10px;">
           <sc-for list="{{ proximasFechas }}" as="p" hint-placeholder-count="4">
-            <a href="Detalle Requerimiento.dc.html" style="display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 12px; border-radius:10px; background:#F7F8FA;">
+            <a href="fase-c-detalle-requerimiento.dc.html" style="display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 12px; border-radius:10px; background:#F7F8FA;">
               <div>
                 <p style="font-size:13px; font-weight:600; margin:0; color:#1B3B51;">{{ p.nombre }}</p>
                 <p style="font-size:11px; color:#627887; margin:2px 0 0;">{{ p.item }}</p>
@@ -151,7 +132,7 @@
         </sc-if>
         <div style="display:grid; grid-template-columns:repeat(5, 1fr); gap:12px;">
           <sc-for list="{{ bloque.items }}" as="r" hint-placeholder-count="5">
-            <a href="Detalle Requerimiento.dc.html" style="display:flex; flex-direction:column; gap:8px; min-height:150px; border-radius:12px; border:1px solid {{ r.borderColor }}; border-width:{{ r.borderWidth }}; background:#fff; padding:14px;">
+            <a href="fase-c-detalle-requerimiento.dc.html" style="display:flex; flex-direction:column; gap:8px; min-height:150px; border-radius:12px; border:1px solid {{ r.borderColor }}; border-width:{{ r.borderWidth }}; background:#fff; padding:14px;">
               <div style="display:flex; align-items:start; justify-content:space-between; gap:6px;">
                 <span style="font-size:11px; font-weight:600; color:#627887;">{{ r.item }}</span>
                 <sc-if value="{{ r.bloqueado }}" hint-placeholder-val="{{ false }}">
@@ -159,7 +140,10 @@
                 </sc-if>
               </div>
               <p style="font-size:13px; font-weight:600; margin:0; line-height:1.35; color:#1B3B51;">{{ r.nombre }}</p>
-              <span style="font-size:10.5px; font-weight:600; padding:2px 8px; border-radius:999px; background:#EDEFF2; color:#627887; width:fit-content;">{{ r.mes }}</span>
+              <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                <span style="font-size:10.5px; font-weight:600; padding:2px 8px; border-radius:999px; background:#EDEFF2; color:#627887; width:fit-content;">{{ r.mes }}</span>
+                <span style="font-size:10.5px; font-weight:600; padding:2px 8px; border-radius:999px; background:{{ r.faseBg }}; color:{{ r.faseColor }}; width:fit-content;">{{ r.faseLabel }}</span>
+              </div>
               <div style="margin-top:auto; display:flex; flex-direction:column; gap:4px;">
                 <div style="display:flex; justify-content:space-between; font-size:11.5px;">
                   <span style="color:#627887;">Avance</span>
@@ -182,28 +166,29 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script>
 const REQS = [
-  { item: "REQ-101", nombre: "Portal de pagos en línea PSE", estado: "En curso", mes: "Ago 2026", complejidad: "Alta", horasEstimadas: 120, horasEjecutadas: 78, fase: "Desarrollo", fechaLimite: "2026-08-14", bloqueado: true },
-  { item: "REQ-102", nombre: "Rediseño de flujo de afiliación", estado: "En curso", mes: "Ago 2026", complejidad: "Media", horasEstimadas: 60, horasEjecutadas: 40, fase: "QA", fechaLimite: "2026-08-20", bloqueado: false },
-  { item: "REQ-103", nombre: "Módulo de notificaciones push", estado: "En curso", mes: "Sep 2026", complejidad: "Baja", horasEstimadas: 30, horasEjecutadas: 9, fase: "Análisis", fechaLimite: "2026-09-10", bloqueado: false },
-  { item: "REQ-104", nombre: "Integración pasarela Wompi", estado: "Pausado", mes: "Ago 2026", complejidad: "Alta", horasEstimadas: 90, horasEjecutadas: 20, fase: "Desarrollo", fechaLimite: "2026-09-01", bloqueado: false },
-  { item: "REQ-105", nombre: "Panel de reportes financieros", estado: "No iniciado", mes: "Sep 2026", complejidad: "Media", horasEstimadas: 50, horasEjecutadas: 0, fase: "Análisis", fechaLimite: null, bloqueado: false },
-  { item: "REQ-106", nombre: "Migración autenticación SSO", estado: "No iniciado", mes: "Sep 2026", complejidad: "Alta", horasEstimadas: 80, horasEjecutadas: 0, fase: "Análisis", fechaLimite: null, bloqueado: false },
-  { item: "REQ-107", nombre: "Optimización de checkout móvil", estado: "Entregado en producción", mes: "Jul 2026", complejidad: "Media", horasEstimadas: 45, horasEjecutadas: 45, fase: "Despliegue", fechaLimite: "2026-07-15", bloqueado: false },
-  { item: "REQ-108", nombre: "Catálogo de pólizas actualizado", estado: "Entregado en producción", mes: "Jul 2026", complejidad: "Baja", horasEstimadas: 25, horasEjecutadas: 27, fase: "Despliegue", fechaLimite: "2026-07-05", bloqueado: false },
-  { item: "REQ-109", nombre: "Firma electrónica de contratos", estado: "En curso", mes: "Ago 2026", complejidad: "Alta", horasEstimadas: 100, horasEjecutadas: 96, fase: "QA", fechaLimite: "2026-08-11", bloqueado: false },
+  { item: "REQ-101", nombre: "Portal de pagos en línea PSE", estado: "En curso", mes: "Ago 2026", complejidad: "Alta", horasEstimadas: 120, horasEjecutadas: 78, fase: "Desarrollo", tieneDetalle: true, fechaLimite: "2026-08-14", bloqueado: true },
+  { item: "REQ-102", nombre: "Rediseño de flujo de afiliación", estado: "En curso", mes: "Ago 2026", complejidad: "Media", horasEstimadas: 60, horasEjecutadas: 40, fase: "QA", tieneDetalle: true, fechaLimite: "2026-08-20", bloqueado: false },
+  { item: "REQ-103", nombre: "Módulo de notificaciones push", estado: "En curso", mes: "Sep 2026", complejidad: "Baja", horasEstimadas: 30, horasEjecutadas: 9, fase: null, tieneDetalle: false, fechaLimite: "2026-09-10", bloqueado: false },
+  { item: "REQ-104", nombre: "Integración pasarela Wompi", estado: "Pausado", mes: "Ago 2026", complejidad: "Alta", horasEstimadas: 90, horasEjecutadas: 20, fase: "Desarrollo", tieneDetalle: true, fechaLimite: "2026-09-01", bloqueado: false },
+  { item: "REQ-105", nombre: "Panel de reportes financieros", estado: "No iniciado", mes: "Sep 2026", complejidad: "Media", horasEstimadas: 50, horasEjecutadas: 0, fase: "Requerimientos", tieneDetalle: true, fechaLimite: null, bloqueado: false },
+  { item: "REQ-106", nombre: "Migración autenticación SSO", estado: "No iniciado", mes: "Sep 2026", complejidad: "Alta", horasEstimadas: 80, horasEjecutadas: 0, fase: null, tieneDetalle: false, fechaLimite: null, bloqueado: false },
+  { item: "REQ-107", nombre: "Optimización de checkout móvil", estado: "Entregado en producción", mes: "Jul 2026", complejidad: "Media", horasEstimadas: 45, horasEjecutadas: 45, fase: "Producción", tieneDetalle: true, fechaLimite: "2026-07-15", bloqueado: false },
+  { item: "REQ-108", nombre: "Catálogo de pólizas actualizado", estado: "Entregado en producción", mes: "Jul 2026", complejidad: "Baja", horasEstimadas: 25, horasEjecutadas: 27, fase: null, tieneDetalle: false, fechaLimite: "2026-07-05", bloqueado: false },
+  { item: "REQ-109", nombre: "Firma electrónica de contratos", estado: "En curso", mes: "Ago 2026", complejidad: "Alta", horasEstimadas: 100, horasEjecutadas: 96, fase: "QA", tieneDetalle: true, fechaLimite: "2026-08-11", bloqueado: false },
 ];
+const FASE_COLOR = {
+  "Requerimientos": { bg: "#EDEFF2", color: "#627887" },
+  "Diseño": { bg: "color-mix(in oklch, oklch(0.58 0.16 250), white 88%)", color: "oklch(0.4 0.14 250)" },
+  "Desarrollo": { bg: "color-mix(in oklch, oklch(0.58 0.16 250), white 88%)", color: "oklch(0.4 0.14 250)" },
+  "QA": { bg: "#FFF3E8", color: "#8A4300" },
+  "Producción": { bg: "color-mix(in oklch, oklch(0.62 0.15 150), white 88%)", color: "oklch(0.4 0.14 150)" },
+};
 const REABIERTOS = 3;
 const HITOS = [
   { nombre: "Certificación seguridad PCI", requerimiento: "REQ-101", fecha: "14 ago" },
   { nombre: "Entrega beta interna", requerimiento: "REQ-102", fecha: "20 ago" },
   { nombre: "Corte de sprint QA", requerimiento: "REQ-109", fecha: "11 ago" },
 ];
-const ESTADO_COLOR = {
-  "En curso": "oklch(0.58 0.16 250)",
-  "Pausado": "oklch(0.82 0.14 98)",
-  "No iniciado": "oklch(0.6 0.02 230)",
-  "Entregado en producción": "oklch(0.62 0.15 150)",
-};
 const BLOQUES_DEF = [
   { estado: "En curso", etiqueta: "En curso", dot: "oklch(0.58 0.16 250)" },
   { estado: "Pausado", etiqueta: "Pausados", dot: "oklch(0.82 0.14 98)" },
@@ -254,13 +239,6 @@ class Component extends DCLogic {
     const desviacionPct = Math.round(((horasEjecutadas - horasEstimadas) / horasEstimadas) * 100);
     const avanceHorasPct = Math.min(Math.round((horasEjecutadas / horasEstimadas) * 100), 100);
 
-    const avanceChart = REQS.slice(0, 6).map((r) => ({
-      nombre: r.nombre,
-      fase: r.fase,
-      avance: Math.min(Math.round((r.horasEjecutadas / r.horasEstimadas) * 100), 100),
-      barColor: r.horasEjecutadas > r.horasEstimadas ? "oklch(0.55 0.2 25)" : ESTADO_COLOR[r.estado] || "#FF7500",
-    }));
-
     const proximasFechas = REQS
       .filter((r) => r.fechaLimite)
       .map((r) => ({ ...r, dias: diasDesde(hoy, r.fechaLimite) }))
@@ -275,13 +253,19 @@ class Component extends DCLogic {
     const mesesDisponibles = Array.from(new Set(REQS.map((r) => r.mes)));
 
     const bloques = BLOQUES_DEF.map((b) => {
-      const items = filtrados.filter((r) => r.estado === b.estado).map((r) => ({
-        ...r,
-        avance: Math.min(Math.round((r.horasEjecutadas / r.horasEstimadas) * 100), 100),
-        barColor: r.horasEjecutadas > r.horasEstimadas ? "oklch(0.55 0.2 25)" : "#FF7500",
-        borderColor: r.bloqueado ? "oklch(0.55 0.2 25)" : "#E1E5EA",
-        borderWidth: r.bloqueado ? "2px" : "1px",
-      }));
+      const items = filtrados.filter((r) => r.estado === b.estado).map((r) => {
+        const faseInfo = r.tieneDetalle ? (FASE_COLOR[r.fase] || FASE_COLOR["Requerimientos"]) : { bg: "#EDEFF2", color: "#94A0AB" };
+        return {
+          ...r,
+          avance: Math.min(Math.round((r.horasEjecutadas / r.horasEstimadas) * 100), 100),
+          barColor: r.horasEjecutadas > r.horasEstimadas ? "oklch(0.55 0.2 25)" : "#FF7500",
+          borderColor: r.bloqueado ? "oklch(0.55 0.2 25)" : "#E1E5EA",
+          borderWidth: r.bloqueado ? "2px" : "1px",
+          faseLabel: r.tieneDetalle ? r.fase : "Sin fase registrada",
+          faseBg: faseInfo.bg,
+          faseColor: faseInfo.color,
+        };
+      });
       return { ...b, items, vacio: items.length === 0 };
     });
 
@@ -301,7 +285,6 @@ class Component extends DCLogic {
         desviacionColor: desviacionPct > 15 ? "oklch(0.55 0.2 25)" : desviacionPct > 0 ? "oklch(0.55 0.14 85)" : "oklch(0.5 0.15 150)",
       },
       salud: saludMap[saludNivel],
-      avanceChart,
       proximasFechas,
       hitosProximos: HITOS,
       bloques,

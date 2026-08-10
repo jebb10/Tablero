@@ -26,7 +26,7 @@
   <div style="background:#fff; border-bottom:1px solid #E1E5EA; padding:0 32px; display:flex; align-items:center; gap:28px; height:60px;">
     <div style="font-weight:700; font-size:15px;">Dashboard 414</div>
     <nav style="display:flex; gap:4px; flex:1;">
-      <a href="Home - Resumen General.dc.html" style="padding:8px 14px; border-radius:8px; color:#627887; font-size:13px; font-weight:600;">Resumen</a>
+      <a href="home-resumen-general.dc.html" style="padding:8px 14px; border-radius:8px; color:#627887; font-size:13px; font-weight:600;">Resumen</a>
       <span style="padding:8px 14px; border-radius:8px; background:#FFF3E8; color:#CC5E00; font-size:13px; font-weight:600;">Planeación</span>
     </nav>
     <span style="font-size:13px; color:#627887;">Ana Torres</span>
@@ -50,11 +50,12 @@
         <button onClick="{{ setFiltroCon }}" style="height:36px; padding:0 14px; border:none; border-left:1px solid #E1E5EA; font-size:13px; font-weight:600; font-family:inherit; cursor:pointer; background:{{ filtroConBg }}; color:{{ filtroConColor }};">Con consumo</button>
         <button onClick="{{ setFiltroSin }}" style="height:36px; padding:0 14px; border:none; border-left:1px solid #E1E5EA; font-size:13px; font-weight:600; font-family:inherit; cursor:pointer; background:{{ filtroSinBg }}; color:{{ filtroSinColor }};">Sin consumo</button>
       </div>
-      <div style="display:flex; align-items:center; gap:14px; margin-left:auto; font-size:12px; color:#627887;">
-        <span style="display:flex; align-items:center; gap:6px;"><span style="width:10px; height:10px; border-radius:3px; background:#D8DEE4;"></span>Pendiente</span>
-        <span style="display:flex; align-items:center; gap:6px;"><span style="width:10px; height:10px; border-radius:3px; background:oklch(0.58 0.16 250);"></span>En proceso</span>
-        <span style="display:flex; align-items:center; gap:6px;"><span style="width:10px; height:10px; border-radius:3px; background:oklch(0.62 0.15 150);"></span>Completada</span>
-        <span style="display:flex; align-items:center; gap:6px;"><span style="width:10px; height:10px; border-radius:3px; background:oklch(0.55 0.2 25);"></span>Atrasada</span>
+      <div style="display:flex; align-items:center; gap:14px; margin-left:auto; font-size:12px; color:#627887; flex-wrap:wrap;">
+        <span style="display:flex; align-items:center; gap:6px;"><span style="width:10px; height:10px; border-radius:3px; background:oklch(0.62 0.15 150);"></span>En plazo</span>
+        <span style="display:flex; align-items:center; gap:6px;"><span style="width:10px; height:10px; border-radius:3px; background:oklch(0.55 0.14 85);"></span>Próxima (≤10 días)</span>
+        <span style="display:flex; align-items:center; gap:6px;"><span style="width:10px; height:10px; border-radius:3px; background:oklch(0.55 0.2 25);"></span>Vencida / urgente</span>
+        <span style="display:flex; align-items:center; gap:6px;"><span style="width:10px; height:10px; border-radius:3px; background:#D8DEE4;"></span>Sin fecha</span>
+        <span style="display:flex; align-items:center; gap:6px;"><span style="width:16px; height:8px; border-radius:3px; background:repeating-linear-gradient(45deg, #94A0AB, #94A0AB 3px, #C5CCD3 3px, #C5CCD3 6px);"></span>Fecha estimada (no confirmada)</span>
         <span style="display:flex; align-items:center; gap:6px;"><span style="width:8px; height:8px; background:#FF7500; transform:rotate(45deg);"></span>Hito</span>
       </div>
     </section>
@@ -71,13 +72,13 @@
           <div style="min-width:{{ gridMinWidth }}px;">
             <div style="height:40px; display:grid; grid-template-columns:{{ colTemplate }}; border-bottom:1px solid #E1E5EA;">
               <sc-for list="{{ columnas }}" as="c" hint-placeholder-count="10">
-                <div style="display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:600; color:{{ c.hoy }}; border-left:1px solid #F1F2F5;">{{ c.label }}</div>
+                <div style="display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:600; color:{{ c.hoy }}; background:{{ c.hoyBg }}; border-left:1px solid #F1F2F5;">{{ c.label }}</div>
               </sc-for>
             </div>
             <sc-for list="{{ filas }}" as="f" hint-placeholder-count="10">
               <div style="height:36px; display:grid; grid-template-columns:{{ colTemplate }}; border-bottom:1px solid #F1F2F5; position:relative;">
                 <sc-if value="{{ f.esTarea }}" hint-placeholder-val="{{ false }}">
-                  <a href="Detalle Requerimiento.dc.html" onMouseEnter="{{ f.onHover }}" onMouseLeave="{{ onLeave }}" style="grid-column:{{ f.col }}; align-self:center; height:20px; border-radius:5px; background:{{ f.barColor }}; margin:0 2px; display:block; cursor:pointer;"></a>
+                  <a href="fase-c-detalle-requerimiento.dc.html" onMouseEnter="{{ f.onHover }}" onMouseLeave="{{ onLeave }}" style="grid-column:{{ f.col }}; align-self:center; height:20px; border-radius:5px; background-color:{{ f.barColor }}; background-image:{{ f.barPattern }}; color:rgba(255,255,255,0.55); margin:0 2px; display:block; cursor:pointer;"></a>
                 </sc-if>
                 <sc-if value="{{ f.esHito }}" hint-placeholder-val="{{ false }}">
                   <span onMouseEnter="{{ f.onHoverHito }}" onMouseLeave="{{ onLeave }}" style="grid-column:{{ f.hitoCol }}; align-self:center; justify-self:center; width:10px; height:10px; background:#FF7500; transform:rotate(45deg); cursor:pointer;"></span>
@@ -114,39 +115,47 @@ const SEM_INICIO = new Date(2026, 7, 3);
 const SEM_FIN = new Date(2026, 7, 9);
 const HOY = new Date(2026, 7, 9);
 
-const COLOR_ESTADO = {
-  pendiente: "#D8DEE4",
-  proceso: "oklch(0.58 0.16 250)",
-  completada: "oklch(0.62 0.15 150)",
-  atrasada: "oklch(0.55 0.2 25)",
+const SEMAFORO_BAR = {
+  rojo: "oklch(0.55 0.2 25)",
+  amarillo: "oklch(0.55 0.14 85)",
+  verde: "oklch(0.62 0.15 150)",
+  "sin-fecha": "#D8DEE4",
 };
+const PATRON_ESTIMADO = "repeating-linear-gradient(45deg, currentColor, currentColor 3px, transparent 3px, transparent 6px)";
 
 const DATA = [
   { req: "REQ-101", nombre: "Portal de pagos en línea PSE", consumo: true, tareas: [
-    { tarea: "Análisis de requerimientos PCI", estado: "completada", start: "2026-08-01", end: "2026-08-04", asignado: "L. Ramírez", avance: "100%" },
-    { tarea: "Integración pasarela PSE", estado: "proceso", start: "2026-08-05", end: "2026-08-14", asignado: "J. Gómez", avance: "62%", hito: "Certificación PCI" },
-    { tarea: "QA y pruebas de carga", estado: "pendiente", start: "2026-08-15", end: "2026-08-22", asignado: "C. Duarte", avance: "0%" },
+    { tarea: "Análisis de requerimientos PCI", start: "2026-08-01", end: "2026-08-04", confirmada: true, asignado: "L. Ramírez", avance: "100%" },
+    { tarea: "Integración pasarela PSE", start: "2026-08-05", end: "2026-08-14", confirmada: true, asignado: "J. Gómez", avance: "62%", hito: "Certificación PCI" },
+    { tarea: "QA y pruebas de carga", start: "2026-08-15", end: "2026-08-22", confirmada: false, asignado: "C. Duarte", avance: "0%" },
   ]},
   { req: "REQ-102", nombre: "Rediseño flujo de afiliación", consumo: true, tareas: [
-    { tarea: "Wireframes y flujo UX", estado: "completada", start: "2026-08-01", end: "2026-08-06", asignado: "M. Salas", avance: "100%" },
-    { tarea: "Desarrollo frontend", estado: "proceso", start: "2026-08-07", end: "2026-08-18", asignado: "P. León", avance: "55%", hito: "Entrega beta" },
-    { tarea: "Validación con stakeholders", estado: "pendiente", start: "2026-08-19", end: "2026-08-24", asignado: "M. Salas", avance: "0%" },
+    { tarea: "Wireframes y flujo UX", start: "2026-08-01", end: "2026-08-06", confirmada: true, asignado: "M. Salas", avance: "100%" },
+    { tarea: "Desarrollo frontend", start: "2026-08-07", end: "2026-08-18", confirmada: true, asignado: "P. León", avance: "55%", hito: "Entrega beta" },
+    { tarea: "Validación con stakeholders", start: "2026-08-19", end: "2026-08-24", confirmada: false, asignado: "M. Salas", avance: "0%" },
   ]},
   { req: "REQ-104", nombre: "Integración pasarela Wompi", consumo: true, tareas: [
-    { tarea: "Diseño técnico de integración", estado: "atrasada", start: "2026-08-01", end: "2026-08-08", asignado: "J. Gómez", avance: "40%" },
-    { tarea: "Desarrollo API Wompi", estado: "pendiente", start: "2026-08-09", end: "2026-08-20", asignado: "J. Gómez", avance: "0%" },
+    { tarea: "Diseño técnico de integración", start: "2026-08-01", end: "2026-08-08", confirmada: true, asignado: "J. Gómez", avance: "40%" },
+    { tarea: "Desarrollo API Wompi", start: "2026-08-09", end: "2026-08-20", confirmada: false, asignado: "J. Gómez", avance: "0%" },
   ]},
   { req: "REQ-105", nombre: "Panel de reportes financieros", consumo: false, tareas: [
-    { tarea: "Levantamiento de requisitos", estado: "pendiente", start: "2026-08-12", end: "2026-08-19", asignado: "L. Ramírez", avance: "0%" },
-    { tarea: "Definición de KPIs a mostrar", estado: "pendiente", start: "2026-08-20", end: "2026-08-26", asignado: "L. Ramírez", avance: "0%" },
+    { tarea: "Levantamiento de requisitos", start: "2026-08-12", end: "2026-08-19", confirmada: false, asignado: "L. Ramírez", avance: "0%" },
+    { tarea: "Definición de KPIs a mostrar", start: "2026-08-20", end: "2026-08-26", confirmada: false, asignado: "L. Ramírez", avance: "0%" },
   ]},
   { req: "REQ-109", nombre: "Firma electrónica de contratos", consumo: true, tareas: [
-    { tarea: "Pruebas de integración legal", estado: "proceso", start: "2026-08-04", end: "2026-08-11", asignado: "C. Duarte", avance: "88%", hito: "Corte de sprint QA" },
+    { tarea: "Pruebas de integración legal", start: "2026-08-04", end: "2026-08-11", confirmada: true, asignado: "C. Duarte", avance: "88%", hito: "Corte de sprint QA" },
   ]},
 ];
 
 function dias(a, b) { return Math.round((b.getTime() - a.getTime()) / DIA_MS); }
 function fmt(d) { return parseLocal(d).toLocaleDateString("es-CO", { day: "2-digit", month: "short" }); }
+function calcularSemaforo(endStr, hoy) {
+  if (!endStr) return "sin-fecha";
+  const dif = dias(hoy, parseLocal(endStr));
+  if (dif < 0 || dif <= 3) return "rojo";
+  if (dif <= 10) return "amarillo";
+  return "verde";
+}
 
 class Component extends DCLogic {
   state = { zoom: "mes", filtro: "todos", tooltip: null };
@@ -156,7 +165,8 @@ class Component extends DCLogic {
     const cols = [];
     for (let i = 0; i < total; i++) {
       const d = new Date(inicio.getTime() + i * DIA_MS);
-      cols.push({ label: this.state.zoom === "semana" ? d.toLocaleDateString("es-CO", { weekday: "short" }) : String(d.getDate()), hoy: dias(HOY, d) === 0 ? "#FF7500" : "#627887" });
+      const esHoy = dias(HOY, d) === 0;
+      cols.push({ label: this.state.zoom === "semana" ? d.toLocaleDateString("es-CO", { weekday: "short" }) : String(d.getDate()), hoy: esHoy ? "#FF7500" : "#627887", hoyBg: esHoy ? "#FFF3E8" : "transparent" });
     }
     return { cols, total };
   }
@@ -181,12 +191,14 @@ class Component extends DCLogic {
         const colStart = Math.max(dias(inicio, startD), 0) + 1;
         const colEnd = Math.min(dias(inicio, endD), total - 1) + 2;
         const visible = colEnd > 1 && colStart <= total;
+        const semaforo = calcularSemaforo(t.end, HOY);
         const fila = {
           esGrupo: false, esTarea: visible, esHito: false,
           label: t.tarea, indent: 30, fontSize: "12.5px", fontWeight: 400, color: "#627887",
           col: `${Math.max(colStart,1)} / ${Math.max(colEnd, colStart+1)}`,
-          barColor: COLOR_ESTADO[t.estado],
-          onHover: (e) => this.setState({ tooltip: { x: e.clientX - e.currentTarget.closest('section').getBoundingClientRect().left + 10, y: e.clientY - e.currentTarget.closest('section').getBoundingClientRect().top - 60, tarea: t.tarea, fechas: `${fmt(t.start)} – ${fmt(t.end)}`, asignado: t.asignado, avance: t.avance } }),
+          barColor: SEMAFORO_BAR[semaforo],
+          barPattern: t.confirmada ? "none" : PATRON_ESTIMADO,
+          onHover: (e) => this.setState({ tooltip: { x: e.clientX - e.currentTarget.closest('section').getBoundingClientRect().left + 10, y: e.clientY - e.currentTarget.closest('section').getBoundingClientRect().top - 60, tarea: t.tarea, fechas: `${fmt(t.start)} – ${fmt(t.end)}${t.confirmada ? '' : ' (estimada)'}`, asignado: t.asignado, avance: t.avance } }),
         };
         if (t.hito) {
           const hitoD = parseLocal(t.end);
