@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { CalendarCog, ChevronLeft, ChevronRight, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -71,11 +71,14 @@ export function PlaneacionClient({
   );
 
   // Al cambiar de requerimiento (no de escala), recentrar la ventana --
-  // cada requerimiento tiene su propio rango de fechas real.
-  useEffect(() => {
+  // cada requerimiento tiene su propio rango de fechas real. Ajuste durante
+  // el render (no un efecto): evita el doble render de un setState en
+  // useEffect y cumple la regla de inmutabilidad de render de React.
+  const [seleccionadoIdAnterior, setSeleccionadoIdAnterior] = useState(seleccionadoId);
+  if (seleccionadoId !== seleccionadoIdAnterior) {
+    setSeleccionadoIdAnterior(seleccionadoId);
     if (seleccionado) setReferencia(referenciaInicial(seleccionado, hoy));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [seleccionadoId]);
+  }
 
   const requerimientosFiltrados = requerimientos.filter((r) => {
     if (filtroConsumo === "con") return r.tieneConsumo;

@@ -22,6 +22,15 @@ const ANCHO_MIN_PX = 4;
 const ALTO_FASE_PX = 32;
 const ALTO_TAREA_PX = 28;
 
+/** Alto en px que ocupa una fase (cabecera + sus tareas si está abierta, o 1
+ * fila reservada para "Sin tareas" si está abierta y no tiene ninguna). */
+function alturaFase(fase: PlaneacionFase, abierta: boolean): number {
+  return (
+    ALTO_FASE_PX +
+    (abierta ? Math.max(fase.tareas.length, fase.tareas.length === 0 ? 1 : 0) * ALTO_TAREA_PX : 0)
+  );
+}
+
 function formatearFecha(fecha: Date): string {
   return new Intl.DateTimeFormat("es-CO", { day: "2-digit", month: "short" }).format(fecha);
 }
@@ -190,14 +199,18 @@ export function GanttTimeline({
   const hoyVisible = sinHora(hoy).getTime() >= minFecha.getTime() && sinHora(hoy).getTime() <= maxFecha.getTime();
 
   const alturaTotalPx = requerimiento.fases.reduce(
-    (acc, fase) =>
-      acc +
-      ALTO_FASE_PX +
-      (abiertas.has(fase.phaseNumber)
-        ? Math.max(fase.tareas.length, fase.tareas.length === 0 ? 1 : 0) * ALTO_TAREA_PX
-        : 0),
+    (acc, fase) => acc + alturaFase(fase, abiertas.has(fase.phaseNumber)),
     0
   );
+
+  // Offset Y de cada fase, acumulado a partir de la altura de las fases
+  // anteriores -- calculado de forma pura (sin mutar una variable a través
+  // de las iteraciones) para cumplir la regla de inmutabilidad de render.
+  const filaFaseYPorIndice = requerimiento.fases.reduce<number[]>((acc, fase, i) => {
+    if (i === 0) return [0];
+    const anterior = requerimiento.fases[i - 1];
+    return [...acc, acc[i - 1] + alturaFase(anterior, abiertas.has(anterior.phaseNumber))];
+  }, []);
 
   return (
     <div className="flex rounded-lg border bg-card">
@@ -298,70 +311,64 @@ export function GanttTimeline({
               />
             )}
 
-            {(() => {
-              let y = 0;
-              return requerimiento.fases.map((fase) => {
-                const abierta = abiertas.has(fase.phaseNumber);
-                const resumen = resumenFase(fase);
-                const filaFaseY = y;
-                y += ALTO_FASE_PX;
-                const filasTareas: { tarea: PlaneacionFase["tareas"][number]; y: number }[] = [];
-                if (abierta) {
-                  for (const tarea of fase.tareas) {
-                    filasTareas.push({ tarea, y });
-                    y += ALTO_TAREA_PX;
-                  }
-                  if (fase.tareas.length === 0) y += ALTO_TAREA_PX;
-                }
+            {requerimiento.fases.map((fase, index) => {
+              const abierta = abiertas.has(fase.phaseNumber);
+              const resumen = resumenFase(fase);
+              const filaFaseY = filaFaseYPorIndice[index];
+              const filasTareas: { tarea: PlaneacionFase["tareas"][number]; y: number }[] = abierta
+                ? fase.tareas.map((tarea, i) => ({
+                    tarea,
+                    y: filaFaseY + ALTO_FASE_PX + i * ALTO_TAREA_PX,
+                  }))
+                : [];
 
-                return (
-                  <div key={fase.phaseNumber}>
-                    {resumen && visibleEnVentana(resumen.start, resumen.end) && (
-                      <div
-                        className="absolute h-2 rounded-sm bg-muted-foreground/50"
-                        style={{
-                          left: Math.max(0, offsetPara(resumen.start)),
-                          width: Math.max(
-                            offsetPara(resumen.end) - Math.max(0, offsetPara(resumen.start)) + pxPorDia,
-                            ANCHO_MIN_PX
-                          ),
-                          top: filaFaseY + ALTO_FASE_PX / 2 - 4,
-                        }}
-                        title={`${fase.phaseName}: ${formatearFecha(resumen.start)} – ${formatearFecha(resumen.end)}`}
-                      />
-                    )}
-                    {filasTareas.map(({ tarea, y: yTarea }) => {
-                      if (!visibleEnVentana(tarea.start, tarea.end)) return null;
-                      const offsetX = Math.max(0, offsetPara(tarea.start!));
-                      const anchoPx = Math.max(offsetPara(tarea.end!) - offsetX + pxPorDia, ANCHO_MIN_PX);
-                      const offsetHitoPx = offsetPara(tarea.end!) + pxPorDia;
+              return (
+                <div key={fase.phaseNumber}>
+                  {resumen && visibleEnVentana(resumen.start, resumen.end) && (
+                    <div
+                      className="absolute h-2 rounded-sm bg-muted-foreground/50"
+                      style={{
+                        left: Math.max(0, offsetPara(resumen.start)),
+                        width: Math.max(
+                          offsetPara(resumen.end) - Math.max(0, offsetPara(resumen.start)) + pxPorDia,
+                          ANCHO_MIN_PX
+                        ),
+                        top: filaFaseY + ALTO_FASE_PX / 2 - 4,
+                      }}
+                      title={`${fase.phaseName}: ${formatearFecha(resumen.start)} – ${formatearFecha(resumen.end)}`}
+                    />
+                  )}
+                  {filasTareas.map(({ tarea, y: yTarea }) => {
+                    if (!visibleEnVentana(tarea.start, tarea.end)) return null;
+                    const offsetX = Math.max(0, offsetPara(tarea.start!));
+                    const anchoPx = Math.max(offsetPara(tarea.end!) - offsetX + pxPorDia, ANCHO_MIN_PX);
+                    const offsetHitoPx = offsetPara(tarea.end!) + pxPorDia;
 
-                      return (
-                        <div key={tarea.id}>
-                          <div
-                            className={cn(
-                              "absolute h-3 rounded-sm",
-                              SEMAFORO_BAR_CLASS[tarea.semaforo],
-                              !tarea.plannedDatesConfirmed &&
-                                "text-white/50 bg-[repeating-linear-gradient(45deg,currentColor,currentColor_3px,transparent_3px,transparent_6px)]"
-                            )}
-                            style={{ left: offsetX, width: anchoPx, top: yTarea + ALTO_TAREA_PX / 2 - 6 }}
-                            title={tituloTarea(tarea)}
-                          />
-                          {tarea.milestone && offsetHitoPx <= anchoTotalPx && (
-                            <span
-                              className="absolute h-2.5 w-2.5 rotate-45 bg-primary"
-                              style={{ left: offsetHitoPx, top: yTarea + ALTO_TAREA_PX / 2 - 5 }}
-                              title={`Hito: ${tarea.milestone}`}
-                            />
+                    return (
+                      <div key={tarea.id}>
+                        <div
+                          className={cn(
+                            "absolute h-3 rounded-sm",
+                            SEMAFORO_BAR_CLASS[tarea.semaforo],
+                            !tarea.plannedDatesConfirmed &&
+                              "text-white/50 bg-[repeating-linear-gradient(45deg,currentColor,currentColor_3px,transparent_3px,transparent_6px)]"
                           )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                );
-              });
-            })()}
+                          style={{ left: offsetX, width: anchoPx, top: yTarea + ALTO_TAREA_PX / 2 - 6 }}
+                          title={tituloTarea(tarea)}
+                        />
+                        {tarea.milestone && offsetHitoPx <= anchoTotalPx && (
+                          <span
+                            className="absolute h-2.5 w-2.5 rotate-45 bg-primary"
+                            style={{ left: offsetHitoPx, top: yTarea + ALTO_TAREA_PX / 2 - 5 }}
+                            title={`Hito: ${tarea.milestone}`}
+                          />
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
