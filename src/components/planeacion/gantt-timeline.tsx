@@ -1,13 +1,6 @@
 import { cn } from "@/lib/utils";
 import type { PlaneacionRequerimiento } from "@/lib/planeacion-data";
-import type { Semaforo } from "@/lib/semaforo";
-
-const SEMAFORO_BAR: Record<Semaforo, string> = {
-  rojo: "bg-status-bloqueo",
-  amarillo: "bg-status-pausado",
-  verde: "bg-status-entregado",
-  "sin-fecha": "bg-muted-foreground/40",
-};
+import { SEMAFORO_BAR_CLASS } from "@/lib/semaforo";
 
 const DIA_MS = 86_400_000;
 const PX_POR_DIA = 6;
@@ -83,7 +76,7 @@ export function GanttTimeline({ requerimiento }: { requerimiento: PlaneacionRequ
                       <div
                         className={cn(
                           "absolute h-3 rounded-sm",
-                          SEMAFORO_BAR[tarea.semaforo],
+                          SEMAFORO_BAR_CLASS[tarea.semaforo],
                           !tarea.plannedDatesConfirmed &&
                             "text-white/50 bg-[repeating-linear-gradient(45deg,currentColor,currentColor_3px,transparent_3px,transparent_6px)]"
                         )}
@@ -93,7 +86,7 @@ export function GanttTimeline({ requerimiento }: { requerimiento: PlaneacionRequ
                         }`}
                       />
                     )}
-                    {tarea.milestone && (
+                    {tarea.milestone && !sinFecha && (
                       <span
                         className="absolute top-1/2 h-2.5 w-2.5 -translate-y-1/2 rotate-45 bg-primary"
                         style={{ left: offsetHitoPx }}

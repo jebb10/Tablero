@@ -28,18 +28,23 @@ export async function getActividades(requirementId: string): Promise<{
     if (error) throw error;
 
     // No hay FK directa activity_logs -> profiles (created_by referencia
-    // auth.users), así que PostgREST no puede embeber el join: se resuelve
-    // el nombre del autor con una segunda consulta. Si RLS no deja leer el
-    // profile de otro usuario (Viewer viendo una entrada de un Admin), esa
-    // fila simplemente no aparece y el autor cae al fallback "—".
+    // auth.users), así que PostgREST no puede embeber el join. profiles
+    // solo se puede leer por RLS si es el propio perfil o se es Admin
+    // (profiles_self_read/profiles_admin_all) — un Viewer no vería el
+    // nombre de un autor Admin. nombre_autor() es security definer (mismo
+    // patrón que is_admin()) y expone solo el full_name a cualquier
+    // autenticado, sin abrir el resto de la tabla profiles.
     const idsAutores = Array.from(
       new Set((data ?? []).map((a) => a.created_by).filter((id): id is string => id !== null))
     );
-    const { data: perfiles } = await supabase
-      .from("profiles")
-      .select("user_id, full_name")
-      .in("user_id", idsAutores.length > 0 ? idsAutores : [""]);
-    const nombrePorId = new Map((perfiles ?? []).map((p) => [p.user_id, p.full_name]));
+    const nombrePorId = new Map(
+      await Promise.all(
+        idsAutores.map(async (id) => {
+          const { data: nombre } = await supabase.rpc("nombre_autor", { p_user_id: id });
+          return [id, nombre] as const;
+        })
+      )
+    );
 
     const actividades: Actividad[] = (data ?? []).map((a) => ({
       id: a.id,

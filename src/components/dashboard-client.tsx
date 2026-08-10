@@ -19,6 +19,7 @@ import { PdfReport } from "@/components/pdf-report";
 import { RequerimientoCard } from "@/components/requerimiento-card";
 import { cn } from "@/lib/utils";
 import type { Estado, HitoProximo, KPIs, Requerimiento } from "@/lib/types";
+import { SEMAFORO_TEXT_CLASS } from "@/lib/semaforo";
 
 const BLOQUES: { estado: Estado; etiqueta: string; dot: string }[] = [
   { estado: "En curso", etiqueta: "En curso", dot: "bg-status-en-curso" },
@@ -43,13 +44,6 @@ function ordenarPorFechaLimite(a: Requerimiento, b: Requerimiento): number {
   if (b.fechaLimite) return 1;
   return a.nombre.localeCompare(b.nombre);
 }
-
-const SEMAFORO_TEXTO: Record<string, string> = {
-  rojo: "text-status-bloqueo",
-  amarillo: "text-status-pausado",
-  verde: "text-status-entregado",
-  "sin-fecha": "text-muted-foreground",
-};
 
 function formatearFecha(fecha: Date | null): string {
   if (!fecha) return "Sin fecha";
@@ -151,7 +145,7 @@ export function DashboardClient({
                     <p className="text-sm font-medium leading-tight">{r.nombre}</p>
                     <p className="text-xs text-muted-foreground">{r.item}</p>
                   </div>
-                  <span className={cn("text-xs font-semibold whitespace-nowrap", SEMAFORO_TEXTO[r.semaforo])}>
+                  <span className={cn("text-xs font-semibold whitespace-nowrap", SEMAFORO_TEXT_CLASS[r.semaforo])}>
                     {formatearFecha(r.fechaLimite)}
                   </span>
                 </Link>

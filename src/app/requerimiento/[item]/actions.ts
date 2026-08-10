@@ -3,16 +3,9 @@
 import { refresh } from "next/cache";
 import { requireAdmin } from "@/lib/auth/session";
 import { getSupabaseClient } from "@/lib/supabase/server";
+import { TIPOS_ACTIVIDAD_VALIDOS } from "@/lib/actividad-tipos";
 
 export type AgregarActividadState = { error: string | null; success: boolean };
-
-const TIPOS_VALIDOS = [
-  "SEGUIMIENTO",
-  "PRESENTACION_FLUJO",
-  "GESTION_DOCUMENTAL",
-  "REFINAMIENTO_TECNICO",
-  "OTRO",
-];
 
 export async function agregarActividad(
   requirementId: string,
@@ -29,21 +22,30 @@ export async function agregarActividad(
 
   if (
     typeof eventType !== "string" ||
-    !TIPOS_VALIDOS.includes(eventType) ||
+    !TIPOS_ACTIVIDAD_VALIDOS.includes(eventType as (typeof TIPOS_ACTIVIDAD_VALIDOS)[number]) ||
     typeof title !== "string" ||
     !title.trim()
   ) {
     return { error: "Tipo y título son obligatorios.", success: false };
   }
 
-  const hoursSpent =
-    typeof hoursSpentRaw === "string" && hoursSpentRaw.trim() !== ""
-      ? Number(hoursSpentRaw)
-      : null;
-  const loggedAt =
-    typeof loggedAtRaw === "string" && loggedAtRaw.trim() !== ""
-      ? new Date(loggedAtRaw).toISOString()
-      : new Date().toISOString();
+  let hoursSpent: number | null = null;
+  if (typeof hoursSpentRaw === "string" && hoursSpentRaw.trim() !== "") {
+    const parsed = Number(hoursSpentRaw);
+    if (!Number.isFinite(parsed)) {
+      return { error: "Las horas deben ser un número válido.", success: false };
+    }
+    hoursSpent = parsed;
+  }
+
+  let loggedAt = new Date().toISOString();
+  if (typeof loggedAtRaw === "string" && loggedAtRaw.trim() !== "") {
+    const parsed = new Date(loggedAtRaw);
+    if (Number.isNaN(parsed.getTime())) {
+      return { error: "La fecha no es válida.", success: false };
+    }
+    loggedAt = parsed.toISOString();
+  }
 
   const supabase = await getSupabaseClient();
   const { error } = await supabase.from("activity_logs").insert({

@@ -3,16 +3,9 @@ import { AlertTriangle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { RequerimientoIcono } from "@/lib/icons";
-import type { Semaforo } from "@/lib/semaforo";
+import { SEMAFORO_DOT_CLASS, type Semaforo } from "@/lib/semaforo";
 import type { Requerimiento } from "@/lib/types";
 import { cn } from "@/lib/utils";
-
-const SEMAFORO_DOT: Record<Semaforo, string> = {
-  rojo: "bg-status-bloqueo",
-  amarillo: "bg-status-pausado",
-  verde: "bg-status-entregado",
-  "sin-fecha": "bg-transparent",
-};
 
 const SEMAFORO_TITULO: Record<Semaforo, string> = {
   rojo: "Fecha límite vencida o próxima",
@@ -111,7 +104,7 @@ export function RequerimientoCard({ req }: { req: Requerimiento }) {
               {fecha && (
                 <span className="flex items-center gap-1 text-muted-foreground">
                   <span
-                    className={cn("h-1.5 w-1.5 rounded-full", SEMAFORO_DOT[req.semaforo])}
+                    className={cn("h-1.5 w-1.5 rounded-full", SEMAFORO_DOT_CLASS[req.semaforo])}
                     title={SEMAFORO_TITULO[req.semaforo]}
                     aria-hidden={req.semaforo === "sin-fecha"}
                   />

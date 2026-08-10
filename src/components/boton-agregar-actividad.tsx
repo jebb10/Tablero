@@ -1,20 +1,13 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import { agregarActividad, type AgregarActividadState } from "@/app/requerimiento/[item]/actions";
-
-const TIPO_LABEL: Record<string, string> = {
-  SEGUIMIENTO: "Seguimiento",
-  PRESENTACION_FLUJO: "Presentación de flujo",
-  GESTION_DOCUMENTAL: "Gestión documental",
-  REFINAMIENTO_TECNICO: "Refinamiento técnico",
-  OTRO: "Otro",
-};
+import { TIPO_ACTIVIDAD_LABEL } from "@/lib/actividad-tipos";
 
 const ESTADO_INICIAL: AgregarActividadState = { error: null, success: false };
 
@@ -28,9 +21,9 @@ function ModalActividad({
   const accionConId = agregarActividad.bind(null, requirementId);
   const [state, formAction, pending] = useActionState(accionConId, ESTADO_INICIAL);
 
-  if (state.success) {
-    onClose();
-  }
+  useEffect(() => {
+    if (state.success) onClose();
+  }, [state.success, onClose]);
 
   return (
     <div className="fixed inset-0 z-20 flex items-center justify-center bg-black/35 p-4">
@@ -52,7 +45,7 @@ function ModalActividad({
               className="h-9 rounded-md border bg-transparent px-3 text-sm"
               defaultValue="SEGUIMIENTO"
             >
-              {Object.entries(TIPO_LABEL).map(([valor, etiqueta]) => (
+              {Object.entries(TIPO_ACTIVIDAD_LABEL).map(([valor, etiqueta]) => (
                 <option key={valor} value={valor}>
                   {etiqueta}
                 </option>

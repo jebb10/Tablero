@@ -1,13 +1,6 @@
 import type { ReactNode } from "react";
 import type { Actividad } from "@/lib/actividades-data";
-
-const TIPO_LABEL: Record<string, string> = {
-  SEGUIMIENTO: "Seguimiento",
-  PRESENTACION_FLUJO: "Presentación de flujo",
-  GESTION_DOCUMENTAL: "Gestión documental",
-  REFINAMIENTO_TECNICO: "Refinamiento técnico",
-  OTRO: "Otro",
-};
+import { TIPO_ACTIVIDAD_LABEL } from "@/lib/actividad-tipos";
 
 function formatearFecha(fecha: Date): string {
   return new Intl.DateTimeFormat("es-CO", {
@@ -41,7 +34,7 @@ export function RegistroActividades({
                 {formatearFecha(a.loggedAt)}
               </span>
               <span className="w-40 shrink-0 rounded-full bg-muted px-2 py-0.5 text-center text-xs font-medium">
-                {TIPO_LABEL[a.eventType] ?? a.eventType}
+                {TIPO_ACTIVIDAD_LABEL[a.eventType] ?? a.eventType}
               </span>
               <span className="w-32 shrink-0 truncate text-xs">{a.autor ?? "—"}</span>
               <span className="w-14 shrink-0 font-mono text-xs">

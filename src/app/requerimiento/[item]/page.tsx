@@ -33,7 +33,7 @@ export default async function RequerimientoPage({
     notFound();
   }
 
-  const { actividades } = await getActividades(requerimiento.id);
+  const { actividades, error: errorActividades } = await getActividades(requerimiento.id);
 
   const horasEstimadas = requerimiento.estimated_hours;
   const horasEjecutadas = requerimiento.executed_hours;
@@ -104,6 +104,7 @@ export default async function RequerimientoPage({
             <TareasPorFase fases={fases} />
           </div>
 
+          {errorActividades && <ErrorDatosBanner soloBanner />}
           <RegistroActividades
             actividades={actividades}
             botonAgregar={
