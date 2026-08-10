@@ -8,7 +8,7 @@ el detalle de tareas por fase al hacer drill-down. Este es un proyecto **vivo,
 construido por fases** — no asumas que la fase actual es la versión final;
 consulta siempre "Estado actual" abajo antes de proponer cambios grandes.
 
-## Estado actual: Fase 0, Fase B y Fase C completas y verificadas
+## Estado actual: Fase 0, Fase B, Fase C y Unidad C1 (Gantt real) completas y verificadas
 
 - Desplegado en Vercel: [tablero-pi.vercel.app](https://tablero-pi.vercel.app/)
   (repo: `https://github.com/jebb10/Tablero.git`). **RLS ya exige sesión
@@ -64,13 +64,10 @@ consulta siempre "Estado actual" abajo antes de proponer cambios grandes.
 - Cubre: vista principal con KPIs, búsqueda/filtros, 4 bloques de estado y
   semáforo por fecha límite; drill-down por requerimiento con línea de
   tiempo de fases; vista `/planeacion` (Gantt) con sidebar colapsable.
-- **Prioridad inmediata de seguimiento — refinar el Gantt, no el Excel**:
-  `/planeacion` usa `due_date` como marcador de un día porque
-  `planned_start_date`/`planned_end_date` quedaron `NULL` en la migración
-  (ver "Cierre de Fase A" en `ROADMAP_SUPABASE.md` — el match contra las 4
-  hojas Gantt ocultas del Excel no fue viable). Cuando se retome este
-  dashboard, este es el punto a resolver antes que nada, con las opciones
-  ya evaluadas ahí.
+- **✅ Resuelto (2026-08-10, Unidad C1)**: `planned_start_date`/
+  `planned_end_date` ya no están `NULL` — semillados en producción (164/164
+  tareas, 0 filas con fecha faltante/invertida/absurda) y editables desde
+  `/planeacion/[requerimiento]/editar`. Ver bullet de C1 más abajo.
 - **Fase C ya fue implementada y mergeada a `main` (PR #9, commit
   `ce1dc7d`) — desplegada en producción**: implementa Home (KPIs "Reabiertos"/"Salud del
   proyecto", fase actual, hitos próximos — `kpi-strip.tsx`,
@@ -84,24 +81,42 @@ consulta siempre "Estado actual" abajo antes de proponer cambios grandes.
   Supabase real, con 2 migraciones ya aplicadas
   (`20260809192913_fase_c_campos_y_activity_logs.sql`,
   `20260809221243_fix_autor_actividad_visible_a_viewer.sql`).
-  **Esto NO es lo mismo que las unidades C1 (Gantt de fechas
-  reales)/C2 (CRUD de requerimientos y tareas)/C3 (bitácora de horas
-  ejecutadas vía trigger) de `ROADMAP_V2.md`, que siguen pendientes** — son
-  dos desgloses distintos de "Fase C" con el mismo prefijo, no confundirlos
+  **Esto NO es lo mismo que las unidades C1 (Gantt de fechas reales, ✅
+  completa desde 2026-08-10, ver bullet más abajo)/C2 (CRUD de
+  requerimientos y tareas)/C3 (bitácora de horas ejecutadas vía trigger) de
+  `ROADMAP_V2.md`; C2/C3 siguen pendientes** — son dos desgloses distintos
+  de "Fase C" con el mismo prefijo, no confundirlos
   (ver `PLAN_IMPLEMENTACION_FASE_C.md`, ya marcado como ejecutado, para el
   detalle exacto de lo implementado). Verificado en código: acordeón
   completo, botón de actividad gateado por rol, sin referencias colgantes a
-  `documentation_folder_url` (columna eliminada en la migración). **Pendiente
+  `documentation_folder_url` (columna eliminada en la migración).
   **Verificación en vivo completada y aprobada por el PO (2026-08-10)**:
   KPI "Reabiertos" tras reabrir un requerimiento, cambio de color de
   "Salud del proyecto" con una tarea vencida, autor correcto en una
   actividad nueva, y que un Viewer no puede insertar en `activity_logs`
   vía API directa — los 4 puntos de la sección 5 de
   `PLAN_IMPLEMENTACION_FASE_C.md` en verde. **Fase C queda cerrada por
-  completo.** **Sigue faltando** (ver `ROADMAP_V2.md`, fuente de verdad
-  vigente de lo pendiente): las unidades C1/C2/C3 recién mencionadas y
-  Fase D (documentos versionados en Storage). Fase 0 y Fase B
-  (fundaciones y auth/roles) ya están completas.
+  completo.**
+- **✅ Unidad C1 (Gantt de fechas reales) completa y verificada
+  (2026-08-10, PR #10, rama `fase-c1` mergeada a `main`)**: semillado de
+  `planned_start_date`/`planned_end_date` (164/164 tareas, criterio mixto
+  horas/6 o duración fija por fase), pantalla
+  `/planeacion/[requerimiento]/editar` (edición de fechas vía RPC
+  `rpc_set_planned_dates`, más crear/eliminar tareas — alcance ampliado en
+  vivo con el PO, que originalmente pertenecía a C2), Gantt rediseñado con
+  **ventana navegable** (mes calendario/semana/14 días + botones
+  "< Hoy >", en vez de comprimir todo el rango — pivot de diseño pedido
+  por el PO tras revisar el primer corte en producción), nuevo estado de
+  semáforo `"vencido"` (distinto de "rojo"/próximo a vencer), y una
+  **extensión de horas ejecutadas por tarea** fuera del diseño original de
+  C3 (`activity_logs.task_id` + `requirement_tasks.executed_hours` vía
+  trigger — ver nota en `ROADMAP_V2.md` §C3.3 para quien retome C3). Ver
+  `design/contratos/contrato-datos-gantt.md` para el detalle completo del
+  estado final. **Sigue faltando** (ver `ROADMAP_V2.md`, fuente de verdad
+  vigente de lo pendiente): las unidades C2 (CRUD completo de
+  requerimientos y tareas)/C3 (bitácora de horas ejecutadas a nivel de
+  requerimiento) y Fase D (documentos versionados en Storage). Fase 0 y
+  Fase B (fundaciones y auth/roles) ya están completas.
 
 ## Fuente de datos
 
@@ -366,10 +381,11 @@ planteadas:
   Home/Gantt-visual/Detalle/Registro de actividades implementados,
   mergeados a `main` (PR #9) y verificados en vivo (los 4 puntos de la
   sección 5 de `PLAN_IMPLEMENTACION_FASE_C.md`, aprobado por el PO) — ver
-  "Estado actual" arriba. Las unidades
-  C1 (Gantt de fechas reales)/C2 (CRUD de requerimientos y tareas)/C3
-  (bitácora de horas ejecutadas) de `ROADMAP_V2.md` siguen pendientes —
-  diseño completo ahí.
+  "Estado actual" arriba.
+- **Unidad C1 — Gantt de fechas reales:** ✅ **completa** (2026-08-10, PR
+  #10). Ver "Estado actual" arriba para el detalle completo. C2 (CRUD de
+  requerimientos y tareas)/C3 (bitácora de horas ejecutadas) de
+  `ROADMAP_V2.md` siguen pendientes — diseño completo ahí.
 - **Fase D — Documentos versionados (sin versionado real: subir reemplaza y
   borra el anterior):** pendiente. Diseño completo en `ROADMAP_V2.md`.
 

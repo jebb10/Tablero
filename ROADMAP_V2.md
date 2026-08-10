@@ -204,6 +204,18 @@ ejecutadas) siguen pendientes tal cual están diseñadas.
 
 # FASE C1 — Gantt real
 
+**✅ EJECUTADA Y VERIFICADA (2026-08-10, PR #10, rama `fase-c1` mergeada a
+`main`)**, con dos pivots de diseño reales respecto a lo planeado abajo,
+decididos con el PO durante la verificación en vivo:
+1. **C1.3**: en vez de comprimir todo el rango de fechas del requerimiento
+   (lo que amontonaba las tareas), el Gantt usa una **ventana navegable**
+   (mes calendario completo / 7 días / 14 días, con botones "< Hoy >").
+2. **C1.2**: se amplió para incluir **crear y eliminar tareas** (no solo
+   editar fechas), adelantando una porción pequeña de C2.
+Ver `design/contratos/contrato-datos-gantt.md` para el estado final real
+(qué se implementó tal cual el diseño de abajo y qué cambió). El detalle
+de este documento queda como registro de lo diseñado originalmente.
+
 > El problema completo: las tareas tienen `planned_start_date`/`planned_end_date` en NULL,
 > `planeacion-data.ts:69-82` cae al fallback `start = end = due_date`, y `gantt-timeline.tsx:64-66`
 > fuerza `ANCHO_MIN_PX = 14` → **todas las barras miden lo mismo**. El Gantt es una nube de puntos.
