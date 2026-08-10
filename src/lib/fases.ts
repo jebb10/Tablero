@@ -1,6 +1,7 @@
 import type { Database } from "./supabase/database.types";
 import type { EstadoFase, Fase, Tarea } from "./types";
 import { FASES_ORDEN } from "./fases-orden";
+import { estadoEsCompletada } from "./estados-tarea";
 
 export type RequirementTaskRow = Pick<
   Database["public"]["Tables"]["requirement_tasks"]["Row"],
@@ -26,7 +27,7 @@ function toDate(v: string | null): Date | null {
 
 function estadoDeFase(tareas: Tarea[]): EstadoFase {
   if (tareas.length === 0) return "pendiente";
-  if (tareas.every((t) => t.estado?.toLowerCase() === "completada")) return "completada";
+  if (tareas.every((t) => estadoEsCompletada(t.estado))) return "completada";
   return "en-curso";
 }
 
@@ -90,7 +91,7 @@ export function calcularFaseActual(
     const tareasFase = porNumero.get(numero) ?? [];
     if (
       tareasFase.length > 0 &&
-      !tareasFase.every((t) => t.status.toLowerCase() === "completada")
+      !tareasFase.every((t) => estadoEsCompletada(t.status))
     ) {
       return nombre;
     }

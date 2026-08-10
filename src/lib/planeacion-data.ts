@@ -3,6 +3,7 @@ import { hoyLocal } from "./fechas";
 import { PROJECT_SLUG } from "./project";
 import { getSupabaseClient } from "./supabase/server";
 import { FASES_ORDEN } from "./fases-orden";
+import { estadoEsCompletada } from "./estados-tarea";
 
 export interface PlaneacionTarea {
   id: string;
@@ -109,7 +110,7 @@ export async function getPlaneacionData(): Promise<{
               end,
               // completada: solo a nivel de tarea (C1.4) -- una tarea
               // Completada nunca se pinta vencida, sin importar la fecha.
-              semaforo: calcularSemaforo(end, hoyLocal(), t.status === "Completada"),
+              semaforo: calcularSemaforo(end, hoyLocal(), estadoEsCompletada(t.status)),
               milestone: t.milestone,
               plannedDatesConfirmed: t.planned_dates_confirmed,
               assignee: t.assignee,

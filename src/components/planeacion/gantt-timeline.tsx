@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import type { PlaneacionFase, PlaneacionRequerimiento } from "@/lib/planeacion-data";
 import { SEMAFORO_BAR_CLASS } from "@/lib/semaforo";
 import { diffDias } from "@/lib/fechas";
+import { estadoEsCompletada } from "@/lib/estados-tarea";
 
 export type Escala = "dia" | "semana" | "mes";
 
@@ -96,7 +97,7 @@ function faseEnCurso(fases: PlaneacionFase[]): number | null {
   for (const fase of fases) {
     if (
       fase.tareas.length > 0 &&
-      !fase.tareas.every((t) => t.status.toLowerCase() === "completada")
+      !fase.tareas.every((t) => estadoEsCompletada(t.status))
     ) {
       return fase.phaseNumber;
     }

@@ -4,6 +4,7 @@ import { getKPIs } from "./kpis";
 import { PROJECT_SLUG } from "./project";
 import { getSupabaseClient } from "./supabase/server";
 import { dbAEstado } from "./estados";
+import { estadoEsCompletada } from "./estados-tarea";
 import type { Database } from "./supabase/database.types";
 import type { HitoProximo, KPIs, Requerimiento } from "./types";
 
@@ -146,7 +147,7 @@ export async function getDashboardData(): Promise<
     const requerimientoPorId = new Map((filas ?? []).map((r) => [r.id, r]));
     const hoy = new Date();
     const hitosProximos: HitoProximo[] = (tareas ?? [])
-      .filter((t) => t.milestone !== null && t.status.toLowerCase() !== "completada")
+      .filter((t) => t.milestone !== null && !estadoEsCompletada(t.status))
       .map((t) => {
         const fechaStr = t.planned_end_date ?? t.due_date;
         return { t, fecha: fechaStr ? new Date(fechaStr) : null };
