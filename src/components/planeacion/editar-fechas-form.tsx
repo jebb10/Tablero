@@ -144,8 +144,12 @@ export function EditarFechasForm({
   // El estado local de inputs solo se inicializa al montar -- cuando
   // aparece una tarea nueva (tras crearTarea + router.refresh()) o se
   // elimina una, sincronizar sin pisar ediciones no guardadas de las
-  // tareas que ya estaban.
-  useEffect(() => {
+  // tareas que ya estaban. Ajuste durante el render (no un efecto): evita
+  // el doble render de un setState en useEffect y cumple la regla de
+  // inmutabilidad de render de React.
+  const [tareasAnteriores, setTareasAnteriores] = useState(tareas);
+  if (tareas !== tareasAnteriores) {
+    setTareasAnteriores(tareas);
     setFechas((prev) => {
       const next: Record<string, { inicio: string; fin: string }> = {};
       for (const t of tareas) {
@@ -153,7 +157,7 @@ export function EditarFechasForm({
       }
       return next;
     });
-  }, [tareas]);
+  }
 
   const filasJson = useMemo(
     () =>
