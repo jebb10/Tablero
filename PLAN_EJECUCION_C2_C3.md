@@ -9,8 +9,8 @@
 | Unidad | Estado |
 |---|---|
 | Paso 0 (housekeeping `.env.local`) | ✅ Hecho (2026-08-10) |
-| C2.1 | ✅ Hecho (2026-08-10) |
-| C2.5 | ⬜ Pendiente |
+| C2.1 | ✅ Hecho (2026-08-10, PR #12) |
+| C2.5 | ⬜ Pendiente — **siguiente unidad a ejecutar** |
 | C2.2 | ⬜ Pendiente |
 | C2.4 | ⬜ Pendiente |
 | C2.3 | ⬜ Pendiente |

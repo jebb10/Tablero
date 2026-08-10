@@ -8,7 +8,7 @@ el detalle de tareas por fase al hacer drill-down. Este es un proyecto **vivo,
 construido por fases** — no asumas que la fase actual es la versión final;
 consulta siempre "Estado actual" abajo antes de proponer cambios grandes.
 
-## Estado actual: Fase 0, Fase B, Fase C y Unidad C1 (Gantt real) completas y verificadas
+## Estado actual: Fase 0, Fase B, Fase C, Unidad C1 (Gantt real) y Unidad C2.1 completas y verificadas
 
 - Desplegado en Vercel: [tablero-pi.vercel.app](https://tablero-pi.vercel.app/)
   (repo: `https://github.com/jebb10/Tablero.git`). **RLS ya exige sesión
@@ -48,9 +48,13 @@ consulta siempre "Estado actual" abajo antes de proponer cambios grandes.
   (Fase A del nuevo roadmap), la Fase 0 (fundaciones: migraciones
   versionadas, tipos generados, CI, backup, andamiaje compartido — ver más
   abajo) y la Fase B (auth/roles) ya están completas; Fase C (pantallas de
-  escritura) está en curso (ver más abajo) y Fase D (documentos versionados)
-  sigue pendiente — ver `ROADMAP_V2.md` para el diseño vigente completo y
-  las decisiones tomadas (`ROADMAP_SUPABASE.md` queda como historial,
+  escritura, versión original del PR #9) y la Unidad C1 (Gantt real) ya
+  están completas, la Fase C2 (CRUD) está en curso (unidad C2.1 cerrada,
+  ver más abajo) y las Fases C3 (bitácora de horas) y D (documentos
+  versionados, fuera de alcance de esta ronda) siguen pendientes — ver
+  `ROADMAP_V2.md` para el diseño vigente completo y
+  `PLAN_EJECUCION_C2_C3.md` para las decisiones tomadas y el estado de
+  ejecución de esta ronda (`ROADMAP_SUPABASE.md` queda como historial,
   superado).
 - Lee de un proyecto Supabase (Postgres + API REST), ver "Fuente de datos"
   abajo. **El Google Sheet / `.xlsx` que se usaba antes de la Fase A ya no
@@ -112,11 +116,26 @@ consulta siempre "Estado actual" abajo antes de proponer cambios grandes.
   C3 (`activity_logs.task_id` + `requirement_tasks.executed_hours` vía
   trigger — ver nota en `ROADMAP_V2.md` §C3.3 para quien retome C3). Ver
   `design/contratos/contrato-datos-gantt.md` para el detalle completo del
-  estado final. **Sigue faltando** (ver `ROADMAP_V2.md`, fuente de verdad
-  vigente de lo pendiente): las unidades C2 (CRUD completo de
-  requerimientos y tareas)/C3 (bitácora de horas ejecutadas a nivel de
-  requerimiento) y Fase D (documentos versionados en Storage). Fase 0 y
-  Fase B (fundaciones y auth/roles) ya están completas.
+  estado final.
+- **✅ Unidad C2.1 (status de tarea a conjunto canónico) completa y
+  verificada (2026-08-10, PR #12, rama `fase-c2-1` mergeada a `main`)**:
+  `requirement_tasks.status` pasa de texto libre a un `CHECK constraint`
+  de 6 valores (`No iniciada`, `Pendiente`, `En curso`, `Bloqueada`,
+  `Completada`, `Cancelada`) — ver detalle completo en "Roadmap de fases"
+  más abajo y en `PLAN_EJECUCION_C2_C3.md` (plan vigente de esta ronda,
+  en la raíz del repo, con estado de ejecución unidad por unidad). En el
+  camino se cerró también el **PR #11** (rama `fix-lint-c1`): `npm run
+  lint` estaba roto en `main` desde el PR #10 por reglas nuevas de
+  `eslint-config-next`, sin cambio de comportamiento.
+- **Sigue faltando** (ver `ROADMAP_V2.md` para el diseño y
+  `PLAN_EJECUCION_C2_C3.md` para el estado de ejecución exacto): el resto
+  de la Fase C2 (C2.5 reestructurar `actions.ts`, C2.2 edición inline de
+  tareas, C2.4 hacer navegables los 21 sin detalle, C2.3 crear/editar
+  requerimiento — en ese orden), la Fase C3 (bitácora de horas
+  ejecutadas a nivel de requerimiento) y la Fase D (documentos
+  versionados en Storage, **explícitamente fuera de alcance de esta
+  ronda de trabajo**, sin fecha de retoma). Fase 0 y Fase B (fundaciones
+  y auth/roles) ya están completas.
 
 ## Fuente de datos
 
@@ -383,9 +402,7 @@ planteadas:
   sección 5 de `PLAN_IMPLEMENTACION_FASE_C.md`, aprobado por el PO) — ver
   "Estado actual" arriba.
 - **Unidad C1 — Gantt de fechas reales:** ✅ **completa** (2026-08-10, PR
-  #10). Ver "Estado actual" arriba para el detalle completo. C2 (CRUD de
-  requerimientos y tareas)/C3 (bitácora de horas ejecutadas) de
-  `ROADMAP_V2.md` siguen pendientes — diseño completo ahí.
+  #10). Ver "Estado actual" arriba para el detalle completo.
 - **Unidad C2.1 — Estado de tarea a conjunto canónico:** ✅ **completa**
   (2026-08-10, rama `fase-c2-1`). `requirement_tasks.status` pasa de texto
   libre a un `CHECK constraint` de 6 valores (`No iniciada`, `Pendiente`,
@@ -402,7 +419,10 @@ planteadas:
   `eslint-config-next` (PR #11, rama `fix-lint-c1`, mergeado antes de
   C2.1, sin cambio de comportamiento).
 - **Fase D — Documentos versionados (sin versionado real: subir reemplaza y
-  borra el anterior):** pendiente. Diseño completo en `ROADMAP_V2.md`.
+  borra el anterior):** pendiente, y **explícitamente fuera de alcance de
+  la ronda de trabajo C2/C3 iniciada 2026-08-10** (decisión del PO, sin
+  fecha de retoma) — diseño completo en `ROADMAP_V2.md` para cuando se
+  retome.
 
 Resumen ejecutivo de la Fase A: `ROADMAP_SUPABASE.md` (en la raíz de este
 repo) — queda como historial, **superado**. Diseño vigente de lo que falta
@@ -413,3 +433,7 @@ disco. El detalle de verificación en vivo de las unidades ya cerradas (Fase
 0, Fase B) no se conserva como documento aparte — lo esencial ya vive en
 `supabase/RUNBOOK_AUTH.md` y en los resúmenes de arriba. Lo implementado de
 Fase C vive en `PLAN_IMPLEMENTACION_FASE_C.md` (ejecutado, rama `fase-c`).
+**El plan de ejecución vigente para C2/C3 (con las ~20 decisiones tomadas
+con el PO el 2026-08-10 y el estado de ejecución unidad por unidad) vive en
+`PLAN_EJECUCION_C2_C3.md`, en la raíz de este repo — leerlo antes de
+retomar cualquier unidad de C2/C3.**
