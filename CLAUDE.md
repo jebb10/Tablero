@@ -8,7 +8,7 @@ el detalle de tareas por fase al hacer drill-down. Este es un proyecto **vivo,
 construido por fases** — no asumas que la fase actual es la versión final;
 consulta siempre "Estado actual" abajo antes de proponer cambios grandes.
 
-## Estado actual: Fase 0 y Fase B completas; Fase C en curso (rama `fase-c`, sin mergear)
+## Estado actual: Fase 0 y Fase B completas; Fase C implementada y mergeada a `main` (PR #9), pendiente de verificación en vivo
 
 - Desplegado en Vercel: [tablero-pi.vercel.app](https://tablero-pi.vercel.app/)
   (repo: `https://github.com/jebb10/Tablero.git`). **RLS ya exige sesión
@@ -71,8 +71,8 @@ consulta siempre "Estado actual" abajo antes de proponer cambios grandes.
   hojas Gantt ocultas del Excel no fue viable). Cuando se retome este
   dashboard, este es el punto a resolver antes que nada, con las opciones
   ya evaluadas ahí.
-- **Fase C está en curso, en la rama local `fase-c` (aún sin mergear a
-  `main` ni desplegada)**: ya implementa Home (KPIs "Reabiertos"/"Salud del
+- **Fase C ya fue implementada y mergeada a `main` (PR #9, commit
+  `ce1dc7d`) — desplegada en producción**: implementa Home (KPIs "Reabiertos"/"Salud del
   proyecto", fase actual, hitos próximos — `kpi-strip.tsx`,
   `dashboard-data.ts`), el Gantt visual (rombos de hito, indicador de texto
   "fecha estimada, no confirmada" para `planned_dates_confirmed = false` —
@@ -360,9 +360,8 @@ planteadas:
   conocido, pospuesto explícitamente por el PO: SMTP propio en Supabase,
   hasta después de cerrar Fase C. Desde la Unidad B.1, Fase B usó rama +
   PR (no push directo a `main`).
-- **Fase C — Pantallas de escritura:** en curso, en la rama local `fase-c`
-  (aún sin mergear a `main`). Home/Gantt-visual/Detalle/Registro de
-  actividades ya implementados — ver "Estado actual" arriba y
+- **Fase C — Pantallas de escritura:** Home/Gantt-visual/Detalle/Registro de
+  actividades implementados y mergeados a `main` (PR #9) — ver "Estado actual" arriba y
   `PLAN_IMPLEMENTACION_FASE_C.md` (ya marcado como ejecutado). Las unidades
   C1 (Gantt de fechas reales)/C2 (CRUD de requerimientos y tareas)/C3
   (bitácora de horas ejecutadas) de `ROADMAP_V2.md` siguen pendientes —

@@ -194,7 +194,7 @@ actualizar `.env.local` (acción manual del PO — ver `PLAN_CIERRE_FASE_B.md`).
 
 **Siguiente fase: Fase C** (pantallas de escritura) — **en curso**: Home,
 Gantt visual (hitos) y Detalle (acordeón + registro de actividades) ya están
-implementados en la rama local `fase-c` (aún sin mergear), ver
+implementados y mergeados a `main` (PR #9), ver
 `PLAN_IMPLEMENTACION_FASE_C.md` (ejecutado) y "Estado actual" de
 `CLAUDE.md`. **Esas unidades no son las C1/C2/C3 de este documento** —las
 unidades de abajo (Gantt de fechas reales, CRUD, bitácora de horas

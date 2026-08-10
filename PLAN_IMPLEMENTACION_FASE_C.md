@@ -1,15 +1,16 @@
 # Plan de implementación — Fase C (Home, Gantt, Detalle) con datos reales
 
 **Estado: ejecutado en la rama `fase-c` (commits `167ba67`, `a5061c7`,
-`8f0acb0`, `1b2683c`), sin mergear todavía a `main`.** Este archivo queda
-como registro de lo decidido y hecho — no reabrir estas decisiones sin
-motivo nuevo. Nomenclatura: las unidades C0/C1/C2/C3 de este plan
-(Home/Gantt-visual/Detalle/Actividades) **no son las mismas** que las
+`8f0acb0`, `1b2683c`) y ya mergeado a `main` (PR #9, commit `ce1dc7d`).**
+Este archivo queda como registro de lo decidido y hecho — no reabrir estas
+decisiones sin motivo nuevo. Nomenclatura: las unidades C0/C1/C2/C3 de este
+plan (Home/Gantt-visual/Detalle/Actividades) **no son las mismas** que las
 unidades Fase C1/C2/C3 de `ROADMAP_V2.md` (Gantt de fechas reales/CRUD/
 bitácora de horas ejecutadas), que siguen pendientes — ver "Estado actual"
 de `CLAUDE.md` para el detalle de qué quedó implementado y qué no.
-**Próximo paso real**: mergear la rama `fase-c` a `main` (PR autoaprobada
-por el PO), y luego retomar las unidades pendientes de `ROADMAP_V2.md`.
+**Próximo paso real**: la verificación en vivo de la sección 5 de este plan
+(pendiente, no bloqueante), y luego retomar las unidades pendientes de
+`ROADMAP_V2.md`.
 
 > Este documento es autocontenido para ejecutarse en una sesión nueva. No depende de que quien lo ejecute haya visto la conversación donde se diseñó. Antes de tocar código, lee `CLAUDE.md` (estado del proyecto) y los 3 mockups + contratos en `design/` y `design/contratos/`.
 
