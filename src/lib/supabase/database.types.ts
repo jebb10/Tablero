@@ -14,63 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      _backup_activity_logs_horas_huerfanas: {
-        Row: {
-          created_by: string | null
-          event_type: string | null
-          hours_spent: number | null
-          id: string | null
-          logged_at: string | null
-          notes: string | null
-          phase_number: number | null
-          requirement_id: string | null
-          task_id: string | null
-          title: string | null
-        }
-        Insert: {
-          created_by?: string | null
-          event_type?: string | null
-          hours_spent?: number | null
-          id?: string | null
-          logged_at?: string | null
-          notes?: string | null
-          phase_number?: number | null
-          requirement_id?: string | null
-          task_id?: string | null
-          title?: string | null
-        }
-        Update: {
-          created_by?: string | null
-          event_type?: string | null
-          hours_spent?: number | null
-          id?: string | null
-          logged_at?: string | null
-          notes?: string | null
-          phase_number?: number | null
-          requirement_id?: string | null
-          task_id?: string | null
-          title?: string | null
-        }
-        Relationships: []
-      }
-      _backup_executed_hours: {
-        Row: {
-          code: string | null
-          executed_hours: number | null
-          id: string | null
-        }
-        Insert: {
-          code?: string | null
-          executed_hours?: number | null
-          id?: string | null
-        }
-        Update: {
-          code?: string | null
-          executed_hours?: number | null
-          id?: string | null
-        }
-        Relationships: []
-      }
       activity_logs: {
         Row: {
           created_by: string | null
