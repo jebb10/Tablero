@@ -20,7 +20,6 @@ export interface Requerimiento {
   horasPorEjecutar: number | null;
   porcentajeAvance: number | null;
   overbudget: boolean;
-  fechaCobro: string | null;
   notas: string | null;
   bloqueado: boolean;
   tieneDetalle: boolean;
@@ -67,7 +66,6 @@ export interface Tarea {
   estado: EstadoTarea | null;
   horas: number | null;
   fechaLimite: Date | null;
-  fechaReal: Date | null;
   hito: string | null;
   notas: string | null;
   bloqueantes: string | null;

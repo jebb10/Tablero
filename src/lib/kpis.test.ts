@@ -15,7 +15,6 @@ function req(overrides: Partial<Requerimiento> = {}): Requerimiento {
     horasPorEjecutar: 5,
     porcentajeAvance: 50,
     overbudget: false,
-    fechaCobro: null,
     notas: null,
     bloqueado: false,
     tieneDetalle: true,

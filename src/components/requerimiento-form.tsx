@@ -28,7 +28,6 @@ export interface RequerimientoFormValores {
   status: string;
   deadline: string | null;
   estimated_hours: number | null;
-  billing_date: string | null;
   notes: string | null;
   dev_environment_url: string | null;
   has_detail_tracking: boolean;
@@ -147,11 +146,6 @@ export function RequerimientoForm({
             defaultValue={valoresIniciales?.estimated_hours ?? 0}
           />
         </div>
-      </div>
-
-      <div className="flex flex-col gap-1.5">
-        <Label htmlFor="billingDate">Fecha de cobro</Label>
-        <Input id="billingDate" name="billingDate" defaultValue={valoresIniciales?.billing_date ?? ""} />
       </div>
 
       <div className="flex flex-col gap-1.5">

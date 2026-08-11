@@ -5,7 +5,13 @@ import { requireAdmin } from "@/lib/auth/session";
 import { getSupabaseClient } from "@/lib/supabase/server";
 import { filasFechaSchema } from "@/lib/planeacion-fechas-schema";
 import { FASES_ORDEN } from "@/lib/fases-orden";
-import { ESTADOS_TAREA } from "@/lib/estados-tarea";
+import {
+  crearTareaSchema,
+  actualizarEstadoTareaSchema,
+  actualizarTareaSchema,
+  guardarFechaLimiteFaseSchema,
+  eliminarTareaSchema,
+} from "@/lib/tarea-schema";
 
 export type GuardarFechasState = { error: string | null; success: boolean };
 export type CrearTareaState = { error: string | null; success: boolean };
@@ -56,31 +62,25 @@ export async function crearTarea(
 ): Promise<CrearTareaState> {
   const profile = await requireAdmin();
 
-  const taskName = formData.get("taskName");
-  const dueDateRaw = formData.get("dueDate");
-  const inicioRaw = formData.get("plannedStartDate");
-  const finRaw = formData.get("plannedEndDate");
-  const hoursSpentRaw = formData.get("hoursSpent");
-
-  if (typeof taskName !== "string" || !taskName.trim()) {
-    return { error: "El nombre de la tarea es obligatorio.", success: false };
+  const parsed = crearTareaSchema.safeParse({
+    taskName: formData.get("taskName"),
+    dueDate: formData.get("dueDate"),
+    plannedStartDate: formData.get("plannedStartDate"),
+    plannedEndDate: formData.get("plannedEndDate"),
+    hoursSpent: formData.get("hoursSpent"),
+  });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0].message, success: false };
   }
   const fase = FASES_ORDEN.find((f) => f.numero === phaseNumber);
   if (!fase) {
     return { error: "Fase inválida.", success: false };
   }
-  if (typeof dueDateRaw !== "string" || !dueDateRaw.trim()) {
-    return { error: "La fecha límite es obligatoria.", success: false };
-  }
-
-  let hoursSpent: number | null = null;
-  if (typeof hoursSpentRaw === "string" && hoursSpentRaw.trim() !== "") {
-    const parsed = Number(hoursSpentRaw);
-    if (!Number.isFinite(parsed) || parsed < 0) {
-      return { error: "Las horas deben ser un número válido.", success: false };
-    }
-    if (parsed > 0) hoursSpent = parsed;
-  }
+  const { taskName, dueDate: dueDateRaw, plannedStartDate: inicioRaw, plannedEndDate: finRaw } =
+    parsed.data;
+  const hoursSpent = parsed.data.hoursSpent !== null && parsed.data.hoursSpent > 0
+    ? parsed.data.hoursSpent
+    : null;
 
   const supabase = await getSupabaseClient();
 
@@ -100,11 +100,11 @@ export async function crearTarea(
       requirement_id: requirementId,
       phase_number: phaseNumber,
       phase_name: fase.nombre,
-      task_name: taskName.trim(),
+      task_name: taskName,
       status: "Pendiente",
       due_date: dueDateRaw,
-      planned_start_date: typeof inicioRaw === "string" && inicioRaw ? inicioRaw : null,
-      planned_end_date: typeof finRaw === "string" && finRaw ? finRaw : null,
+      planned_start_date: inicioRaw,
+      planned_end_date: finRaw,
       sort_order: sortOrder,
     })
     .select("id")
@@ -150,13 +150,16 @@ export async function actualizarEstadoTarea(
 ): Promise<ActualizarEstadoState> {
   await requireAdmin();
 
-  const status = formData.get("status");
-  if (typeof status !== "string" || !ESTADOS_TAREA.includes(status as (typeof ESTADOS_TAREA)[number])) {
+  const parsed = actualizarEstadoTareaSchema.safeParse({ status: formData.get("status") });
+  if (!parsed.success) {
     return { error: "Estado inválido.", success: false };
   }
 
   const supabase = await getSupabaseClient();
-  const { error } = await supabase.from("requirement_tasks").update({ status }).eq("id", taskId);
+  const { error } = await supabase
+    .from("requirement_tasks")
+    .update({ status: parsed.data.status })
+    .eq("id", taskId);
 
   if (error) {
     return { error: "No se pudo actualizar el estado.", success: false };
@@ -176,28 +179,27 @@ export async function actualizarTarea(
 ): Promise<ActualizarTareaState> {
   await requireAdmin();
 
-  const taskName = formData.get("taskName");
-  const dueDate = formData.get("dueDate");
-  const notes = formData.get("notes");
-  const blockers = formData.get("blockers");
-  const assignee = formData.get("assignee");
-
-  if (typeof taskName !== "string" || !taskName.trim()) {
-    return { error: "El nombre de la tarea es obligatorio.", success: false };
+  const parsed = actualizarTareaSchema.safeParse({
+    taskName: formData.get("taskName"),
+    dueDate: formData.get("dueDate"),
+    notes: formData.get("notes"),
+    blockers: formData.get("blockers"),
+    assignee: formData.get("assignee"),
+  });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0].message, success: false };
   }
-  if (typeof dueDate !== "string" || !dueDate.trim()) {
-    return { error: "La fecha límite es obligatoria.", success: false };
-  }
+  const { taskName, dueDate, notes, blockers, assignee } = parsed.data;
 
   const supabase = await getSupabaseClient();
   const { error } = await supabase
     .from("requirement_tasks")
     .update({
-      task_name: taskName.trim(),
+      task_name: taskName,
       due_date: dueDate,
-      notes: typeof notes === "string" && notes.trim() ? notes.trim() : null,
-      blockers: typeof blockers === "string" && blockers.trim() ? blockers.trim() : null,
-      assignee: typeof assignee === "string" && assignee.trim() ? assignee.trim() : null,
+      notes,
+      blockers,
+      assignee,
     })
     .eq("id", taskId);
 
@@ -223,16 +225,16 @@ export async function guardarFechaLimiteFase(
 ): Promise<GuardarFechaLimiteFaseState> {
   await requireAdmin();
 
-  const dueDate = formData.get("dueDate");
-  if (typeof dueDate !== "string" || !dueDate.trim()) {
-    return { error: "La fecha es obligatoria.", success: false };
+  const parsed = guardarFechaLimiteFaseSchema.safeParse({ dueDate: formData.get("dueDate") });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0].message, success: false };
   }
 
   const supabase = await getSupabaseClient();
   const { error } = await supabase
     .from("requirement_phase_deadlines")
     .upsert(
-      { requirement_id: requirementId, phase_number: phaseNumber, due_date: dueDate },
+      { requirement_id: requirementId, phase_number: phaseNumber, due_date: parsed.data.dueDate },
       { onConflict: "requirement_id,phase_number" }
     );
 
@@ -250,9 +252,9 @@ export async function eliminarTarea(
 ): Promise<EliminarTareaState> {
   await requireAdmin();
 
-  const taskId = formData.get("taskId");
-  if (typeof taskId !== "string" || !taskId) {
-    return { error: "Falta el identificador de la tarea.", success: false };
+  const parsed = eliminarTareaSchema.safeParse({ taskId: formData.get("taskId") });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0].message, success: false };
   }
 
   const supabase = await getSupabaseClient();
@@ -260,7 +262,7 @@ export async function eliminarTarea(
   // 20260811030000_fix_cascade_horas_tarea_eliminada.sql -- borrar una
   // tarea borra también su bitácora de horas asociada, para que el total
   // del requerimiento baje correctamente.
-  const { error } = await supabase.from("requirement_tasks").delete().eq("id", taskId);
+  const { error } = await supabase.from("requirement_tasks").delete().eq("id", parsed.data.taskId);
 
   if (error) {
     return { error: "No se pudo eliminar la tarea.", success: false };

@@ -43,7 +43,6 @@ type RequirementRow = Pick<
   | "has_detail_tracking"
   | "estimated_hours"
   | "executed_hours"
-  | "billing_date"
   | "notes"
   | "deadline"
   | "reopened_count"
@@ -79,7 +78,6 @@ function adaptar(
       horasEstimadas !== null &&
       horasEjecutadas !== null &&
       horasEjecutadas > horasEstimadas,
-    fechaCobro: row.billing_date,
     notas: row.notes,
     bloqueado: contieneBloqueo(row.notes),
     tieneDetalle: row.has_detail_tracking,
@@ -117,7 +115,7 @@ export async function getDashboardData(): Promise<
     const { data: filas, error: errorRequerimientos } = await supabase
       .from("requirements")
       .select(
-        "id, code, slug, title, month_label, complexity, status, has_detail_tracking, estimated_hours, executed_hours, billing_date, notes, deadline, reopened_count"
+        "id, code, slug, title, month_label, complexity, status, has_detail_tracking, estimated_hours, executed_hours, notes, deadline, reopened_count"
       )
       .eq("project_id", proyecto.id);
     if (errorRequerimientos) throw errorRequerimientos;

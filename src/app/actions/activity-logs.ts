@@ -3,6 +3,7 @@
 import { refresh } from "next/cache";
 import { requireAdmin } from "@/lib/auth/session";
 import { getSupabaseClient } from "@/lib/supabase/server";
+import { registrarHorasSchema } from "@/lib/actividad-schema";
 
 export type RegistrarHorasState = { error: string | null; success: boolean };
 
@@ -15,23 +16,17 @@ export async function registrarHoras(
 ): Promise<RegistrarHorasState> {
   const profile = await requireAdmin();
 
-  const hoursSpentRaw = formData.get("hoursSpent");
-  const notes = formData.get("notes");
-  const loggedAtRaw = formData.get("loggedAt");
-
-  const hoursSpent = typeof hoursSpentRaw === "string" ? Number(hoursSpentRaw) : NaN;
-  if (!Number.isFinite(hoursSpent) || hoursSpent <= 0) {
-    return { error: "Las horas deben ser un número mayor a cero.", success: false };
+  const parsed = registrarHorasSchema.safeParse({
+    hoursSpent: formData.get("hoursSpent"),
+    notes: formData.get("notes"),
+    loggedAt: formData.get("loggedAt"),
+  });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0].message, success: false };
   }
-
-  let loggedAt = new Date().toISOString();
-  if (typeof loggedAtRaw === "string" && loggedAtRaw.trim() !== "") {
-    const parsed = new Date(loggedAtRaw);
-    if (Number.isNaN(parsed.getTime())) {
-      return { error: "La fecha no es válida.", success: false };
-    }
-    loggedAt = parsed.toISOString();
-  }
+  const loggedAt = parsed.data.loggedAt
+    ? new Date(parsed.data.loggedAt).toISOString()
+    : new Date().toISOString();
 
   const supabase = await getSupabaseClient();
   const { error } = await supabase.from("activity_logs").insert({
@@ -39,8 +34,8 @@ export async function registrarHoras(
     task_id: taskId,
     phase_number: phaseNumber,
     title: "Registro de horas",
-    notes: typeof notes === "string" && notes.trim() ? notes.trim() : null,
-    hours_spent: hoursSpent,
+    notes: parsed.data.notes,
+    hours_spent: parsed.data.hoursSpent,
     logged_at: loggedAt,
     created_by: profile.userId,
   });

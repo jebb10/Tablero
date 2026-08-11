@@ -43,7 +43,6 @@ export type RequerimientoParaEditar = Pick<
   | "status"
   | "deadline"
   | "estimated_hours"
-  | "billing_date"
   | "notes"
   | "dev_environment_url"
   | "has_detail_tracking"
@@ -66,7 +65,7 @@ export async function getRequerimientoParaEditar(
   const { data } = await supabase
     .from("requirements")
     .select(
-      "id, code, title, category, complexity, month_label, status, deadline, estimated_hours, billing_date, notes, dev_environment_url, has_detail_tracking, parent_requirement_id"
+      "id, code, title, category, complexity, month_label, status, deadline, estimated_hours, notes, dev_environment_url, has_detail_tracking, parent_requirement_id"
     )
     .eq("project_id", proyecto.id)
     .eq("slug", slug)
@@ -133,7 +132,7 @@ export async function getRequerimientoDetalle(slug: string): Promise<Requerimien
     const { data: tareas, error: errorConsultaTareas } = await supabase
       .from("requirement_tasks")
       .select(
-        "id, phase_number, phase_name, task_name, detail, status, estimated_hours, due_date, completed_date, milestone, blockers, notes, sort_order, assignee, planned_start_date, planned_end_date, planned_dates_confirmed, executed_hours"
+        "id, phase_number, phase_name, task_name, detail, status, estimated_hours, due_date, milestone, blockers, notes, sort_order, assignee, planned_start_date, planned_end_date, planned_dates_confirmed, executed_hours"
       )
       .eq("requirement_id", requerimiento.id);
     if (errorConsultaTareas) {

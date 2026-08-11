@@ -31,8 +31,8 @@ if (!VIEWER_EMAIL || !VIEWER_PASSWORD || !ADMIN_EMAIL || !ADMIN_PASSWORD) {
   process.exit(1);
 }
 
-// document_versions se eliminó en el cierre técnico de 2026-08-11 (scaffolding
-// vacío de Fase D, sin policies) -- se agrega de nuevo si Fase D la recrea.
+// document_versions se eliminó por completo en el cierre técnico de
+// 2026-08-11 (scaffolding vacío, sin policies, de un diseño descartado).
 const TABLES = ["projects", "requirements", "requirement_tasks", "activity_logs"];
 
 const results = [];

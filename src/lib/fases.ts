@@ -13,7 +13,6 @@ export type RequirementTaskRow = Pick<
   | "status"
   | "estimated_hours"
   | "due_date"
-  | "completed_date"
   | "milestone"
   | "blockers"
   | "notes"
@@ -53,7 +52,6 @@ export function agruparPorFase(filas: RequirementTaskRow[]): Fase[] {
       estado: estadoTareaDesdeDb(f.status),
       horas: f.estimated_hours,
       fechaLimite: toDate(f.due_date),
-      fechaReal: toDate(f.completed_date),
       hito: f.milestone,
       notas: f.notes,
       bloqueantes: f.blockers,

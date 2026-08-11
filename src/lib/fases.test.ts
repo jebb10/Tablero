@@ -11,7 +11,6 @@ function tarea(overrides: Partial<RequirementTaskRow> = {}): RequirementTaskRow 
     status: "Pendiente",
     estimated_hours: null,
     due_date: null,
-    completed_date: null,
     milestone: null,
     blockers: null,
     notes: null,

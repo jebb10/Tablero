@@ -10,6 +10,15 @@ import { z } from "zod";
 
 const devEnvironmentUrlSchema = z.string().url().nullable();
 
+const camposComunesSchema = z.object({
+  code: z.string().trim().min(1, "El código es obligatorio."),
+  title: z.string().trim().min(1, "El título es obligatorio."),
+  status: z.enum(ESTADOS_DB),
+  estimatedHours: z.coerce
+    .number()
+    .refine((v) => Number.isFinite(v) && v >= 0, "Las horas estimadas deben ser un número válido (≥ 0)."),
+});
+
 export type GuardarRequerimientoState = { error: string | null; success: boolean };
 
 interface CamposComunes {
@@ -21,7 +30,6 @@ interface CamposComunes {
   status: EstadoDb;
   deadline: string | null;
   estimated_hours: number;
-  billing_date: string | null;
   notes: string | null;
   dev_environment_url: string | null;
   has_detail_tracking: boolean;
@@ -37,24 +45,18 @@ function texto(formData: FormData, nombre: string): string | null {
 
 // Unidad C2.3 — validación compartida entre crear/editar/cambio de alcance.
 function leerCamposComunes(formData: FormData): LecturaCampos {
-  const code = texto(formData, "code");
-  const title = texto(formData, "title");
-  const status = formData.get("status");
-
-  if (!code) return { error: "El código es obligatorio." };
-  if (!title) return { error: "El título es obligatorio." };
-  if (typeof status !== "string" || !ESTADOS_DB.includes(status as EstadoDb)) {
-    return { error: "Estado inválido." };
+  const camposParseados = camposComunesSchema.safeParse({
+    code: formData.get("code"),
+    title: formData.get("title"),
+    status: formData.get("status"),
+    estimatedHours: formData.get("estimatedHours"),
+  });
+  if (!camposParseados.success) {
+    const primerIssue = camposParseados.error.issues[0];
+    const error = primerIssue.path[0] === "status" ? "Estado inválido." : primerIssue.message;
+    return { error };
   }
-
-  const estimatedHoursRaw = formData.get("estimatedHours");
-  const estimatedHours =
-    typeof estimatedHoursRaw === "string" && estimatedHoursRaw.trim()
-      ? Number(estimatedHoursRaw)
-      : 0;
-  if (!Number.isFinite(estimatedHours) || estimatedHours < 0) {
-    return { error: "Las horas estimadas deben ser un número válido (≥ 0)." };
-  }
+  const { code, title, status, estimatedHours } = camposParseados.data;
 
   const deadline = texto(formData, "deadline");
   const parentRequirementId = texto(formData, "parentRequirementId");
@@ -72,10 +74,9 @@ function leerCamposComunes(formData: FormData): LecturaCampos {
       category: texto(formData, "category"),
       complexity: texto(formData, "complexity"),
       month_label: texto(formData, "monthLabel"),
-      status: status as EstadoDb,
+      status,
       deadline,
       estimated_hours: estimatedHours,
-      billing_date: texto(formData, "billingDate"),
       notes: texto(formData, "notes"),
       dev_environment_url: devEnvironmentUrl.data,
       has_detail_tracking: formData.get("hasDetailTracking") === "on",

@@ -8,7 +8,7 @@ el detalle de tareas por fase al hacer drill-down. Este es un proyecto **vivo,
 construido por fases** — no asumas que la fase actual es la versión final;
 consulta siempre "Estado actual" abajo antes de proponer cambios grandes.
 
-## Estado actual: Fases 0, B, C, C1, C2 y C3 completas y verificadas — solo Fase D pendiente
+## Estado actual: Fases 0, B, C, C1, C2 y C3 completas y verificadas — sin trabajo pendiente
 
 - Desplegado en Vercel: [tablero-pi.vercel.app](https://tablero-pi.vercel.app/)
   (repo: `https://github.com/jebb10/Tablero.git`). Login real por roles
@@ -36,51 +36,13 @@ consulta siempre "Estado actual" abajo antes de proponer cambios grandes.
   append-only.
 - Lee y escribe en Supabase (Postgres + API REST), ver "Fuente de datos"
   abajo. **Backup diario verificado** — ver "Backup" abajo.
-- **Todas las fases planificadas hasta hoy (0, B, C, C1, C2, C3) están
-  completas y verificadas en producción.** El detalle de ejecución de cada
-  una (decisiones tomadas con el PO, pivots de diseño, PRs #9–#16) vive en
-  el historial de git — no se conserva como documento aparte en el repo.
-- **Único pendiente real: Fase D** (documentos versionados en Storage),
-  explícitamente fuera de alcance, sin fecha de retoma — diseño completo
-  conservado en [`PENDIENTES.md`](./PENDIENTES.md).
-
-## Deuda técnica conocida (no bloqueante)
-
-Detectada en la auditoría integral del cierre técnico de 2026-08-11 (los hallazgos bloqueantes de esa
-auditoría ya se corrigieron: `Tarea.estado` usa `EstadoTarea`, `formatearFecha()` vive en
-`src/lib/fechas.ts`, `tarea-acciones-admin.tsx` se partió en carpeta, los controles crudos migraron a
-shadcn). Lo que queda es deuda documentada, no bloqueante para seguir trabajando:
-
-**Capa de datos**
-- 4 `Pick<...>` ad-hoc distintos sobre `requirements` sin adaptador común (`dashboard-data.ts`,
-  `requerimiento-data.ts` ×2, `planeacion-data.ts`); dos rutas de agrupación por fase separadas
-  (`fases.ts` vs. inline en `planeacion-data.ts`).
-- `estados.ts` ("fuente única de estados") no se usa de punta a punta —
-  `requerimiento-data.ts:116` y `actions/requirements.ts:200` comparan el literal
-  `"CERRADO_POR_CAMBIO_ALCANCE"` a mano.
-- `database.types.ts` puede desincronizarse tras una migración si no se corre
-  `npm run types:db` — verificar tras cada `db push`.
-- Validación solo en escritura (zod únicamente en `guardarFechasPlaneadas`); el resto de Server
-  Actions valida a mano (`typeof x !== "string"`). `dev_environment_url` no tiene validación de
-  formato en servidor.
-- Caché in-memory asimétrica: Home la tiene (`dashboard-data.ts`), Planeación no — riesgo bajo de que
-  ambas vistas muestren datos distintos tras un fallo transitorio de Supabase.
-- `EventoActividad` exportado en `actividades-data.ts` sin uso real (`Actividad.eventType` es
-  `string` suelto).
-
-**Base de datos**
-- FKs sin `ON DELETE` explícito: `requirements.parent_requirement_id`, `activity_logs.created_by`
-  (caen en `NO ACTION` por defecto, inconsistente con el resto del esquema que sí es explícito).
-- Columnas candidatas a huérfanas: `requirements.parent_requirement_id` (jerarquía nunca usada),
-  `requirements.billing_date` (tipo `text`, resabio del Excel), `requirement_tasks.completed_date`,
-  `requirement_tasks.detail`.
-
-**Server Actions / componentes**
-- Patrón `successVisto` (cerrar diálogo tras éxito) duplicado línea por línea en 3 diálogos;
-  `aInputDate()` duplicada en 2 archivos.
-- `actividades-sin-fase.tsx` + `actividad-tipos.ts`: legacy intencional del histórico pre-fusión
-  tarea/actividad (2026-08-11) — sigue siendo necesario, pero conviene que el PO decida
-  explícitamente si se archiva visualmente o se mantiene visible antes de rediseñar esa zona.
+- **Todas las fases planificadas (0, B, C, C1, C2, C3) están completas y
+  verificadas en producción — no hay trabajo pendiente del roadmap.** El
+  detalle de ejecución de cada una (decisiones tomadas con el PO, pivots de
+  diseño, PRs #9–#16) vive en el historial de git — no se conserva como
+  documento aparte en el repo. Ninguna fase de documentos versionados
+  (antes "Fase D") sigue en pie ni como diseño futuro — se descartó por
+  completo.
 
 ## Fuente de datos
 
@@ -114,9 +76,10 @@ legibles con `auth.uid()` válido (`to authenticated`); escribir en
 `requirements`/`requirement_tasks` exige además `public.is_admin()`.
 `activity_logs` tiene policies desde la Fase C (`select` autenticado,
 `insert` solo Admin, append-only — sin `update`/`delete`). **`document_versions`
-se eliminó en el cierre técnico pre-refinamiento (2026-08-11)** — era
-scaffolding vacío de Fase D sin ninguna policy; se recreará desde cero
-cuando se diseñe esa fase de verdad. El DDL original de la Fase A
+se eliminó por completo en el cierre técnico pre-refinamiento (2026-08-11)** —
+era scaffolding vacío sin ninguna policy, de un diseño de documentos
+versionados descartado por decisión del PO; no se recreará. El DDL original
+de la Fase A
 (`supabase/schema.sql`) quedó archivado en `supabase/legado/schema-fase-a.sql`
 ("HISTÓRICO. No ejecutar") una vez migrado a migraciones versionadas en la
 Unidad 0.1.
@@ -190,6 +153,17 @@ para repetir la verificación: `scripts/verificar_seguridad_fase_b.mjs`
   `src/proxy.ts`.
 - **`lucide-react`** para íconos (mapeo por palabra clave en
   `src/lib/icons.tsx`).
+- **`zod`** para validar el input de toda Server Action de escritura —
+  decisión deliberada de unificar el mecanismo de validación (antes mixto:
+  algunas funciones usaban zod, otras `typeof x !== "string"` a mano).
+- **3 módulos de datos con `Pick<...>` propios sobre `requirements`/
+  `requirement_tasks`** (`dashboard-data.ts`, `requerimiento-data.ts` ×2,
+  `planeacion-data.ts`) en vez de un adaptador común — **decisión
+  deliberada de no unificar** (ver comentario en `planeacion-data.ts`):
+  cada módulo alimenta una pantalla con un shape de salida distinto
+  (`Requerimiento`/`RequerimientoDetalle`/`PlaneacionRequerimiento`), y
+  forzar un tipo común movería la duplicación existente sin reducirla
+  realmente.
 - Base de datos real (Supabase/Postgres) desde la Fase A. **Autenticación
   real desde la Unidad B.3**: Supabase Auth con `/login`, logout,
   recuperar/restablecer contraseña, y `src/proxy.ts` exigiendo sesión en
@@ -220,9 +194,9 @@ para repetir la verificación: `scripts/verificar_seguridad_fase_b.mjs`
 | `src/lib/supabase/config.ts` | `SUPABASE_URL`/`SUPABASE_ANON_KEY` hardcodeadas (Unidad B.1, antes vivían en `server.ts`) — mismo motivo que el antiguo `SHEET_ID`, ver "Fuente de datos". |
 | `src/lib/supabase/proxy-client.ts` | `createProxyClient(request)` (Unidad B.1) — cliente que lee/escribe cookies vía `NextRequest`/`NextResponse`, usado únicamente por `src/proxy.ts`. |
 | `src/proxy.ts` | Proxy de Next 16.2 (Unidad B.1, reemplaza a `middleware.ts`) — desde la Unidad B.3, exige sesión: si `auth.getUser()` no devuelve usuario y la ruta no es pública (`/login*`, `/auth*`), redirige a `/login?next=<ruta>` (protección optimista; la RLS pública sigue siendo el respaldo real hasta B.4). Matcher excluye `_next/static`/`_next/image`/`favicon.ico`/imágenes/fuentes. |
-| `src/lib/auth/session.ts` | `getCurrentProfile()` (Unidad B.3, memoizado con `cache()`) — valida el usuario contra Supabase Auth y lee su `role`/`full_name` de `profiles`; sin fila en `profiles` = no autorizado. `requireAuth()`/`requireAdmin()` existen como helpers para Fase C, sin consumidores todavía. |
+| `src/lib/auth/session.ts` | `getCurrentProfile()` (Unidad B.3, memoizado con `cache()`) — valida el usuario contra Supabase Auth y lee su `role`/`full_name` de `profiles`; sin fila en `profiles` = no autorizado. `requireAuth()`/`requireAdmin()` se usan al inicio de toda Server Action de escritura. |
 | `src/app/login/page.tsx` + `src/app/login/actions.ts` | Página de login (Server Component) + Server Actions `loginAction()`/`cerrarSesion()` (Unidad B.3) — `signInWithPassword`/`signOut` de Supabase Auth, con `rutaSegura()` para evitar open-redirect vía `?next=`. |
-| `src/app/login/recuperar/*` + `src/app/login/restablecer/*` | Flujo de recuperar/restablecer contraseña (Unidad B.3) — **pendiente probar en vivo por el PO**, ver "Estado actual". |
+| `src/app/login/recuperar/*` + `src/app/login/restablecer/*` | Flujo de recuperar/restablecer contraseña (Unidad B.3) — probado en vivo en producción, ver "Estado actual". |
 | `src/app/auth/callback/route.ts` | Route Handler (Unidad B.3) que intercambia el código PKCE del correo de recuperación por una sesión real. |
 | `src/components/auth/login-form.tsx`, `recuperar-form.tsx`, `restablecer-form.tsx` | Formularios cliente (Unidad B.3) sobre `useActionState`, con componentes shadcn/ui (`Alert`, `Button`, `Input`, `Label`, `Spinner`) + tokens del sistema de diseño de Claude Design. |
 | `src/components/auth/role-badge.tsx` | `RoleBadge` (Unidad B.3) — badge visual Admin/Viewer en el nav de `layout.tsx`; puramente informativo. |
@@ -232,7 +206,7 @@ para repetir la verificación: `scripts/verificar_seguridad_fase_b.mjs`
 | `src/lib/estados.ts` | Fuente única de estados: `ESTADOS_DB`, `ESTADO_DB_A_ES`/`ESTADO_ES_A_DB`, `dbAEstado()` (con `console.warn` para valores no mapeados). Sustituye el `Record` de 4 claves que antes vivía inline en `dashboard-data.ts`. |
 | `src/lib/slug.ts` | `slugify()` — port TS del de `scripts/migrate_to_supabase.py`, verificado contra los 28 códigos reales en `src/lib/__tests__/slug.fixtures.json`. |
 | `src/lib/fases-orden.ts` | `FASES_ORDEN` — antes duplicado en `fases.ts` y `planeacion-data.ts`. |
-| `src/lib/fechas.ts` | `hoyLocal()`/`aISO()`/`desdeISO()`/`sumarDias()`/`diffDias()` en zona `America/Bogota`. Sin consumidores todavía (se usa a partir de la Unidad C1.4). |
+| `src/lib/fechas.ts` | `hoyLocal()`/`aISO()`/`desdeISO()`/`sumarDias()`/`diffDias()`/`aInputDate()` en zona `America/Bogota` — fuente única de formateo de fechas, usada por varios componentes de tareas/fases. |
 | `src/lib/semaforo.ts` | `calcularSemaforo(deadline)` — rojo/ámbar/verde/sin-fecha por proximidad de fecha límite (umbrales 3/10 días). Reusado en la card y en `/planeacion`. |
 | `src/lib/fases.ts` | `agruparPorFase(filas)` — agrupa filas planas de `requirement_tasks` en el shape `Fase[]` que consume `FaseStepper`. |
 | `src/lib/planeacion-data.ts` | `getPlaneacionData()` — consulta requerimientos con `has_detail_tracking` + sus tareas, arma el shape que consume `/planeacion`. |
@@ -296,19 +270,14 @@ no hay ningún consumidor de ese código.
   la fuente de verdad.
 - **RN-07** (escalabilidad): la heurística y el layout están pensados para
   crecer más allá de 28 requerimientos, pero **esto no está probado a
-  escala** — ver Roadmap.
+  escala**.
 
-## Pendiente
+## Historial de fases
 
 Este proyecto se construyó por fases (0, A, B, C, C1, C2, C3), todas completas y verificadas en
-producción a fecha 2026-08-11. **No completes de una vez trabajo de una fase futura sin
-confirmarlo primero con el PO.**
-
-**Único pendiente real: Fase D** (documentos versionados en Storage — sin versionado real: subir
-reemplaza y borra el anterior), explícitamente fuera de alcance, sin fecha de retoma — diseño
-completo conservado en [`PENDIENTES.md`](./PENDIENTES.md) para cuando se retome.
-
-El detalle de ejecución de las fases ya cerradas (decisiones tomadas con el PO, pivots de diseño,
-contradicciones resueltas del diseño original) no se conserva como documento aparte en el repo —
-vive en el historial de git (PRs #9–#16) y, para lo aún relevante operativamente, en
+producción. **No hay ningún trabajo pendiente del roadmap** — no se planea ninguna fase de
+documentos versionados ni ninguna otra fase futura. El detalle de ejecución de las fases ya
+cerradas (decisiones tomadas con el PO, pivots de diseño, contradicciones resueltas del diseño
+original) no se conserva como documento aparte en el repo — vive en el historial de git (PRs
+#9–#16) y, para lo aún relevante operativamente, en
 `supabase/RUNBOOK_AUTH.md`/`RUNBOOK_BACKUP.md`/`MIGRACIONES.md`.

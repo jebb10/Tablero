@@ -39,12 +39,11 @@ Next.js (App Router) + TypeScript + Tailwind v4 + shadcn/ui, con Supabase
 
 Fases 0 (fundaciones), B (auth/roles), C (pantallas de escritura), C1 (Gantt real), C2 (CRUD de
 requerimientos y tareas, completa) y C3 (bitácora de horas) **completas y verificadas en
-producción**. Único pendiente: Fase D (documentos versionados), fuera de alcance por ahora, sin
-fecha de retoma.
+producción**. No hay trabajo pendiente del roadmap — el proyecto está listo para refinamiento
+visual de pantallas.
 
 **El detalle completo y siempre vigente vive en [`CLAUDE.md`](./CLAUDE.md)
-— léelo antes de tocar el código.** El diseño de lo pendiente (Fase D) está en
-[`PENDIENTES.md`](./PENDIENTES.md).
+— léelo antes de tocar el código.**
 
 ## Correr en local
 
