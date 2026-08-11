@@ -69,8 +69,8 @@ usuarios se crean con `scripts/create_user.mjs` (requiere
 
 Todo cambio de esquema va en `supabase/migrations/` (nunca directo en el
 SQL Editor de producción) y se aplica con `npm run db:push` — ver
-`supabase/MIGRACIONES.md` para el detalle y los dos gotchas de la CLI de
-este proyecto.
+`supabase/MIGRACIONES.md` para el detalle y los gotchas conocidos de la
+CLI de este proyecto.
 
 ## Backups
 
