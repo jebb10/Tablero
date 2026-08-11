@@ -12,9 +12,9 @@
 | C2.1 | ✅ Hecho (2026-08-10, PR #12) |
 | C2.5 | ✅ Hecho y mergeado (2026-08-11, PR #13) |
 | C3.1/C3.2/C3.3 | ✅ Hechas y mergeadas (2026-08-11, PR #15) — **diseño real muy distinto al de abajo**, tras varios pivots en vivo con el PO: tarea y actividad se fusionaron en un solo concepto, con fecha límite de fase nueva. Ver "Estado actual" de `CLAUDE.md` para el resumen fiel; las secciones C3.1/C3.2/C3.3 de este archivo (más abajo) quedan solo como historial de lo que se planeó originalmente, no reflejan lo implementado. |
-| C2.2 | ⬜ Pendiente — **siguiente unidad a ejecutar** |
-| C2.4 | ⬜ Pendiente |
-| C2.3 | ⬜ Pendiente |
+| C2.2 | ✅ Hecho (2026-08-11, PR #16, rama `fase-c2-cierre`) |
+| C2.4 | ✅ Hecho (2026-08-11, PR #16, rama `fase-c2-cierre`) |
+| C2.3 | ✅ Hecho (2026-08-11, PR #16, rama `fase-c2-cierre`) |
 
 **Fuera de plan, resuelto en el camino (2026-08-10, PR #11, rama `fix-lint-c1`, mergeado antes de
 C2.1)**: `npm run lint` estaba roto en `main` desde el PR #10 (Unidad C1) por reglas nuevas de
@@ -22,6 +22,13 @@ C2.1)**: `npm run lint` estaba roto en `main` desde el PR #10 (Unidad C1) por re
 `react-hooks/immutability`) resueltas por el rango `^` en `package.json`. Sin cambio de
 comportamiento — ver el PR para el detalle. Si una sesión futura ve lint roto de nuevo, no asumir que
 es este mismo problema sin verificar primero.
+
+**Fuera de plan, resuelto en el camino (2026-08-11, PR #16, rama `fase-c2-cierre`, mergeado junto con
+C2.2/C2.4/C2.3)**: bug reportado por el PO — eliminar una tarea con horas registradas no bajaba
+`requirements.executed_hours` (quedaban huérfanas en `activity_logs`, sumando igual). Ver detalle
+completo en `PLAN_HOTFIX_C2_CIERRE.md`, Unidad 0. Esta vez, a pedido explícito del PO, las 4 unidades
+(hotfix + C2.2 + C2.4 + C2.3) se probaron juntas en local y se mergearon en un solo PR — no el patrón de
+1 unidad = 1 rama = 1 PR de las rondas anteriores.
 
 ## Contexto
 

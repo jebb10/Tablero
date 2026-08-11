@@ -8,7 +8,7 @@ el detalle de tareas por fase al hacer drill-down. Este es un proyecto **vivo,
 construido por fases** — no asumas que la fase actual es la versión final;
 consulta siempre "Estado actual" abajo antes de proponer cambios grandes.
 
-## Estado actual: Fase 0, Fase B, Fase C, Unidad C1 (Gantt real), Unidad C2.1 y Unidad C2.5 completas y verificadas
+## Estado actual: Fase 0, Fase B, Fase C, C1, C2 completa (C2.1/C2.2/C2.3/C2.4/C2.5) y C3 completas y verificadas
 
 - Desplegado en Vercel: [tablero-pi.vercel.app](https://tablero-pi.vercel.app/)
   (repo: `https://github.com/jebb10/Tablero.git`). **RLS ya exige sesión
@@ -48,10 +48,10 @@ consulta siempre "Estado actual" abajo antes de proponer cambios grandes.
   (Fase A del nuevo roadmap), la Fase 0 (fundaciones: migraciones
   versionadas, tipos generados, CI, backup, andamiaje compartido — ver más
   abajo) y la Fase B (auth/roles) ya están completas; Fase C (pantallas de
-  escritura, versión original del PR #9) y la Unidad C1 (Gantt real) ya
-  están completas, la Fase C2 (CRUD) está en curso (unidad C2.1 cerrada,
-  ver más abajo) y las Fases C3 (bitácora de horas) y D (documentos
-  versionados, fuera de alcance de esta ronda) siguen pendientes — ver
+  escritura, versión original del PR #9), la Unidad C1 (Gantt real), la
+  Fase C2 (CRUD, completa) y la Fase C3 (bitácora de horas) ya están
+  completas; solo la Fase D (documentos versionados, fuera de alcance de
+  esta ronda) sigue pendiente — ver
   `ROADMAP_V2.md` para el diseño vigente completo y
   `PLAN_EJECUCION_C2_C3.md` para las decisiones tomadas y el estado de
   ejecución de esta ronda (`ROADMAP_SUPABASE.md` queda como historial,
@@ -163,14 +163,35 @@ consulta siempre "Estado actual" abajo antes de proponer cambios grandes.
   durante el pivot intermedio (las más viejas, sin fase, siguen en el histórico
   `ActividadesSinFase`). Se corrigió también un bug real: crear una tarea sin ninguna fecha
   la dejaba invisible en el Gantt sin ningún aviso — `dueDate` es obligatorio desde ahora.
-- **Sigue faltando** (ver `ROADMAP_V2.md` para el diseño y
-  `PLAN_EJECUCION_C2_C3.md` para el estado de ejecución exacto): el resto
-  de la Fase C2 (C2.2 edición inline de tareas, C2.4 hacer navegables los
-  21 sin detalle, C2.3 crear/editar requerimiento — en ese orden), la Fase
-  C3 (bitácora de horas ejecutadas a nivel de requerimiento) y la Fase D
-  (documentos versionados en Storage, **explícitamente fuera de alcance de
-  esta ronda de trabajo**, sin fecha de retoma). Fase 0 y Fase B
-  (fundaciones y auth/roles) ya están completas.
+- **✅ Hotfix + C2.2/C2.4/C2.3 completas (2026-08-11, PR #16, rama
+  `fase-c2-cierre`) — Fase C2 queda cerrada por completo.** A pedido
+  explícito del PO, las 4 unidades se probaron juntas en local contra el
+  Supabase real y se mergearon en un solo PR (no el patrón de 1 unidad = 1
+  rama = 1 PR de las rondas anteriores) — ver `PLAN_HOTFIX_C2_CIERRE.md`
+  para el detalle completo. **Hotfix**: eliminar una tarea con horas
+  registradas dejaba esas horas huérfanas pero sumando igual al total del
+  requerimiento (`activity_logs.task_id` tenía `on delete set null`) —
+  ahora es `on delete cascade`, y se reparó el único caso ya afectado en
+  producción ("Estandarización Mapas", 21h → 15h). **C2.2**: edición
+  inline de nombre/fecha límite/notas/bloqueantes/asignado de una tarea ya
+  creada (`actualizarTarea()`, botón de lápiz en
+  `tarea-acciones-admin.tsx`), contador "N/M completadas" por fase y
+  atenuado visual de tareas completadas en `tareas-por-fase.tsx`. **C2.4**:
+  los 21 requerimientos sin detalle ya son navegables (se quitó el gateo
+  por `has_detail_tracking` tanto en `requerimiento-card.tsx` como en
+  `getRequerimientoDetalle()`), muestran sus metadatos igual, y
+  `crearTarea()` marca `has_detail_tracking = true` al recibir su primera
+  tarea. **C2.3**: `src/app/actions/requirements.ts` (antes stub) ya tiene
+  `crearRequerimiento`/`actualizarRequerimiento`/`cerrarPorCambioDeAlcance`,
+  con `RequerimientoForm` compartido por las 3 páginas nuevas
+  (`/requerimiento/nuevo`, `[item]/editar`, `[item]/cambio-de-alcance`) —
+  12 campos, no 13: `documentation_folder_url` ya no existe como columna
+  (se eliminó en la migración de Fase C, antes de que se escribiera el
+  plan original de C2.3).
+- **Sigue faltando**: únicamente la Fase D (documentos versionados en
+  Storage, **explícitamente fuera de alcance de esta ronda de trabajo**,
+  sin fecha de retoma) — ver `ROADMAP_V2.md` para su diseño. Fase 0, Fase
+  B, Fase C, C1, C2 completa y C3 ya están completas.
 
 ## Fuente de datos
 
@@ -455,11 +476,8 @@ planteadas:
   normalización. Nuevo `src/lib/estados-tarea.ts`
   (`ESTADOS_TAREA`/`estadoEsCompletada()`) reemplaza los 6 sitios dispersos
   que comparaban `status.toLowerCase() === "completada"` (o, en un caso,
-  sin normalizar). Resto de C2 (C2.2/C2.4/C2.3) y C3 siguen
-  pendientes — ver `PLAN_EJECUCION_C2_C3.md` (plan vigente de esta ronda,
-  en la raíz del repo) para el detalle y el estado de ejecución unidad por
-  unidad. **Fuera de plan, resuelto en el camino**: `npm run lint` estaba
-  roto en `main` desde el PR #10 por una versión más nueva de
+  sin normalizar). **Fuera de plan, resuelto en el camino**: `npm run lint`
+  estaba roto en `main` desde el PR #10 por una versión más nueva de
   `eslint-config-next` (PR #11, rama `fix-lint-c1`, mergeado antes de
   C2.1, sin cambio de comportamiento).
 - **Unidad C2.5 — Reestructuración de Server Actions + componentes
@@ -467,6 +485,13 @@ planteadas:
   actual" arriba para el detalle completo, incluyendo el cuidado a tener
   en cuenta con `npx shadcn add` sobreescribiendo componentes ya
   personalizados.
+- **Hotfix (horas huérfanas al eliminar tarea) + Unidades C2.2/C2.4/C2.3 —
+  Fase C2 completa:** ✅ **completa** (2026-08-11, PR #16, rama
+  `fase-c2-cierre`). Ver "Estado actual" arriba para el detalle completo de
+  las 4 unidades y `PLAN_HOTFIX_C2_CIERRE.md` para el plan de ejecución.
+  Desviación del flujo de git de las rondas anteriores, a pedido explícito
+  del PO: las 4 unidades se probaron juntas en local y se mergearon en un
+  solo PR, no 1 rama/PR por unidad.
 - **Fase D — Documentos versionados (sin versionado real: subir reemplaza y
   borra el anterior):** pendiente, y **explícitamente fuera de alcance de
   la ronda de trabajo C2/C3 iniciada 2026-08-10** (decisión del PO, sin
@@ -482,7 +507,8 @@ disco. El detalle de verificación en vivo de las unidades ya cerradas (Fase
 0, Fase B) no se conserva como documento aparte — lo esencial ya vive en
 `supabase/RUNBOOK_AUTH.md` y en los resúmenes de arriba. Lo implementado de
 Fase C vive en `PLAN_IMPLEMENTACION_FASE_C.md` (ejecutado, rama `fase-c`).
-**El plan de ejecución vigente para C2/C3 (con las ~20 decisiones tomadas
-con el PO el 2026-08-10 y el estado de ejecución unidad por unidad) vive en
-`PLAN_EJECUCION_C2_C3.md`, en la raíz de este repo — leerlo antes de
-retomar cualquier unidad de C2/C3.**
+**Fase C2 y Fase C3 ya están completas — `PLAN_EJECUCION_C2_C3.md` (con
+las ~20 decisiones tomadas con el PO el 2026-08-10) y
+`PLAN_HOTFIX_C2_CIERRE.md` (cierre de C2.2/C2.4/C2.3 + hotfix, 2026-08-11)
+quedan en la raíz de este repo como historial de ejecución, no como
+trabajo pendiente. Solo la Fase D sigue sin empezar.**
