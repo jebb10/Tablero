@@ -23,6 +23,9 @@ export interface PlaneacionFase {
   phaseNumber: number;
   phaseName: string;
   tareas: PlaneacionTarea[];
+  /** Fecha límite propia de la fase (independiente de sus tareas), ver
+   * `requirement_phase_deadlines` -- se dibuja como hito propio en el Gantt. */
+  deadline: Date | null;
 }
 
 export interface PlaneacionRequerimiento {
@@ -34,16 +37,6 @@ export interface PlaneacionRequerimiento {
   /** true si alguna tarea tiene executed_hours > 0 (extensión de C1, ver
    * migración 20260810120000_c1_ext_horas_por_tarea.sql). */
   tieneConsumo: boolean;
-}
-
-export interface TareaParaEdicion {
-  id: string;
-  taskName: string;
-  phaseNumber: number;
-  phaseName: string;
-  dueDate: string | null;
-  plannedStartDate: string | null;
-  plannedEndDate: string | null;
 }
 
 export async function getPlaneacionData(): Promise<{
@@ -79,6 +72,14 @@ export async function getPlaneacionData(): Promise<{
       )
       .in("requirement_id", ids);
     if (errorTareas) throw errorTareas;
+
+    const { data: fechasLimiteFase } = await supabase
+      .from("requirement_phase_deadlines")
+      .select("requirement_id, phase_number, due_date")
+      .in("requirement_id", ids);
+    const deadlinePorReqFase = new Map(
+      (fechasLimiteFase ?? []).map((f) => [`${f.requirement_id}-${f.phase_number}`, new Date(f.due_date)])
+    );
 
     const resultado = requerimientos.map((req) => {
       const tareasReq = (tareas ?? []).filter((t) => t.requirement_id === req.id);
@@ -118,7 +119,12 @@ export async function getPlaneacionData(): Promise<{
               executedHours: t.executed_hours,
             };
           });
-        return { phaseNumber: numero, phaseName: nombre, tareas: tareasFase };
+        return {
+          phaseNumber: numero,
+          phaseName: nombre,
+          tareas: tareasFase,
+          deadline: deadlinePorReqFase.get(`${req.id}-${numero}`) ?? null,
+        };
       });
 
       const tieneConsumo = fases.some((f) => f.tareas.some((t) => t.executedHours > 0));
@@ -132,58 +138,3 @@ export async function getPlaneacionData(): Promise<{
   }
 }
 
-/** Unidad C1.2 — datos para la pantalla de edición de fechas planeadas de
- * un requerimiento. `null` si el requerimiento no existe o hay error. */
-export async function getTareasParaEdicion(slug: string): Promise<{
-  id: string;
-  code: string;
-  title: string;
-  tareas: TareaParaEdicion[];
-} | null> {
-  try {
-    const supabase = await getSupabaseClient();
-
-    const { data: proyecto, error: errorProyecto } = await supabase
-      .from("projects")
-      .select("id")
-      .eq("slug", PROJECT_SLUG)
-      .single();
-    if (errorProyecto || !proyecto) throw errorProyecto ?? new Error("Proyecto no encontrado");
-
-    const { data: requerimiento, error: errorRequerimiento } = await supabase
-      .from("requirements")
-      .select("id, code, title")
-      .eq("project_id", proyecto.id)
-      .eq("slug", slug)
-      .maybeSingle();
-    if (errorRequerimiento) throw errorRequerimiento;
-    if (!requerimiento) return null;
-
-    const { data: tareas, error: errorTareas } = await supabase
-      .from("requirement_tasks")
-      .select(
-        "id, task_name, phase_number, phase_name, sort_order, due_date, planned_start_date, planned_end_date"
-      )
-      .eq("requirement_id", requerimiento.id)
-      .order("phase_number")
-      .order("sort_order");
-    if (errorTareas) throw errorTareas;
-
-    return {
-      id: requerimiento.id,
-      code: requerimiento.code,
-      title: requerimiento.title,
-      tareas: (tareas ?? []).map((t) => ({
-        id: t.id,
-        taskName: t.task_name,
-        phaseNumber: t.phase_number,
-        phaseName: t.phase_name,
-        dueDate: t.due_date,
-        plannedStartDate: t.planned_start_date,
-        plannedEndDate: t.planned_end_date,
-      })),
-    };
-  } catch {
-    return null;
-  }
-}

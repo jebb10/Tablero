@@ -1,6 +1,8 @@
 import { agruparPorFase } from "./fases";
 import { PROJECT_SLUG } from "./project";
 import { getSupabaseClient } from "./supabase/server";
+import { getFechasLimiteFase } from "./fase-deadlines";
+import { FASES_ORDEN } from "./fases-orden";
 import type { Database } from "./supabase/database.types";
 import type { Fase } from "./types";
 
@@ -59,10 +61,14 @@ export async function getRequerimientoDetalle(slug: string): Promise<Requerimien
       const { data: tareas } = await supabase
         .from("requirement_tasks")
         .select(
-          "id, phase_number, phase_name, task_name, detail, status, estimated_hours, due_date, completed_date, milestone, blockers, notes, sort_order, assignee"
+          "id, phase_number, phase_name, task_name, detail, status, estimated_hours, due_date, completed_date, milestone, blockers, notes, sort_order, assignee, planned_start_date, planned_end_date, planned_dates_confirmed, executed_hours"
         )
         .eq("requirement_id", requerimiento.id);
-      fases = agruparPorFase(tareas ?? []);
+      const fechasLimiteFase = await getFechasLimiteFase(requerimiento.id);
+      fases = agruparPorFase(tareas ?? []).map((fase, i) => ({
+        ...fase,
+        fechaLimiteFase: fechasLimiteFase.get(FASES_ORDEN[i].numero) ?? null,
+      }));
     }
 
     return { error: false, requerimiento, fases };

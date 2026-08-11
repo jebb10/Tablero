@@ -71,6 +71,10 @@ export interface Tarea {
   notas: string | null;
   bloqueantes: string | null;
   asignado: string | null;
+  plannedStartDate: Date | null;
+  plannedEndDate: Date | null;
+  plannedDatesConfirmed: boolean;
+  executedHours: number;
 }
 
 export type EstadoFase = "completada" | "en-curso" | "pendiente";
@@ -80,4 +84,5 @@ export interface Fase {
   horasEstimadas: number | null;
   tareas: Tarea[];
   estado: EstadoFase;
+  fechaLimiteFase: Date | null;
 }
