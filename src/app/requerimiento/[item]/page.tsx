@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Link2 } from "lucide-react";
+import { ArrowLeft, Link2, Pencil, SplitSquareHorizontal } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { ErrorDatosBanner } from "@/components/error-datos-banner";
 import { TareasPorFase } from "@/components/tareas-por-fase";
 import { ActividadesSinFase } from "@/components/actividades-sin-fase";
+import { RoleGate } from "@/components/auth/role-gate";
 import { getRequerimientoDetalle } from "@/lib/requerimiento-data";
 import { getActividades } from "@/lib/actividades-data";
 import { dbAEstado } from "@/lib/estados";
@@ -18,7 +20,7 @@ export default async function RequerimientoPage({
   params: Promise<{ item: string }>;
 }) {
   const { item: slug } = await params;
-  const { error, requerimiento, fases, errorTareas } = await getRequerimientoDetalle(slug);
+  const { error, requerimiento, fases, errorTareas, reemplazadoPor } = await getRequerimientoDetalle(slug);
 
   if (error) {
     return (
@@ -52,10 +54,36 @@ export default async function RequerimientoPage({
       </Link>
 
       <header className="flex flex-col gap-2">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold text-muted-foreground">{requerimiento.code}</span>
-          <Badge variant="secondary">{dbAEstado(requerimiento.status)}</Badge>
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-semibold text-muted-foreground">{requerimiento.code}</span>
+            <Badge variant="secondary">{dbAEstado(requerimiento.status)}</Badge>
+          </div>
+          <RoleGate role="admin">
+            <div className="flex gap-2">
+              <Link href={`/requerimiento/${slug}/editar`}>
+                <Button type="button" size="sm" variant="outline">
+                  <Pencil className="h-3.5 w-3.5" />
+                  Editar
+                </Button>
+              </Link>
+              <Link href={`/requerimiento/${slug}/cambio-de-alcance`}>
+                <Button type="button" size="sm" variant="outline">
+                  <SplitSquareHorizontal className="h-3.5 w-3.5" />
+                  Cambio de alcance
+                </Button>
+              </Link>
+            </div>
+          </RoleGate>
         </div>
+        {reemplazadoPor && (
+          <p className="rounded-lg border border-dashed p-3 text-sm text-muted-foreground">
+            Reemplazado por{" "}
+            <Link href={`/requerimiento/${reemplazadoPor.slug}`} className="font-medium text-primary underline">
+              {reemplazadoPor.title} ({reemplazadoPor.code})
+            </Link>
+          </p>
+        )}
         <h1 className="text-2xl font-bold tracking-tight">{requerimiento.title}</h1>
         {requerimiento.description && (
           <p className="max-w-xl text-sm text-muted-foreground">{requerimiento.description}</p>

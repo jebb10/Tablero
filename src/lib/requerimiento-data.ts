@@ -28,6 +28,50 @@ export interface RequerimientoDetalleResult {
   requerimiento: RequerimientoDetalle | null;
   fases: Fase[] | null;
   errorTareas: boolean;
+  reemplazadoPor: { code: string; slug: string; title: string } | null;
+}
+
+export type RequerimientoParaEditar = Pick<
+  Database["public"]["Tables"]["requirements"]["Row"],
+  | "id"
+  | "code"
+  | "title"
+  | "category"
+  | "complexity"
+  | "month_label"
+  | "status"
+  | "deadline"
+  | "estimated_hours"
+  | "billing_date"
+  | "notes"
+  | "dev_environment_url"
+  | "has_detail_tracking"
+  | "parent_requirement_id"
+>;
+
+/** Unidad C2.3 — datos completos de un requerimiento para el formulario de edición. */
+export async function getRequerimientoParaEditar(
+  slug: string
+): Promise<RequerimientoParaEditar | null> {
+  const supabase = await getSupabaseClient();
+
+  const { data: proyecto } = await supabase
+    .from("projects")
+    .select("id")
+    .eq("slug", PROJECT_SLUG)
+    .single();
+  if (!proyecto) return null;
+
+  const { data } = await supabase
+    .from("requirements")
+    .select(
+      "id, code, title, category, complexity, month_label, status, deadline, estimated_hours, billing_date, notes, dev_environment_url, has_detail_tracking, parent_requirement_id"
+    )
+    .eq("project_id", proyecto.id)
+    .eq("slug", slug)
+    .maybeSingle();
+
+  return data ?? null;
 }
 
 /**
@@ -55,7 +99,28 @@ export async function getRequerimientoDetalle(slug: string): Promise<Requerimien
       .eq("slug", slug)
       .maybeSingle();
     if (errorRequerimiento) throw errorRequerimiento;
-    if (!requerimiento) return { error: false, requerimiento: null, fases: null, errorTareas: false };
+    if (!requerimiento) {
+      return {
+        error: false,
+        requerimiento: null,
+        fases: null,
+        errorTareas: false,
+        reemplazadoPor: null,
+      };
+    }
+
+    // Unidad C2.3 — si este requerimiento quedó CERRADO_POR_CAMBIO_ALCANCE,
+    // buscar el requerimiento nuevo que lo reemplazó (parent_requirement_id
+    // apunta a este) para mostrar el banner "Reemplazado por [link]".
+    let reemplazadoPor: { code: string; slug: string; title: string } | null = null;
+    if (requerimiento.status === "CERRADO_POR_CAMBIO_ALCANCE") {
+      const { data: reemplazo } = await supabase
+        .from("requirements")
+        .select("code, slug, title")
+        .eq("parent_requirement_id", requerimiento.id)
+        .maybeSingle();
+      reemplazadoPor = reemplazo ?? null;
+    }
 
     // Unidad C2.4: los 28 requerimientos muestran su acordeón de tareas,
     // con o sin has_detail_tracking -- ya no gatea la consulta, solo sigue
@@ -80,8 +145,8 @@ export async function getRequerimientoDetalle(slug: string): Promise<Requerimien
       }));
     }
 
-    return { error: false, requerimiento, fases, errorTareas };
+    return { error: false, requerimiento, fases, errorTareas, reemplazadoPor };
   } catch {
-    return { error: true, requerimiento: null, fases: null, errorTareas: false };
+    return { error: true, requerimiento: null, fases: null, errorTareas: false, reemplazadoPor: null };
   }
 }

@@ -14,7 +14,7 @@
 | 0 — Hotfix horas huérfanas al eliminar tarea | ✅ Hecho (2026-08-11, commit `88ecc4a`) |
 | 1 — C2.2 (edición inline de tareas, resto de campos) | ✅ Hecho (2026-08-11), verificado en vivo por el PO |
 | 2 — C2.4 (navegabilidad de los 21 sin detalle) | ✅ Hecho (2026-08-11), verificado en vivo por el PO |
-| 3 — C2.3 (crear/editar requerimiento) | ⬜ Pendiente |
+| 3 — C2.3 (crear/editar requerimiento) | ✅ Hecho (2026-08-11), verificado en vivo por el PO |
 
 ## Contexto
 
@@ -149,6 +149,17 @@ editable (derivada, solo vía bitácora).
    read-only con override manual para colisiones); al editar, **nunca**
    recalcular `slug` aunque cambie `code`. Colisión `23505` → error de
    campo, no 500.
+
+   **Ejecutado (2026-08-11)**: 12 campos, no 13 —
+   `documentation_folder_url` se eliminó de la tabla en la migración de
+   Fase C (`20260809192913_fase_c_campos_y_activity_logs.sql:12`), antes de
+   que se escribiera este plan; excluido del formulario, no hay columna
+   real donde guardarlo. Validación manual campo por campo (mismo patrón
+   que `crearTarea`/`actualizarTarea`), no `zod.object` de la FormData
+   completa. `cerrarPorCambioDeAlcance` no es una transacción real
+   (limitación de supabase-js sin RPC dedicado): si el cierre del viejo
+   falla tras crear el nuevo, se avisa en el mensaje de error en vez de
+   dejarlo huérfano en silencio.
 2. `category` se deriva como sugerencia editable con la misma regex que la
    migración original: `^([A-Za-zÁÉÍÓÚáéíóúñÑ]+)_HU\d+_`
    (`scripts/migrate_to_supabase.py:100`, función `category_from_code`) —
