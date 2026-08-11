@@ -323,8 +323,20 @@ export function GanttTimeline({
                   }))
                 : [];
 
+              const deadlineVisible =
+                fase.deadline &&
+                sinHora(fase.deadline).getTime() >= minFecha.getTime() &&
+                sinHora(fase.deadline).getTime() <= maxFecha.getTime();
+
               return (
                 <div key={fase.phaseNumber}>
+                  {deadlineVisible && (
+                    <span
+                      className="absolute z-[1] h-3 w-3 rotate-45 bg-foreground/70"
+                      style={{ left: offsetPara(fase.deadline!), top: filaFaseY + ALTO_FASE_PX / 2 - 6 }}
+                      title={`Fecha límite de fase (${fase.phaseName}): ${formatearFecha(fase.deadline!)}`}
+                    />
+                  )}
                   {resumen && visibleEnVentana(resumen.start, resumen.end) && (
                     <div
                       className="absolute h-2 rounded-sm bg-muted-foreground/50"

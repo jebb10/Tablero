@@ -17,6 +17,10 @@ function tarea(overrides: Partial<RequirementTaskRow> = {}): RequirementTaskRow 
     notes: null,
     sort_order: 0,
     assignee: null,
+    planned_start_date: null,
+    planned_end_date: null,
+    planned_dates_confirmed: false,
+    executed_hours: 0,
     ...overrides,
   };
 }
