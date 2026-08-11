@@ -10,13 +10,11 @@
 |---|---|
 | Paso 0 (housekeeping `.env.local`) | ✅ Hecho (2026-08-10) |
 | C2.1 | ✅ Hecho (2026-08-10, PR #12) |
-| C2.5 | ✅ Código hecho, PR #13 abierto (rama `fase-c2-5`) — **falta verificación manual del PO y merge**, ver checklist al final de `PLAN_UNIDAD_C3_FASE_ACTIVIDAD.md` |
-| C3.2 (redefinida) | ⬜ Pendiente — **siguiente unidad a ejecutar**, plan completo en `PLAN_UNIDAD_C3_FASE_ACTIVIDAD.md` (rama a crear desde `fase-c2-5`) |
-| C2.2 | ⬜ Pendiente |
+| C2.5 | ✅ Hecho y mergeado (2026-08-11, PR #13) |
+| C3.1/C3.2/C3.3 | ✅ Hechas y mergeadas (2026-08-11, PR #15) — **diseño real muy distinto al de abajo**, tras varios pivots en vivo con el PO: tarea y actividad se fusionaron en un solo concepto, con fecha límite de fase nueva. Ver "Estado actual" de `CLAUDE.md` para el resumen fiel; las secciones C3.1/C3.2/C3.3 de este archivo (más abajo) quedan solo como historial de lo que se planeó originalmente, no reflejan lo implementado. |
+| C2.2 | ⬜ Pendiente — **siguiente unidad a ejecutar** |
 | C2.4 | ⬜ Pendiente |
 | C2.3 | ⬜ Pendiente |
-| C3.1 | ⬜ Pendiente |
-| C3.3 | ⬜ Pendiente |
 
 **Fuera de plan, resuelto en el camino (2026-08-10, PR #11, rama `fix-lint-c1`, mergeado antes de
 C2.1)**: `npm run lint` estaba roto en `main` desde el PR #10 (Unidad C1) por reglas nuevas de
@@ -191,7 +189,7 @@ son navegables; nombres duplicados dan error amable, no 500; edición inline de 
 
 ---
 
-## Unidad C3.1 — `activity_logs`: RLS append-only (ya con `created_by` desde Fase C)
+## Unidad C3.1 — `activity_logs`: RLS append-only (ya con `created_by` desde Fase C) ✅ HECHA
 
 `created_by` y las policies de `select`/`insert` **ya existen** desde
 `20260809192913_fase_c_campos_y_activity_logs.sql` — verificar qué falta realmente contra esa
@@ -203,15 +201,13 @@ migración antes de reescribir política por política. Lo que sí falta, según
 
 ---
 
-## Unidad C3.2 — Modal de bitácora + historial ⚠️ REDEFINIDA (2026-08-10)
+## Unidad C3.2 — Modal de bitácora + historial ✅ HECHA (2026-08-11), diseño final muy distinto
 
-**El PO redefinió el alcance de esta unidad tras verificar en vivo el PR #13 (C2.5)**: el
-campo "Tipo" (`event_type`) se reemplaza por un selector de "Fase" obligatorio, y el modal se
-unifica en un solo componente compartido entre Detalle y Planeación. El diseño detallado y
-los pasos de ejecución ya no están en las líneas de abajo — quedaron obsoletos y viven ahora
-en **`PLAN_UNIDAD_C3_FASE_ACTIVIDAD.md`** (raíz del repo), pendiente de ejecutar en otra
-sesión. Leer ese archivo completo antes de tocar esta unidad; las líneas siguientes de esta
-sección se conservan solo como referencia histórica de lo que se pensaba originalmente.
+**El PO redefinió el alcance varias veces en vivo tras probar cada intento**, hasta fusionar
+"tarea" y "actividad" en un solo concepto (un registro con nombre/fechas/estado/horas
+consumidas) — ver "Estado actual" de `CLAUDE.md` para el diseño final real. Las líneas
+siguientes de esta sección se conservan solo como referencia histórica de lo que se pensaba
+originalmente; no describen lo implementado.
 
 ### Diseño original (obsoleto, ver archivo de arriba para el vigente)
 
@@ -230,7 +226,7 @@ sección se conservan solo como referencia histórica de lo que se pensaba origi
 
 ---
 
-## Unidad C3.3 — Backfill de `executed_hours` a nivel de requerimiento
+## Unidad C3.3 — Backfill de `executed_hours` a nivel de requerimiento ✅ HECHA (diseño final: ver CLAUDE.md)
 
 **Ajustado respecto al diseño original del roadmap** por la decisión #11 (el supuesto de tabla vacía
 ya es falso).
@@ -265,9 +261,9 @@ card y el KPI en 3 sin cambios en el código de lectura; la query del invariante
 ```
 Paso 0 (housekeeping .env.local)
   ↓
-C2.1 → C2.5 → C2.2 → C2.4 → C2.3        FASE C2 (CRUD)
+C2.1 → C2.5 → C2.2 → C2.4 → C2.3        FASE C2 (CRUD) — C2.2/C2.4/C2.3 pendientes
   ↓
-C3.1 → C3.2 → C3.3                      FASE C3 (BITÁCORA Y HORAS)
+C3.1 → C3.2 → C3.3                      FASE C3 (BITÁCORA Y HORAS) — ✅ completa
 ```
 
 ## Verificación end-to-end
