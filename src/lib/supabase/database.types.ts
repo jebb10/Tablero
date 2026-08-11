@@ -1,4 +1,4 @@
-export type Json =
+﻿export type Json =
   | string
   | number
   | boolean
@@ -14,6 +14,24 @@ export type Database = {
   }
   public: {
     Tables: {
+      _backup_executed_hours: {
+        Row: {
+          code: string | null
+          executed_hours: number | null
+          id: string | null
+        }
+        Insert: {
+          code?: string | null
+          executed_hours?: number | null
+          id?: string | null
+        }
+        Update: {
+          code?: string | null
+          executed_hours?: number | null
+          id?: string | null
+        }
+        Relationships: []
+      }
       activity_logs: {
         Row: {
           created_by: string | null
@@ -22,17 +40,19 @@ export type Database = {
           id: string
           logged_at: string
           notes: string | null
+          phase_number: number | null
           requirement_id: string
           task_id: string | null
           title: string
         }
         Insert: {
           created_by?: string | null
-          event_type: string
+          event_type?: string
           hours_spent?: number | null
           id?: string
           logged_at?: string
           notes?: string | null
+          phase_number?: number | null
           requirement_id: string
           task_id?: string | null
           title: string
@@ -44,6 +64,7 @@ export type Database = {
           id?: string
           logged_at?: string
           notes?: string | null
+          phase_number?: number | null
           requirement_id?: string
           task_id?: string | null
           title?: string
@@ -144,6 +165,35 @@ export type Database = {
           slug?: string
         }
         Relationships: []
+      }
+      requirement_phase_deadlines: {
+        Row: {
+          due_date: string
+          phase_number: number
+          requirement_id: string
+          updated_at: string
+        }
+        Insert: {
+          due_date: string
+          phase_number: number
+          requirement_id: string
+          updated_at?: string
+        }
+        Update: {
+          due_date?: string
+          phase_number?: number
+          requirement_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "requirement_phase_deadlines_requirement_id_fkey"
+            columns: ["requirement_id"]
+            isOneToOne: false
+            referencedRelation: "requirements"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       requirement_tasks: {
         Row: {

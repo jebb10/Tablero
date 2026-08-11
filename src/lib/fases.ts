@@ -19,6 +19,10 @@ export type RequirementTaskRow = Pick<
   | "notes"
   | "sort_order"
   | "assignee"
+  | "planned_start_date"
+  | "planned_end_date"
+  | "planned_dates_confirmed"
+  | "executed_hours"
 >;
 
 function toDate(v: string | null): Date | null {
@@ -54,6 +58,10 @@ export function agruparPorFase(filas: RequirementTaskRow[]): Fase[] {
       notas: f.notes,
       bloqueantes: f.blockers,
       asignado: f.assignee,
+      plannedStartDate: toDate(f.planned_start_date),
+      plannedEndDate: toDate(f.planned_end_date),
+      plannedDatesConfirmed: f.planned_dates_confirmed,
+      executedHours: f.executed_hours,
     }));
 
     const horasEstimadas = filasFase.length
@@ -65,6 +73,7 @@ export function agruparPorFase(filas: RequirementTaskRow[]): Fase[] {
       horasEstimadas,
       tareas,
       estado: estadoDeFase(tareas),
+      fechaLimiteFase: null,
     };
   });
 }

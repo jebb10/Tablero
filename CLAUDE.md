@@ -143,6 +143,27 @@ consulta siempre "Estado actual" abajo antes de proponer cambios grandes.
   (`--primary-hover`/`--primary-disabled`) — se revirtió a mano; cualquier
   `npx shadcn add` posterior debe revisar `git diff` de los componentes ya
   personalizados antes de commitear.
+- **Unidad C3.2/C3.3 rediseñadas en vivo varias veces el 2026-08-11, sobre la rama
+  `fase-c3-fase-actividad` (sin PR todavía) — diseño final: "tarea" y "actividad" son el
+  mismo concepto.** Historial de pivots (no repetirlos): 1) actividad con selector de Fase
+  en un modal global — descartado; 2) actividad por fase dentro de `TareasPorFase`, separada
+  de las tareas — descartado, el PO no quería dos cosas para lo mismo; 3) **diseño
+  definitivo**: un solo botón "Añadir tarea" por fase (`agregar-tarea-dialog.tsx`) crea una
+  tarea con nombre/fechas/estado/horas consumidas iniciales opcionales; para sumar más horas
+  a una tarea ya existente hay un botón "Registrar horas" (`registrar-horas-dialog.tsx`,
+  reutiliza `activity_logs.task_id` + el trigger de C1) — solo se ve el total acumulado, sin
+  desglose. Cada tarea tiene también un editor de estado (los 6 valores canónicos) y edición
+  de fechas planeadas/eliminar, todo junto en `tarea-acciones-admin.tsx`. Se ejecutó además
+  la Unidad C3.3 del roadmap (`requirements.executed_hours` pasa de valor estático migrado a
+  columna derivada por trigger desde `activity_logs`, con backfill de la brecha para no
+  duplicar horas). **Se unificó la vista de tareas**: Detalle y Planeación → Editar usan el
+  mismo `TareasPorFase` (se eliminó `EditarFechasForm`). **Fecha límite de fase (nueva)**:
+  tabla `requirement_phase_deadlines`, un campo por fase en el acordeón, se dibuja como hito
+  propio en el Gantt (`gantt-timeline.tsx`), independiente de las fechas de las tareas. Se
+  migraron a tarea las 2 actividades que se habían registrado en modo "fase sin tarea"
+  durante el pivot intermedio (las más viejas, sin fase, siguen en el histórico
+  `ActividadesSinFase`). Se corrigió también un bug real: crear una tarea sin ninguna fecha
+  la dejaba invisible en el Gantt sin ningún aviso — `dueDate` es obligatorio desde ahora.
 - **Sigue faltando** (ver `ROADMAP_V2.md` para el diseño y
   `PLAN_EJECUCION_C2_C3.md` para el estado de ejecución exacto): el resto
   de la Fase C2 (C2.2 edición inline de tareas, C2.4 hacer navegables los
@@ -175,9 +196,11 @@ correr `scripts/migrate_to_supabase.py`.
 
 Esquema completo (DDL) versionado en `supabase/migrations/` (aplicado vía
 `npm run db:push`, CLI de Supabase — ver `supabase/MIGRACIONES.md`) — tablas
-`projects`, `requirements`, `requirement_tasks`, `activity_logs` (vacía,
-forward-looking para Fase C), `document_versions` (vacía, forward-looking
-para Fase D). **RLS exige sesión desde la Unidad B.4** (2026-08-09):
+`projects`, `requirements`, `requirement_tasks`, `activity_logs` (bitácora de
+horas, ligada a `requirement_tasks.task_id` desde la fusión tarea/actividad
+de 2026-08-11), `requirement_phase_deadlines` (fecha límite por fase de un
+requerimiento, nueva en esa misma fecha), `document_versions` (vacía,
+forward-looking para Fase D). **RLS exige sesión desde la Unidad B.4** (2026-08-09):
 `projects`/`requirements`/`requirement_tasks` solo son legibles con
 `auth.uid()` válido (`to authenticated`); escribir en `requirements`/
 `requirement_tasks` exige además `public.is_admin()`. `activity_logs` y
@@ -315,11 +338,16 @@ para repetir la verificación: `scripts/verificar_seguridad_fase_b.mjs`
 | `src/components/data-quality-panel.tsx` | Panel colapsable de calidad de datos — **solo evalúa los 7 requerimientos con hoja de detalle real**, nunca los 21 heurísticos. |
 | `src/components/error-datos-banner.tsx` | `ErrorDatosBanner` — Banner de error + botón Reintentar (llama a `reintentar()`, solo hace `refresh()` — no confundir con el antiguo botón "Sincronizar", que ya no existe), usado standalone (sin datos previos) o embebido en `dashboard-client.tsx` (con datos previos atenuados). |
 | `src/components/pdf-report.tsx` | Reporte para impresión (`hidden print:block`), incluye los 28 requerimientos, sin el panel de calidad, sin numeración de página. |
-| `src/components/tareas-por-fase.tsx` | `TareasPorFase` (Fase C) — acordeón cliente de las 5 fases reales, TODAS sus tareas visibles (no solo la fase en curso), fases no completadas abiertas por defecto. Reemplaza a `fase-stepper.tsx` (ya borrado, sin consumidores). |
 | `src/lib/actividades-data.ts` | `getActividades(requirementId)` (Fase C) — consulta `activity_logs` por requerimiento, resuelve el nombre del autor vía `nombre_autor()` (RPC security-definer, visible también para el Viewer). |
-| `src/lib/actividad-tipos.ts` | `TIPOS_ACTIVIDAD_VALIDOS`/`TIPO_ACTIVIDAD_LABEL` (Fase C) — fuente única, antes duplicada en dos componentes. |
-| `src/components/boton-agregar-actividad.tsx` | `BotonAgregarActividad` (Fase C) — modal cliente con `useActionState` sobre `agregarActividad()`; envuelto en `<RoleGate role="admin">` desde `page.tsx`, nunca llega al payload RSC de un Viewer. |
-| `src/components/registro-actividades.tsx` | `RegistroActividades` (Fase C) — tabla de bitácora por requerimiento, recibe el botón de agregar ya gateado por rol como children. |
+| `src/lib/actividad-tipos.ts` | `TIPOS_ACTIVIDAD_VALIDOS`/`TIPO_ACTIVIDAD_LABEL` (Fase C) — solo lo usa ya `actividades-sin-fase.tsx`, para el histórico anterior a la fusión tarea/actividad. |
+| `src/components/agregar-tarea-dialog.tsx` | `AgregarTareaDialog` — único botón de registro por fase (fusión tarea/actividad, 2026-08-11): nombre, fecha límite (obligatoria — fix del bug de tareas invisibles en el Gantt), fechas planeadas y horas consumidas iniciales (opcional). |
+| `src/components/registrar-horas-dialog.tsx` | `RegistrarHorasDialog` — registra más horas contra una tarea ya existente (`activity_logs.task_id` + trigger de C1, ver más abajo), acumulables con el tiempo; solo muestra el total, sin desglose. |
+| `src/components/tarea-acciones-admin.tsx` | `TareaAccionesAdmin` — por tarea: editor de estado (los 6 valores de `estados-tarea.ts`), edición de fechas planeadas, `RegistrarHorasDialog` y eliminar — todo junto, reemplaza a `editar-fechas-form.tsx` (eliminado). |
+| `src/components/fase-fecha-limite-form.tsx` | `FaseFechaLimiteForm` — fecha límite propia de cada fase (`requirement_phase_deadlines`, independiente de las tareas), configurable en el encabezado del acordeón; se dibuja como hito propio en el Gantt. |
+| `src/lib/fase-deadlines.ts` | `getFechasLimiteFase(requirementId)` — lee `requirement_phase_deadlines`, usado por `requerimiento-data.ts`. `planeacion-data.ts` hace su propia consulta batch para todos los requerimientos del Gantt. |
+| `src/lib/tareas-controles.tsx` | `construirControlesTareas(fases, requirementId)` — arma los botones/acciones de Admin (`RoleGate` + diálogos) que consume `TareasPorFase`; compartido entre Detalle y Planeación → Editar, para que ambas pantallas usen exactamente la misma vista de tareas. |
+| `src/components/tareas-por-fase.tsx` | `TareasPorFase` — acordeón por fase (tarea = actividad, un solo concepto): lista de tareas con estado/fechas/horas consumidas, botón "Añadir tarea" y campo de fecha límite de fase en el encabezado (Admin), controles de edición inline por tarea. Usado idéntico en `/requerimiento/[item]` y `/planeacion/[requerimiento]/editar`. |
+| `src/components/actividades-sin-fase.tsx` | `ActividadesSinFase` — bloque colapsable con las actividades históricas SIN tarea asociada (`task_id is null`) — de antes de la fusión tarea/actividad, con su "Tipo" viejo. |
 | `src/app/requerimiento/[item]/page.tsx` | Página de drill-down por requerimiento (RN-04/05). Llama a `getRequerimientoDetalle(slug)` (`src/lib/requerimiento-data.ts`) → `<ErrorDatosBanner soloBanner />` si falla; ídem para `getActividades()` (Fase C). |
 | `src/app/actions/ui.ts` | Server Action `reintentar()` (`refresh()`) (Unidad C2.5, antes en `src/app/actions.ts`) — usada solo por el banner de error. |
 | `src/app/actions/activity-logs.ts` | Server Action `agregarActividad()` (Fase C, reubicada en Unidad C2.5 desde `src/app/requerimiento/[item]/actions.ts`) — `requireAdmin()` → valida tipo/título/horas/fecha → `insert` en `activity_logs` con `created_by` → `refresh()`. |

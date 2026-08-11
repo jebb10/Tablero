@@ -4,12 +4,11 @@ import { ArrowLeft, Link2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ErrorDatosBanner } from "@/components/error-datos-banner";
 import { TareasPorFase } from "@/components/tareas-por-fase";
-import { RegistroActividades } from "@/components/registro-actividades";
-import { BotonAgregarActividad } from "@/components/boton-agregar-actividad";
-import { RoleGate } from "@/components/auth/role-gate";
+import { ActividadesSinFase } from "@/components/actividades-sin-fase";
 import { getRequerimientoDetalle } from "@/lib/requerimiento-data";
 import { getActividades } from "@/lib/actividades-data";
 import { dbAEstado } from "@/lib/estados";
+import { construirControlesTareas } from "@/lib/tareas-controles";
 
 export const dynamic = "force-dynamic";
 
@@ -34,6 +33,7 @@ export default async function RequerimientoPage({
   }
 
   const { actividades, error: errorActividades } = await getActividades(requerimiento.id);
+  const actividadesSinFase = actividades.filter((a) => a.taskId == null);
 
   const horasEstimadas = requerimiento.estimated_hours;
   const horasEjecutadas = requerimiento.executed_hours;
@@ -85,19 +85,7 @@ export default async function RequerimientoPage({
       ) : (
         <>
           {errorActividades && <ErrorDatosBanner soloBanner />}
-          <RegistroActividades
-            actividades={actividades}
-            botonAgregar={
-              <RoleGate role="admin">
-                <BotonAgregarActividad
-                  requirementId={requerimiento.id}
-                  tareas={(fases ?? []).flatMap((f) =>
-                    f.tareas.map((t) => ({ id: t.id, taskName: t.tarea }))
-                  )}
-                />
-              </RoleGate>
-            }
-          />
+          <ActividadesSinFase actividades={actividadesSinFase} />
 
           <div className="grid grid-cols-3 gap-3">
             <div className="rounded-xl border bg-card p-4">
@@ -116,7 +104,7 @@ export default async function RequerimientoPage({
 
           <div className="rounded-xl border bg-card p-5">
             <h2 className="mb-3 text-base font-semibold">Tareas por fase</h2>
-            <TareasPorFase fases={fases} />
+            <TareasPorFase fases={fases} {...construirControlesTareas(fases, requerimiento.id)} />
           </div>
 
           {requerimiento.dev_environment_url ? (

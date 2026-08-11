@@ -1,0 +1,49 @@
+import type { ReactNode } from "react";
+import { RoleGate } from "@/components/auth/role-gate";
+import { AgregarTareaDialog } from "@/components/agregar-tarea-dialog";
+import { TareaAccionesAdmin } from "@/components/tarea-acciones-admin";
+import { FaseFechaLimiteForm } from "@/components/fase-fecha-limite-form";
+import { FASES_ORDEN } from "@/lib/fases-orden";
+import type { Fase } from "@/lib/types";
+
+/** Construye los controles de escritura (solo Admin) para TareasPorFase,
+ * compartido entre el Detalle del requerimiento y Planeación → Editar
+ * fechas — misma vista, mismos datos, mismos controles en ambas pantallas. */
+export function construirControlesTareas(fases: Fase[], requirementId: string) {
+  const botonesAgregarTarea: ReactNode[] = FASES_ORDEN.map((f) => (
+    <RoleGate role="admin" key={f.numero}>
+      <AgregarTareaDialog requirementId={requirementId} phaseNumber={f.numero} />
+    </RoleGate>
+  ));
+
+  const camposFechaLimiteFase: ReactNode[] = fases.map((fase, i) => (
+    <RoleGate role="admin" key={FASES_ORDEN[i].numero}>
+      <FaseFechaLimiteForm
+        requirementId={requirementId}
+        phaseNumber={FASES_ORDEN[i].numero}
+        fechaLimiteFase={fase.fechaLimiteFase}
+      />
+    </RoleGate>
+  ));
+
+  const accionesTarea: Record<string, ReactNode> = Object.fromEntries(
+    fases.flatMap((f, i) =>
+      f.tareas.map((t) => [
+        t.id,
+        <RoleGate role="admin" key={t.id}>
+          <TareaAccionesAdmin
+            taskId={t.id}
+            taskName={t.tarea}
+            requirementId={requirementId}
+            phaseNumber={FASES_ORDEN[i].numero}
+            estadoActual={t.estado}
+            plannedStartDate={t.plannedStartDate}
+            plannedEndDate={t.plannedEndDate}
+          />
+        </RoleGate>,
+      ])
+    )
+  );
+
+  return { botonesAgregarTarea, camposFechaLimiteFase, accionesTarea };
+}

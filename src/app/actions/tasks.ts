@@ -5,10 +5,13 @@ import { requireAdmin } from "@/lib/auth/session";
 import { getSupabaseClient } from "@/lib/supabase/server";
 import { filasFechaSchema } from "@/lib/planeacion-fechas-schema";
 import { FASES_ORDEN } from "@/lib/fases-orden";
+import { ESTADOS_TAREA } from "@/lib/estados-tarea";
 
 export type GuardarFechasState = { error: string | null; success: boolean };
 export type CrearTareaState = { error: string | null; success: boolean };
 export type EliminarTareaState = { error: string | null; success: boolean };
+export type ActualizarEstadoState = { error: string | null; success: boolean };
+export type GuardarFechaLimiteFaseState = { error: string | null; success: boolean };
 
 // Unidad C1.2 — guardado atómico de fechas planeadas vía RPC
 // rpc_set_planned_dates (security invoker: hereda RLS del caller, un
@@ -46,24 +49,36 @@ export async function guardarFechasPlaneadas(
 // estimated_hours/assignee/status desde aquí, eso sigue siendo C2).
 export async function crearTarea(
   requirementId: string,
+  phaseNumber: number,
   _prevState: CrearTareaState,
   formData: FormData
 ): Promise<CrearTareaState> {
-  await requireAdmin();
+  const profile = await requireAdmin();
 
   const taskName = formData.get("taskName");
-  const phaseNumberRaw = formData.get("phaseNumber");
   const dueDateRaw = formData.get("dueDate");
   const inicioRaw = formData.get("plannedStartDate");
   const finRaw = formData.get("plannedEndDate");
+  const hoursSpentRaw = formData.get("hoursSpent");
 
   if (typeof taskName !== "string" || !taskName.trim()) {
     return { error: "El nombre de la tarea es obligatorio.", success: false };
   }
-  const phaseNumber = Number(phaseNumberRaw);
   const fase = FASES_ORDEN.find((f) => f.numero === phaseNumber);
   if (!fase) {
     return { error: "Fase inválida.", success: false };
+  }
+  if (typeof dueDateRaw !== "string" || !dueDateRaw.trim()) {
+    return { error: "La fecha límite es obligatoria.", success: false };
+  }
+
+  let hoursSpent: number | null = null;
+  if (typeof hoursSpentRaw === "string" && hoursSpentRaw.trim() !== "") {
+    const parsed = Number(hoursSpentRaw);
+    if (!Number.isFinite(parsed) || parsed < 0) {
+      return { error: "Las horas deben ser un número válido.", success: false };
+    }
+    if (parsed > 0) hoursSpent = parsed;
   }
 
   const supabase = await getSupabaseClient();
@@ -78,23 +93,91 @@ export async function crearTarea(
     .maybeSingle();
   const sortOrder = (ultimaTarea?.sort_order ?? -1) + 1;
 
-  const { error } = await supabase.from("requirement_tasks").insert({
-    requirement_id: requirementId,
-    phase_number: phaseNumber,
-    phase_name: fase.nombre,
-    task_name: taskName.trim(),
-    status: "Pendiente",
-    due_date: typeof dueDateRaw === "string" && dueDateRaw ? dueDateRaw : null,
-    planned_start_date: typeof inicioRaw === "string" && inicioRaw ? inicioRaw : null,
-    planned_end_date: typeof finRaw === "string" && finRaw ? finRaw : null,
-    sort_order: sortOrder,
-  });
+  const { data: nuevaTarea, error } = await supabase
+    .from("requirement_tasks")
+    .insert({
+      requirement_id: requirementId,
+      phase_number: phaseNumber,
+      phase_name: fase.nombre,
+      task_name: taskName.trim(),
+      status: "Pendiente",
+      due_date: dueDateRaw,
+      planned_start_date: typeof inicioRaw === "string" && inicioRaw ? inicioRaw : null,
+      planned_end_date: typeof finRaw === "string" && finRaw ? finRaw : null,
+      sort_order: sortOrder,
+    })
+    .select("id")
+    .single();
 
-  if (error) {
+  if (error || !nuevaTarea) {
     return {
       error: "No se pudo crear la tarea (¿ya existe una con ese nombre en esa fase?).",
       success: false,
     };
+  }
+
+  if (hoursSpent !== null) {
+    await supabase.from("activity_logs").insert({
+      requirement_id: requirementId,
+      task_id: nuevaTarea.id,
+      phase_number: phaseNumber,
+      title: "Registro de horas",
+      hours_spent: hoursSpent,
+      logged_at: dueDateRaw,
+      created_by: profile.userId,
+    });
+  }
+
+  refresh();
+  return { error: null, success: true };
+}
+
+export async function actualizarEstadoTarea(
+  taskId: string,
+  _prevState: ActualizarEstadoState,
+  formData: FormData
+): Promise<ActualizarEstadoState> {
+  await requireAdmin();
+
+  const status = formData.get("status");
+  if (typeof status !== "string" || !ESTADOS_TAREA.includes(status as (typeof ESTADOS_TAREA)[number])) {
+    return { error: "Estado inválido.", success: false };
+  }
+
+  const supabase = await getSupabaseClient();
+  const { error } = await supabase.from("requirement_tasks").update({ status }).eq("id", taskId);
+
+  if (error) {
+    return { error: "No se pudo actualizar el estado.", success: false };
+  }
+
+  refresh();
+  return { error: null, success: true };
+}
+
+export async function guardarFechaLimiteFase(
+  requirementId: string,
+  phaseNumber: number,
+  _prevState: GuardarFechaLimiteFaseState,
+  formData: FormData
+): Promise<GuardarFechaLimiteFaseState> {
+  await requireAdmin();
+
+  const dueDate = formData.get("dueDate");
+  if (typeof dueDate !== "string" || !dueDate.trim()) {
+    return { error: "La fecha es obligatoria.", success: false };
+  }
+
+  const supabase = await getSupabaseClient();
+  const { error } = await supabase
+    .from("requirement_phase_deadlines")
+    .upsert(
+      { requirement_id: requirementId, phase_number: phaseNumber, due_date: dueDate },
+      { onConflict: "requirement_id,phase_number" }
+    );
+
+  if (error) {
+    return { error: "No se pudo guardar la fecha.", success: false };
   }
 
   refresh();
