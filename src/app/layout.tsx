@@ -5,7 +5,6 @@ import "./globals.css";
 import { cerrarSesion } from "@/app/login/actions";
 import { Button } from "@/components/ui/button";
 import { RoleBadge } from "@/components/auth/role-badge";
-import { RoleGate } from "@/components/auth/role-gate";
 import { getCurrentProfile } from "@/lib/auth/session";
 
 const montserrat = localFont({
@@ -23,6 +22,13 @@ export const metadata: Metadata = {
   title: "Dashboard 414",
   description: "Seguimiento de requerimientos — Positiva Web 414",
 };
+
+function nombreVisible(profile: { email: string; fullName: string | null }): string {
+  const nombre = profile.fullName?.trim();
+  if (nombre) return nombre;
+  const usuario = profile.email.split("@")[0] ?? "";
+  return usuario.charAt(0).toUpperCase() + usuario.slice(1);
+}
 
 export default async function RootLayout({
   children,
@@ -46,15 +52,7 @@ export default async function RootLayout({
               Planeación
             </Link>
             <div className="ml-auto flex items-center gap-3">
-              <span className="text-sm text-muted-foreground">{profile.email}</span>
-              <RoleGate>
-                <span
-                  data-testid="admin-only"
-                  className="text-sm font-medium text-muted-foreground"
-                >
-                  Vista Admin
-                </span>
-              </RoleGate>
+              <span className="text-sm text-muted-foreground">{nombreVisible(profile)}</span>
               <RoleBadge role={profile.role} />
               <form action={cerrarSesion}>
                 <Button type="submit" variant="ghost" size="sm">

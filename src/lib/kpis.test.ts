@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getCalidadDatos, getKPIs } from "./kpis";
+import { getKPIs } from "./kpis";
 import type { Requerimiento } from "./types";
 
 function req(overrides: Partial<Requerimiento> = {}): Requerimiento {
@@ -52,30 +52,5 @@ describe("getKPIs", () => {
     expect(kpis.porEstado.Pausado).toBe(1);
     expect(kpis.porEstado["No iniciado"]).toBe(0);
     expect(kpis.porEstado["Entregado en producción"]).toBe(1);
-  });
-});
-
-describe("getCalidadDatos", () => {
-  it("solo evalúa los requerimientos con tieneDetalle", () => {
-    const calidad = getCalidadDatos([
-      req({ tieneDetalle: false, horasEstimadas: null, fechaLimite: null }),
-      req({ tieneDetalle: true, horasEstimadas: 10, fechaLimite: new Date() }),
-    ]);
-    expect(calidad.camposFaltantes).toBe(0);
-    expect(calidad.requerimientosAfectados).toBe(0);
-  });
-
-  it("marca campos faltantes solo en los que tienen detalle", () => {
-    const calidad = getCalidadDatos([
-      req({
-        nombre: "Con detalle sin horas",
-        tieneDetalle: true,
-        horasEstimadas: null,
-        fechaLimite: new Date(),
-      }),
-    ]);
-    expect(calidad.camposFaltantes).toBe(1);
-    expect(calidad.requerimientosAfectados).toBe(1);
-    expect(calidad.filas[0]).toEqual({ req: "Con detalle sin horas", campo: "Horas estimadas" });
   });
 });

@@ -1,24 +1,6 @@
-import { AlertCircle, AlertTriangle, Clock, ListChecks, RotateCcw, Timer } from "lucide-react";
+import { AlertTriangle, Clock, ListChecks, RotateCcw, Timer } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { KPIs, SaludProyecto } from "@/lib/types";
-
-const SALUD_DOT: Record<SaludProyecto, string> = {
-  verde: "bg-status-entregado",
-  amarillo: "bg-status-pausado",
-  rojo: "bg-status-bloqueo",
-};
-
-const SALUD_TEXTO: Record<SaludProyecto, string> = {
-  verde: "text-status-entregado",
-  amarillo: "text-status-pausado",
-  rojo: "text-status-bloqueo",
-};
-
-const SALUD_ETIQUETA: Record<SaludProyecto, string> = {
-  verde: "Saludable",
-  amarillo: "En observación",
-  rojo: "Crítico",
-};
+import type { KPIs } from "@/lib/types";
 
 function Kpi({
   icono: Icono,
@@ -93,22 +75,6 @@ export function KpiStrip({ kpis }: { kpis: KPIs }) {
         etiqueta="Con bloqueo activo"
         valor={String(kpis.bloqueados)}
         acento={kpis.bloqueados > 0}
-      />
-      <div className="flex flex-1 items-center gap-3 rounded-lg border bg-card p-3 min-w-[10rem]">
-        <span className={cn("h-3 w-3 shrink-0 rounded-full", SALUD_DOT[kpis.salud])} />
-        <div>
-          <p className="text-xs text-muted-foreground">Salud del proyecto</p>
-          <p className={cn("text-lg font-semibold leading-tight", SALUD_TEXTO[kpis.salud])}>
-            {SALUD_ETIQUETA[kpis.salud]}
-          </p>
-        </div>
-      </div>
-      <Kpi
-        icono={AlertCircle}
-        etiqueta="Calidad de datos"
-        valor={`${kpis.calidad.camposFaltantes} campos`}
-        acento="atencion"
-        href="#calidad-datos"
       />
     </div>
   );
