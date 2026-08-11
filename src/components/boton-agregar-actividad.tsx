@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
-import { agregarActividad, type AgregarActividadState } from "@/app/requerimiento/[item]/actions";
+import { agregarActividad, type AgregarActividadState } from "@/app/actions/activity-logs";
 import { TIPO_ACTIVIDAD_LABEL } from "@/lib/actividad-tipos";
 
 const ESTADO_INICIAL: AgregarActividadState = { error: null, success: false };

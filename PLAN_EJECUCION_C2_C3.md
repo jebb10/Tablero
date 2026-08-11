@@ -10,12 +10,12 @@
 |---|---|
 | Paso 0 (housekeeping `.env.local`) | ✅ Hecho (2026-08-10) |
 | C2.1 | ✅ Hecho (2026-08-10, PR #12) |
-| C2.5 | ⬜ Pendiente — **siguiente unidad a ejecutar** |
+| C2.5 | ✅ Código hecho, PR #13 abierto (rama `fase-c2-5`) — **falta verificación manual del PO y merge**, ver checklist al final de `PLAN_UNIDAD_C3_FASE_ACTIVIDAD.md` |
+| C3.2 (redefinida) | ⬜ Pendiente — **siguiente unidad a ejecutar**, plan completo en `PLAN_UNIDAD_C3_FASE_ACTIVIDAD.md` (rama a crear desde `fase-c2-5`) |
 | C2.2 | ⬜ Pendiente |
 | C2.4 | ⬜ Pendiente |
 | C2.3 | ⬜ Pendiente |
 | C3.1 | ⬜ Pendiente |
-| C3.2 | ⬜ Pendiente |
 | C3.3 | ⬜ Pendiente |
 
 **Fuera de plan, resuelto en el camino (2026-08-10, PR #11, rama `fix-lint-c1`, mergeado antes de
@@ -115,15 +115,25 @@ conjunto; los 164 registros existentes pasan el CHECK sin excepción manual sin 
 
 ---
 
-## Unidad C2.5 — Reestructuración de `actions.ts` (ejecutar antes de C2.2)
+## Unidad C2.5 — Reestructuración de `actions.ts` (ejecutar antes de C2.2) ✅ Hecho (2026-08-10)
 
-1. Eliminar `src/app/actions.ts` → crear `src/app/actions/{ui,requirements,tasks,activity-logs}.ts`
-   (sin `documents.ts`, Fase D fuera de alcance). Cada archivo con `"use server"`, cada función
-   exportada empieza con `requireAdmin()` (o `requireAuth()` si aplica a lectura autenticada).
-2. Verificar en el preset Base UI "base-nova" (`components.json`) que existen `table`, `label`,
-   `textarea`, `alert-dialog`, `checkbox`, `dialog` antes de `npx shadcn add`. Si falta alguno,
-   escribirlo a mano sobre `@base-ui/react` siguiendo el patrón de `src/components/ui/sheet.tsx`
-   (`render={...}`, no `asChild`).
+1. ~~Eliminar `src/app/actions.ts` → crear `src/app/actions/{ui,requirements,tasks,activity-logs}.ts`~~
+   **Hecho, con alcance ampliado confirmado por el PO**: además de `reintentar()` (→ `ui.ts`), se
+   consolidaron también `agregarActividad()` (antes en
+   `src/app/requerimiento/[item]/actions.ts` → `activity-logs.ts`) y
+   `guardarFechasPlaneadas()`/`crearTarea()`/`eliminarTarea()` (antes en
+   `src/app/planeacion/[requerimiento]/editar/actions.ts` → `tasks.ts`). `requirements.ts` quedó
+   como stub (`"use server";` sin exports, compila sin problema) hasta C2.3. Los 3 archivos
+   originales se eliminaron; se actualizaron los 3 imports consumidores
+   (`error-datos-banner.tsx`, `boton-agregar-actividad.tsx`, `editar-fechas-form.tsx`).
+2. ~~Verificar en el preset Base UI "base-nova"...~~ **Hecho**: de los 6, solo `label` ya existía.
+   Se instalaron los 5 faltantes (`table`, `textarea`, `alert-dialog`, `checkbox`, `dialog`) vía
+   `npx shadcn add --overwrite` — el CLI sí soporta el preset `base-nova` (no hizo falta escribir
+   ninguno a mano). **Cuidado detectado durante la ejecución**: el mismo comando sobreescribió
+   `button.tsx` con la versión genérica del registro, perdiendo los tokens de Claude Design
+   (`--primary-hover`/`--primary-disabled` de la Unidad B.3/B.5) — se revirtió manualmente esa
+   línea tras la instalación. Si una unidad futura corre `npx shadcn add` de nuevo, revisar
+   `git diff` de `button.tsx` (y cualquier otro componente ya personalizado) antes de commitear.
 
 ---
 
@@ -193,7 +203,17 @@ migración antes de reescribir política por política. Lo que sí falta, según
 
 ---
 
-## Unidad C3.2 — Modal de bitácora + historial
+## Unidad C3.2 — Modal de bitácora + historial ⚠️ REDEFINIDA (2026-08-10)
+
+**El PO redefinió el alcance de esta unidad tras verificar en vivo el PR #13 (C2.5)**: el
+campo "Tipo" (`event_type`) se reemplaza por un selector de "Fase" obligatorio, y el modal se
+unifica en un solo componente compartido entre Detalle y Planeación. El diseño detallado y
+los pasos de ejecución ya no están en las líneas de abajo — quedaron obsoletos y viven ahora
+en **`PLAN_UNIDAD_C3_FASE_ACTIVIDAD.md`** (raíz del repo), pendiente de ejecutar en otra
+sesión. Leer ese archivo completo antes de tocar esta unidad; las líneas siguientes de esta
+sección se conservan solo como referencia histórica de lo que se pensaba originalmente.
+
+### Diseño original (obsoleto, ver archivo de arriba para el vigente)
 
 1. `registrarActividad`: `requireAdmin()` → zod (`event_type` ∈ los 5 valores reales verificados
    arriba, `title` requerido, `hours_spent` numérico que admite negativos, `notes` opcional,

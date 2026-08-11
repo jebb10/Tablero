@@ -8,7 +8,7 @@ el detalle de tareas por fase al hacer drill-down. Este es un proyecto **vivo,
 construido por fases** — no asumas que la fase actual es la versión final;
 consulta siempre "Estado actual" abajo antes de proponer cambios grandes.
 
-## Estado actual: Fase 0, Fase B, Fase C, Unidad C1 (Gantt real) y Unidad C2.1 completas y verificadas
+## Estado actual: Fase 0, Fase B, Fase C, Unidad C1 (Gantt real), Unidad C2.1 y Unidad C2.5 completas y verificadas
 
 - Desplegado en Vercel: [tablero-pi.vercel.app](https://tablero-pi.vercel.app/)
   (repo: `https://github.com/jebb10/Tablero.git`). **RLS ya exige sesión
@@ -127,15 +127,30 @@ consulta siempre "Estado actual" abajo antes de proponer cambios grandes.
   camino se cerró también el **PR #11** (rama `fix-lint-c1`): `npm run
   lint` estaba roto en `main` desde el PR #10 por reglas nuevas de
   `eslint-config-next`, sin cambio de comportamiento.
+- **✅ Unidad C2.5 (reestructuración de Server Actions + componentes
+  shadcn) completa (2026-08-10, PR #13, rama `fase-c2-5`)**: las Server Actions
+  del proyecto (antes repartidas en `src/app/actions.ts`,
+  `src/app/requerimiento/[item]/actions.ts` y
+  `src/app/planeacion/[requerimiento]/editar/actions.ts`) se consolidaron
+  por dominio en `src/app/actions/{ui,requirements,tasks,activity-logs}.ts`
+  (los 3 archivos originales se eliminaron; `requirements.ts` queda como
+  stub sin exports hasta C2.3). Se instalaron los 5 componentes shadcn que
+  faltaban bajo el preset Base UI (`table`, `textarea`, `alert-dialog`,
+  `checkbox`, `dialog` — solo `label` ya existía) vía `npx shadcn add`, sin
+  necesidad de escribir ninguno a mano. **Ojo para el futuro**: ese mismo
+  comando sobreescribió `button.tsx` con la versión genérica del registro,
+  perdiendo momentáneamente los tokens de Claude Design
+  (`--primary-hover`/`--primary-disabled`) — se revirtió a mano; cualquier
+  `npx shadcn add` posterior debe revisar `git diff` de los componentes ya
+  personalizados antes de commitear.
 - **Sigue faltando** (ver `ROADMAP_V2.md` para el diseño y
   `PLAN_EJECUCION_C2_C3.md` para el estado de ejecución exacto): el resto
-  de la Fase C2 (C2.5 reestructurar `actions.ts`, C2.2 edición inline de
-  tareas, C2.4 hacer navegables los 21 sin detalle, C2.3 crear/editar
-  requerimiento — en ese orden), la Fase C3 (bitácora de horas
-  ejecutadas a nivel de requerimiento) y la Fase D (documentos
-  versionados en Storage, **explícitamente fuera de alcance de esta
-  ronda de trabajo**, sin fecha de retoma). Fase 0 y Fase B (fundaciones
-  y auth/roles) ya están completas.
+  de la Fase C2 (C2.2 edición inline de tareas, C2.4 hacer navegables los
+  21 sin detalle, C2.3 crear/editar requerimiento — en ese orden), la Fase
+  C3 (bitácora de horas ejecutadas a nivel de requerimiento) y la Fase D
+  (documentos versionados en Storage, **explícitamente fuera de alcance de
+  esta ronda de trabajo**, sin fecha de retoma). Fase 0 y Fase B
+  (fundaciones y auth/roles) ya están completas.
 
 ## Fuente de datos
 
@@ -306,8 +321,10 @@ para repetir la verificación: `scripts/verificar_seguridad_fase_b.mjs`
 | `src/components/boton-agregar-actividad.tsx` | `BotonAgregarActividad` (Fase C) — modal cliente con `useActionState` sobre `agregarActividad()`; envuelto en `<RoleGate role="admin">` desde `page.tsx`, nunca llega al payload RSC de un Viewer. |
 | `src/components/registro-actividades.tsx` | `RegistroActividades` (Fase C) — tabla de bitácora por requerimiento, recibe el botón de agregar ya gateado por rol como children. |
 | `src/app/requerimiento/[item]/page.tsx` | Página de drill-down por requerimiento (RN-04/05). Llama a `getRequerimientoDetalle(slug)` (`src/lib/requerimiento-data.ts`) → `<ErrorDatosBanner soloBanner />` si falla; ídem para `getActividades()` (Fase C). |
-| `src/app/requerimiento/[item]/actions.ts` | Server Action `agregarActividad()` (Fase C) — `requireAdmin()` → valida tipo/título/horas/fecha → `insert` en `activity_logs` con `created_by` → `refresh()`. |
-| `src/app/actions.ts` | Server Action `reintentar()` (`refresh()`) — usada solo por el banner de error. |
+| `src/app/actions/ui.ts` | Server Action `reintentar()` (`refresh()`) (Unidad C2.5, antes en `src/app/actions.ts`) — usada solo por el banner de error. |
+| `src/app/actions/activity-logs.ts` | Server Action `agregarActividad()` (Fase C, reubicada en Unidad C2.5 desde `src/app/requerimiento/[item]/actions.ts`) — `requireAdmin()` → valida tipo/título/horas/fecha → `insert` en `activity_logs` con `created_by` → `refresh()`. |
+| `src/app/actions/tasks.ts` | Server Actions `guardarFechasPlaneadas()`/`crearTarea()`/`eliminarTarea()` (Unidad C1.2, reubicadas en Unidad C2.5 desde `src/app/planeacion/[requerimiento]/editar/actions.ts`). |
+| `src/app/actions/requirements.ts` | Stub (`"use server";`, sin exports) creado en la Unidad C2.5 — primer consumidor real: Unidad C2.3 (crear/editar requerimiento). |
 | `public/fonts/montserrat-{400,500,600,700}.woff2` | Montserrat auto-hospedada (no `next/font/google`) — cargada vía `next/font/local` en `layout.tsx`. |
 
 `src/lib/excel/*` (workbook/dashboard-sheet/detalle-sheet) y la dependencia
@@ -411,13 +428,18 @@ planteadas:
   normalización. Nuevo `src/lib/estados-tarea.ts`
   (`ESTADOS_TAREA`/`estadoEsCompletada()`) reemplaza los 6 sitios dispersos
   que comparaban `status.toLowerCase() === "completada"` (o, en un caso,
-  sin normalizar). Resto de C2 (C2.5/C2.2/C2.4/C2.3) y C3 siguen
+  sin normalizar). Resto de C2 (C2.2/C2.4/C2.3) y C3 siguen
   pendientes — ver `PLAN_EJECUCION_C2_C3.md` (plan vigente de esta ronda,
   en la raíz del repo) para el detalle y el estado de ejecución unidad por
   unidad. **Fuera de plan, resuelto en el camino**: `npm run lint` estaba
   roto en `main` desde el PR #10 por una versión más nueva de
   `eslint-config-next` (PR #11, rama `fix-lint-c1`, mergeado antes de
   C2.1, sin cambio de comportamiento).
+- **Unidad C2.5 — Reestructuración de Server Actions + componentes
+  shadcn:** ✅ **completa** (2026-08-10, PR #13, rama `fase-c2-5`). Ver "Estado
+  actual" arriba para el detalle completo, incluyendo el cuidado a tener
+  en cuenta con `npx shadcn add` sobreescribiendo componentes ya
+  personalizados.
 - **Fase D — Documentos versionados (sin versionado real: subir reemplaza y
   borra el anterior):** pendiente, y **explícitamente fuera de alcance de
   la ronda de trabajo C2/C3 iniciada 2026-08-10** (decisión del PO, sin

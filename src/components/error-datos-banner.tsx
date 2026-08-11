@@ -3,7 +3,7 @@
 import { useTransition } from "react";
 import { AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { reintentar } from "@/app/actions";
+import { reintentar } from "@/app/actions/ui";
 
 export function ErrorDatosBanner({ soloBanner }: { soloBanner?: boolean }) {
   const [isPending, startTransition] = useTransition();
