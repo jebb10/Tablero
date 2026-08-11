@@ -129,6 +129,16 @@ export async function crearTarea(
     });
   }
 
+  // Unidad C2.4: un requerimiento de los 21 "sin detalle" que recibe su
+  // primera tarea pasa a tener detalle real -- has_detail_tracking ya no
+  // gatea el acordeón (siempre se consulta), pero sigue determinando el
+  // atenuado/badge "Sin detalle" de la card en el Home (dashboard-data.ts).
+  await supabase
+    .from("requirements")
+    .update({ has_detail_tracking: true })
+    .eq("id", requirementId)
+    .eq("has_detail_tracking", false);
+
   refresh();
   return { error: null, success: true };
 }

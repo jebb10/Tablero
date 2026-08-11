@@ -13,7 +13,7 @@
 |---|---|
 | 0 — Hotfix horas huérfanas al eliminar tarea | ✅ Hecho (2026-08-11, commit `88ecc4a`) |
 | 1 — C2.2 (edición inline de tareas, resto de campos) | ✅ Hecho (2026-08-11), verificado en vivo por el PO |
-| 2 — C2.4 (navegabilidad de los 21 sin detalle) | ⬜ Pendiente |
+| 2 — C2.4 (navegabilidad de los 21 sin detalle) | ✅ Hecho (2026-08-11), verificado en vivo por el PO |
 | 3 — C2.3 (crear/editar requerimiento) | ⬜ Pendiente |
 
 ## Contexto
