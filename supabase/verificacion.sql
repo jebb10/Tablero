@@ -31,9 +31,9 @@ order by 2 desc;
 -- 5. Debe ser 0: no hay fechas planeadas cargadas todavia
 select count(*) from requirement_tasks where planned_start_date is not null;
 
--- 6. Deben ser 0: tablas forward-looking siguen vacias
+-- 6. Debe ser 0: tabla forward-looking sigue vacia
+-- (document_versions se eliminó en el cierre técnico de 2026-08-11 -- ya no aplica)
 select count(*) from activity_logs;
-select count(*) from document_versions;
 
 -- 7. Debe estar vacio: sin buckets de Storage todavia
 select id, name from storage.buckets;

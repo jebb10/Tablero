@@ -5,6 +5,7 @@ import { getFechasLimiteFase } from "./fase-deadlines";
 import { FASES_ORDEN } from "./fases-orden";
 import type { Database } from "./supabase/database.types";
 import type { Fase } from "./types";
+import { ESTADO_DB_CERRADO_POR_CAMBIO_ALCANCE } from "./estados";
 
 export type RequerimientoDetalle = Pick<
   Database["public"]["Tables"]["requirements"]["Row"],
@@ -113,7 +114,7 @@ export async function getRequerimientoDetalle(slug: string): Promise<Requerimien
     // buscar el requerimiento nuevo que lo reemplazó (parent_requirement_id
     // apunta a este) para mostrar el banner "Reemplazado por [link]".
     let reemplazadoPor: { code: string; slug: string; title: string } | null = null;
-    if (requerimiento.status === "CERRADO_POR_CAMBIO_ALCANCE") {
+    if (requerimiento.status === ESTADO_DB_CERRADO_POR_CAMBIO_ALCANCE) {
       const { data: reemplazo } = await supabase
         .from("requirements")
         .select("code, slug, title")

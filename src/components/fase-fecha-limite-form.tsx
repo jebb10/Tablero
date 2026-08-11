@@ -4,12 +4,9 @@ import { useActionState, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { guardarFechaLimiteFase, type GuardarFechaLimiteFaseState } from "@/app/actions/tasks";
+import { aInputDate } from "@/lib/fechas";
 
 const ESTADO_INICIAL: GuardarFechaLimiteFaseState = { error: null, success: false };
-
-function aInputDate(fecha: Date | null): string {
-  return fecha ? fecha.toISOString().slice(0, 10) : "";
-}
 
 export function FaseFechaLimiteForm({
   requirementId,

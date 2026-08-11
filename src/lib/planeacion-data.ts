@@ -4,7 +4,14 @@ import { PROJECT_SLUG } from "./project";
 import { getSupabaseClient } from "./supabase/server";
 import { FASES_ORDEN } from "./fases-orden";
 import { estadoEsCompletada } from "./estados-tarea";
+import { getFechasLimiteFasePorRequerimientos } from "./fase-deadlines";
 
+// Nota de diseño (cierre técnico 2026-08-11): dashboard-data.ts y
+// requerimiento-data.ts tipan sus selects con Pick<Database[...]["Row"]>;
+// aquí se usan interfaces propias a propósito. Los 3 módulos necesitan
+// shapes de SALIDA distintos (PlaneacionTarea/Fase/Requerimiento no son
+// Requerimiento/Tarea/Fase de types.ts) -- forzar un adaptador único
+// movería la duplicación existente sin reducirla realmente. No unificar.
 export interface PlaneacionTarea {
   id: string;
   taskName: string;
@@ -38,6 +45,11 @@ export interface PlaneacionRequerimiento {
    * migración 20260810120000_c1_ext_horas_por_tarea.sql). */
   tieneConsumo: boolean;
 }
+
+/** Caché en memoria del último resultado bueno, mismo patrón que
+ * dashboard-data.ts -- ver esa nota para la limitación conocida en
+ * entornos serverless. */
+let ultimoResultadoBueno: PlaneacionRequerimiento[] | null = null;
 
 export async function getPlaneacionData(): Promise<{
   requerimientos: PlaneacionRequerimiento[];
@@ -73,13 +85,7 @@ export async function getPlaneacionData(): Promise<{
       .in("requirement_id", ids);
     if (errorTareas) throw errorTareas;
 
-    const { data: fechasLimiteFase } = await supabase
-      .from("requirement_phase_deadlines")
-      .select("requirement_id, phase_number, due_date")
-      .in("requirement_id", ids);
-    const deadlinePorReqFase = new Map(
-      (fechasLimiteFase ?? []).map((f) => [`${f.requirement_id}-${f.phase_number}`, new Date(f.due_date)])
-    );
+    const deadlinePorReqFase = await getFechasLimiteFasePorRequerimientos(ids);
 
     const resultado = requerimientos.map((req) => {
       const tareasReq = (tareas ?? []).filter((t) => t.requirement_id === req.id);
@@ -132,8 +138,12 @@ export async function getPlaneacionData(): Promise<{
       return { id: req.id, code: req.code, slug: req.slug, title: req.title, fases, tieneConsumo };
     });
 
+    ultimoResultadoBueno = resultado;
     return { requerimientos: resultado, error: false };
   } catch {
+    if (ultimoResultadoBueno) {
+      return { requerimientos: ultimoResultadoBueno, error: true };
+    }
     return { requerimientos: [], error: true };
   }
 }

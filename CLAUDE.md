@@ -152,11 +152,14 @@ consulta siempre "Estado actual" abajo antes de proponer cambios grandes.
   a una tarea ya existente hay un botón "Registrar horas" (`registrar-horas-dialog.tsx`,
   reutiliza `activity_logs.task_id` + el trigger de C1) — solo se ve el total acumulado, sin
   desglose. Cada tarea tiene también un editor de estado (los 6 valores canónicos) y edición
-  de fechas planeadas/eliminar, todo junto en `tarea-acciones-admin.tsx`. Se ejecutó además
+  de fechas planeadas/eliminar, todo junto en `tarea-acciones-admin.tsx` (partido en una
+  carpeta en el cierre técnico de 2026-08-11, ver más abajo). Se ejecutó además
   la Unidad C3.3 del roadmap (`requirements.executed_hours` pasa de valor estático migrado a
   columna derivada por trigger desde `activity_logs`, con backfill de la brecha para no
   duplicar horas). **Se unificó la vista de tareas**: Detalle y Planeación → Editar usan el
-  mismo `TareasPorFase` (se eliminó `EditarFechasForm`). **Fecha límite de fase (nueva)**:
+  mismo `TareasPorFase` (se eliminó `EditarFechasForm`) — esa vista se partió en la carpeta
+  `src/components/tarea-acciones-admin/` en el cierre técnico de 2026-08-11, ver ese bullet
+  más abajo. **Fecha límite de fase (nueva)**:
   tabla `requirement_phase_deadlines`, un campo por fase en el acordeón, se dibuja como hito
   propio en el Gantt (`gantt-timeline.tsx`), independiente de las fechas de las tareas. Se
   migraron a tarea las 2 actividades que se habían registrado en modo "fase sin tarea"
@@ -175,7 +178,7 @@ consulta siempre "Estado actual" abajo antes de proponer cambios grandes.
   producción ("Estandarización Mapas", 21h → 15h). **C2.2**: edición
   inline de nombre/fecha límite/notas/bloqueantes/asignado de una tarea ya
   creada (`actualizarTarea()`, botón de lápiz en
-  `tarea-acciones-admin.tsx`), contador "N/M completadas" por fase y
+  `src/components/tarea-acciones-admin/`), contador "N/M completadas" por fase y
   atenuado visual de tareas completadas en `tareas-por-fase.tsx`. **C2.4**:
   los 21 requerimientos sin detalle ya son navegables (se quitó el gateo
   por `has_detail_tracking` tanto en `requerimiento-card.tsx` como en
@@ -188,6 +191,24 @@ consulta siempre "Estado actual" abajo antes de proponer cambios grandes.
   12 campos, no 13: `documentation_folder_url` ya no existe como columna
   (se eliminó en la migración de Fase C, antes de que se escribiera el
   plan original de C2.3).
+- **✅ Cierre técnico pre-refinamiento visual (2026-08-11, rama
+  `fase-cierre-tecnico`)**: tras una auditoría integral (ver
+  `AUDITORIA_CORTE_2026-08-11.md`), se corrigieron los puntos que
+  encarecerían el refinamiento visual de pantallas y se dejó un contrato de
+  datos limpio, ignorando el historial de fases pasadas salvo lo ya vigente
+  aquí. Se eliminó `document_versions` (scaffolding vacío de Fase D, sin
+  policies — se recrea cuando se diseñe esa fase de verdad); se agregaron
+  `ON DELETE SET NULL` explícito en 2 FK, un índice en
+  `activity_logs.task_id`, un trigger de `updated_at` en
+  `requirement_phase_deadlines`, y se protegió `executed_hours` contra
+  `UPDATE` directo (`REVOKE`, los triggers que la mantienen ya son
+  `security definer`). `Tarea.estado` ahora usa el tipo `EstadoTarea` (ya
+  no `string`); `formatearFecha()` (antes duplicada en 6 componentes) vive
+  en `src/lib/fechas.ts`; `tarea-acciones-admin.tsx` se partió en
+  `src/components/tarea-acciones-admin/` (estado, fechas planeadas, editar,
+  eliminar); `requerimiento-form.tsx` y el resto de controles crudos
+  (`<select>`/`<textarea>`/`window.confirm`) migraron a los componentes
+  shadcn ya instalados (`Select`, `Textarea`, `Checkbox`, `AlertDialog`).
 - **Sigue faltando**: únicamente la Fase D (documentos versionados en
   Storage, **explícitamente fuera de alcance de esta ronda de trabajo**,
   sin fecha de retoma) — ver `ROADMAP_V2.md` para su diseño. Fase 0, Fase
@@ -219,15 +240,18 @@ Esquema completo (DDL) versionado en `supabase/migrations/` (aplicado vía
 `projects`, `requirements`, `requirement_tasks`, `activity_logs` (bitácora de
 horas, ligada a `requirement_tasks.task_id` desde la fusión tarea/actividad
 de 2026-08-11), `requirement_phase_deadlines` (fecha límite por fase de un
-requerimiento, nueva en esa misma fecha), `document_versions` (vacía,
-forward-looking para Fase D). **RLS exige sesión desde la Unidad B.4** (2026-08-09):
-`projects`/`requirements`/`requirement_tasks` solo son legibles con
-`auth.uid()` válido (`to authenticated`); escribir en `requirements`/
-`requirement_tasks` exige además `public.is_admin()`. `activity_logs` y
-`document_versions` siguen sin policies (Fase C/D). El DDL original de la
-Fase A (`supabase/schema.sql`) quedó archivado en
-`supabase/legado/schema-fase-a.sql` ("HISTÓRICO. No ejecutar") una vez
-migrado a migraciones versionadas en la Unidad 0.1.
+requerimiento, nueva en esa misma fecha). **RLS exige sesión desde la Unidad
+B.4** (2026-08-09): `projects`/`requirements`/`requirement_tasks` solo son
+legibles con `auth.uid()` válido (`to authenticated`); escribir en
+`requirements`/`requirement_tasks` exige además `public.is_admin()`.
+`activity_logs` tiene policies desde la Fase C (`select` autenticado,
+`insert` solo Admin, append-only — sin `update`/`delete`). **`document_versions`
+se eliminó en el cierre técnico pre-refinamiento (2026-08-11)** — era
+scaffolding vacío de Fase D sin ninguna policy; se recreará desde cero
+cuando se diseñe esa fase de verdad. El DDL original de la Fase A
+(`supabase/schema.sql`) quedó archivado en `supabase/legado/schema-fase-a.sql`
+("HISTÓRICO. No ejecutar") una vez migrado a migraciones versionadas en la
+Unidad 0.1.
 
 Los datos se migraron una sola vez con `scripts/migrate_to_supabase.py`
 (Python + openpyxl + `supabase-py`, idempotente vía upsert) — el detalle
@@ -362,7 +386,8 @@ para repetir la verificación: `scripts/verificar_seguridad_fase_b.mjs`
 | `src/lib/actividad-tipos.ts` | `TIPOS_ACTIVIDAD_VALIDOS`/`TIPO_ACTIVIDAD_LABEL` (Fase C) — solo lo usa ya `actividades-sin-fase.tsx`, para el histórico anterior a la fusión tarea/actividad. |
 | `src/components/agregar-tarea-dialog.tsx` | `AgregarTareaDialog` — único botón de registro por fase (fusión tarea/actividad, 2026-08-11): nombre, fecha límite (obligatoria — fix del bug de tareas invisibles en el Gantt), fechas planeadas y horas consumidas iniciales (opcional). |
 | `src/components/registrar-horas-dialog.tsx` | `RegistrarHorasDialog` — registra más horas contra una tarea ya existente (`activity_logs.task_id` + trigger de C1, ver más abajo), acumulables con el tiempo; solo muestra el total, sin desglose. |
-| `src/components/tarea-acciones-admin.tsx` | `TareaAccionesAdmin` — por tarea: editor de estado (los 6 valores de `estados-tarea.ts`), edición de fechas planeadas, `RegistrarHorasDialog` y eliminar — todo junto, reemplaza a `editar-fechas-form.tsx` (eliminado). |
+| `src/components/tarea-acciones-admin/` | `TareaAccionesAdmin` (`index.tsx`) — orquesta por tarea: `EstadoTareaSelect`, `FechasPlaneadasForm`, `RegistrarHorasDialog`, `EditarTareaForm` y `EliminarTareaButton` (partido en el cierre técnico de 2026-08-11, antes un solo archivo `tarea-acciones-admin.tsx`). Reemplaza a `editar-fechas-form.tsx` (eliminado). |
+| `src/hooks/use-cerrar-al-exito.ts` | `useCerrarAlExito()` (cierre técnico 2026-08-11) — cierra un diálogo/formulario apenas una Server Action reporta éxito; reemplaza el patrón `successVisto` que estaba duplicado en 3 componentes. |
 | `src/components/fase-fecha-limite-form.tsx` | `FaseFechaLimiteForm` — fecha límite propia de cada fase (`requirement_phase_deadlines`, independiente de las tareas), configurable en el encabezado del acordeón; se dibuja como hito propio en el Gantt. |
 | `src/lib/fase-deadlines.ts` | `getFechasLimiteFase(requirementId)` — lee `requirement_phase_deadlines`, usado por `requerimiento-data.ts`. `planeacion-data.ts` hace su propia consulta batch para todos los requerimientos del Gantt. |
 | `src/lib/tareas-controles.tsx` | `construirControlesTareas(fases, requirementId)` — arma los botones/acciones de Admin (`RoleGate` + diálogos) que consume `TareasPorFase`; compartido entre Detalle y Planeación → Editar, para que ambas pantallas usen exactamente la misma vista de tareas. |
@@ -370,7 +395,7 @@ para repetir la verificación: `scripts/verificar_seguridad_fase_b.mjs`
 | `src/components/actividades-sin-fase.tsx` | `ActividadesSinFase` — bloque colapsable con las actividades históricas SIN tarea asociada (`task_id is null`) — de antes de la fusión tarea/actividad, con su "Tipo" viejo. |
 | `src/app/requerimiento/[item]/page.tsx` | Página de drill-down por requerimiento (RN-04/05). Llama a `getRequerimientoDetalle(slug)` (`src/lib/requerimiento-data.ts`) → `<ErrorDatosBanner soloBanner />` si falla; ídem para `getActividades()` (Fase C). |
 | `src/app/actions/ui.ts` | Server Action `reintentar()` (`refresh()`) (Unidad C2.5, antes en `src/app/actions.ts`) — usada solo por el banner de error. |
-| `src/app/actions/activity-logs.ts` | Server Action `agregarActividad()` (Fase C, reubicada en Unidad C2.5 desde `src/app/requerimiento/[item]/actions.ts`) — `requireAdmin()` → valida tipo/título/horas/fecha → `insert` en `activity_logs` con `created_by` → `refresh()`. |
+| `src/app/actions/activity-logs.ts` | Server Action `registrarHoras()` (Fase C, renombrada desde `agregarActividad()` en la fusión tarea/actividad de 2026-08-11) — `requireAdmin()` → valida horas/fecha/nota → `insert` en `activity_logs` con `created_by`/`task_id` → `refresh()`. |
 | `src/app/actions/tasks.ts` | Server Actions `guardarFechasPlaneadas()`/`crearTarea()`/`eliminarTarea()` (Unidad C1.2, reubicadas en Unidad C2.5 desde `src/app/planeacion/[requerimiento]/editar/actions.ts`). |
 | `src/app/actions/requirements.ts` | Stub (`"use server";`, sin exports) creado en la Unidad C2.5 — primer consumidor real: Unidad C2.3 (crear/editar requerimiento). |
 | `public/fonts/montserrat-{400,500,600,700}.woff2` | Montserrat auto-hospedada (no `next/font/google`) — cargada vía `next/font/local` en `layout.tsx`. |

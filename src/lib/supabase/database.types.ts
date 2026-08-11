@@ -1,4 +1,4 @@
-﻿export type Json =
+export type Json =
   | string
   | number
   | boolean
@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      _backup_activity_logs_horas_huerfanas: {
+        Row: {
+          created_by: string | null
+          event_type: string | null
+          hours_spent: number | null
+          id: string | null
+          logged_at: string | null
+          notes: string | null
+          phase_number: number | null
+          requirement_id: string | null
+          task_id: string | null
+          title: string | null
+        }
+        Insert: {
+          created_by?: string | null
+          event_type?: string | null
+          hours_spent?: number | null
+          id?: string | null
+          logged_at?: string | null
+          notes?: string | null
+          phase_number?: number | null
+          requirement_id?: string | null
+          task_id?: string | null
+          title?: string | null
+        }
+        Update: {
+          created_by?: string | null
+          event_type?: string | null
+          hours_spent?: number | null
+          id?: string | null
+          logged_at?: string | null
+          notes?: string | null
+          phase_number?: number | null
+          requirement_id?: string | null
+          task_id?: string | null
+          title?: string | null
+        }
+        Relationships: []
+      }
       _backup_executed_hours: {
         Row: {
           code: string | null
@@ -82,41 +121,6 @@ export type Database = {
             columns: ["task_id"]
             isOneToOne: false
             referencedRelation: "requirement_tasks"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      document_versions: {
-        Row: {
-          document_name: string
-          file_url: string
-          id: string
-          requirement_id: string
-          uploaded_at: string
-          version: string
-        }
-        Insert: {
-          document_name: string
-          file_url: string
-          id?: string
-          requirement_id: string
-          uploaded_at?: string
-          version?: string
-        }
-        Update: {
-          document_name?: string
-          file_url?: string
-          id?: string
-          requirement_id?: string
-          uploaded_at?: string
-          version?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "document_versions_requirement_id_fkey"
-            columns: ["requirement_id"]
-            isOneToOne: false
-            referencedRelation: "requirements"
             referencedColumns: ["id"]
           },
         ]

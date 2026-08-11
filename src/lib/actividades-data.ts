@@ -1,7 +1,4 @@
 import { getSupabaseClient } from "./supabase/server";
-import type { Database } from "./supabase/database.types";
-
-export type EventoActividad = Database["public"]["Tables"]["activity_logs"]["Row"]["event_type"];
 
 export interface Actividad {
   id: string;

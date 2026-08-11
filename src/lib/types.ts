@@ -1,4 +1,5 @@
 import type { Semaforo } from "./semaforo";
+import type { EstadoTarea } from "./estados-tarea";
 
 export type Estado =
   | "En curso"
@@ -63,7 +64,7 @@ export interface Tarea {
   id: string;
   tarea: string;
   detalle: string | null;
-  estado: string | null;
+  estado: EstadoTarea | null;
   horas: number | null;
   fechaLimite: Date | null;
   fechaReal: Date | null;

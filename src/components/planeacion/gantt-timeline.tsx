@@ -5,7 +5,7 @@ import { ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { PlaneacionFase, PlaneacionRequerimiento } from "@/lib/planeacion-data";
 import { SEMAFORO_BAR_CLASS } from "@/lib/semaforo";
-import { diffDias } from "@/lib/fechas";
+import { diffDias, formatearFecha } from "@/lib/fechas";
 import { estadoEsCompletada } from "@/lib/estados-tarea";
 
 export type Escala = "dia" | "semana" | "mes";
@@ -30,10 +30,6 @@ function alturaFase(fase: PlaneacionFase, abierta: boolean): number {
     ALTO_FASE_PX +
     (abierta ? Math.max(fase.tareas.length, fase.tareas.length === 0 ? 1 : 0) * ALTO_TAREA_PX : 0)
   );
-}
-
-function formatearFecha(fecha: Date): string {
-  return new Intl.DateTimeFormat("es-CO", { day: "2-digit", month: "short" }).format(fecha);
 }
 
 function formatearMes(fecha: Date): string {

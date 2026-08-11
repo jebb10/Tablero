@@ -5,6 +5,7 @@ import { Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Spinner } from "@/components/ui/spinner";
 import {
   Dialog,
@@ -15,6 +16,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { registrarHoras, type RegistrarHorasState } from "@/app/actions/activity-logs";
+import { useCerrarAlExito } from "@/hooks/use-cerrar-al-exito";
 
 const ESTADO_INICIAL: RegistrarHorasState = { error: null, success: false };
 
@@ -31,11 +33,7 @@ export function RegistrarHorasDialog({
   const accionConId = registrarHoras.bind(null, taskId, requirementId, phaseNumber);
   const [state, formAction, pending] = useActionState(accionConId, ESTADO_INICIAL);
 
-  const [successVisto, setSuccessVisto] = useState(state.success);
-  if (state.success !== successVisto) {
-    setSuccessVisto(state.success);
-    if (state.success) setOpen(false);
-  }
+  useCerrarAlExito(state.success, () => setOpen(false));
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -62,12 +60,7 @@ export function RegistrarHorasDialog({
 
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="notes">Nota (opcional)</Label>
-            <textarea
-              id="notes"
-              name="notes"
-              rows={2}
-              className="resize-vertical rounded-md border bg-transparent p-2 text-sm"
-            />
+            <Textarea id="notes" name="notes" rows={2} />
           </div>
 
           {state.error && <p className="text-sm text-status-bloqueo">{state.error}</p>}

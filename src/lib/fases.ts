@@ -1,7 +1,7 @@
 import type { Database } from "./supabase/database.types";
 import type { EstadoFase, Fase, Tarea } from "./types";
 import { FASES_ORDEN } from "./fases-orden";
-import { estadoEsCompletada } from "./estados-tarea";
+import { estadoEsCompletada, estadoTareaDesdeDb } from "./estados-tarea";
 
 export type RequirementTaskRow = Pick<
   Database["public"]["Tables"]["requirement_tasks"]["Row"],
@@ -50,7 +50,7 @@ export function agruparPorFase(filas: RequirementTaskRow[]): Fase[] {
       id: f.id,
       tarea: f.task_name,
       detalle: f.detail,
-      estado: f.status,
+      estado: estadoTareaDesdeDb(f.status),
       horas: f.estimated_hours,
       fechaLimite: toDate(f.due_date),
       fechaReal: toDate(f.completed_date),

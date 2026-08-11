@@ -11,3 +11,20 @@ export async function getFechasLimiteFase(requirementId: string): Promise<Map<nu
 
   return new Map((data ?? []).map((f) => [f.phase_number, new Date(f.due_date)]));
 }
+
+/** Variante batch de getFechasLimiteFase para el Gantt (/planeacion), que
+ * necesita las fechas límite de fase de muchos requerimientos a la vez.
+ * Clave del Map: `${requirementId}-${phaseNumber}`. */
+export async function getFechasLimiteFasePorRequerimientos(
+  requirementIds: string[]
+): Promise<Map<string, Date>> {
+  const supabase = await getSupabaseClient();
+  const { data } = await supabase
+    .from("requirement_phase_deadlines")
+    .select("requirement_id, phase_number, due_date")
+    .in("requirement_id", requirementIds);
+
+  return new Map(
+    (data ?? []).map((f) => [`${f.requirement_id}-${f.phase_number}`, new Date(f.due_date)])
+  );
+}

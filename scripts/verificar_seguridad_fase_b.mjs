@@ -31,7 +31,9 @@ if (!VIEWER_EMAIL || !VIEWER_PASSWORD || !ADMIN_EMAIL || !ADMIN_PASSWORD) {
   process.exit(1);
 }
 
-const TABLES = ["projects", "requirements", "requirement_tasks", "activity_logs", "document_versions"];
+// document_versions se eliminó en el cierre técnico de 2026-08-11 (scaffolding
+// vacío de Fase D, sin policies) -- se agrega de nuevo si Fase D la recrea.
+const TABLES = ["projects", "requirements", "requirement_tasks", "activity_logs"];
 
 const results = [];
 function record(punto, descripcion, pasa, detalle) {

@@ -6,6 +6,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Spinner } from "@/components/ui/spinner";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ESTADOS_DB, ESTADO_DB_A_ES } from "@/lib/estados";
 import { slugify } from "@/lib/slug";
 import { categoryFromCode } from "@/lib/category";
@@ -111,18 +119,18 @@ export function RequerimientoForm({
       <div className="grid grid-cols-3 gap-3">
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="status">Estado</Label>
-          <select
-            id="status"
-            name="status"
-            defaultValue={valoresIniciales?.status ?? "NO_INICIADO"}
-            className="h-9 rounded-md border bg-transparent px-2.5 text-sm"
-          >
-            {ESTADOS_DB.map((s) => (
-              <option key={s} value={s}>
-                {ESTADO_DB_A_ES[s]}
-              </option>
-            ))}
-          </select>
+          <Select name="status" defaultValue={valoresIniciales?.status ?? "NO_INICIADO"}>
+            <SelectTrigger id="status">
+              <SelectValue placeholder="Estado" />
+            </SelectTrigger>
+            <SelectContent>
+              {ESTADOS_DB.map((s) => (
+                <SelectItem key={s} value={s}>
+                  {ESTADO_DB_A_ES[s]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="deadline">Fecha límite</Label>
@@ -172,11 +180,9 @@ export function RequerimientoForm({
       </div>
 
       <label className="flex items-center gap-2 text-sm">
-        <input
-          type="checkbox"
+        <Checkbox
           name="hasDetailTracking"
           defaultChecked={valoresIniciales?.has_detail_tracking ?? false}
-          className="h-4 w-4"
         />
         Seguimiento de tareas por fase
       </label>

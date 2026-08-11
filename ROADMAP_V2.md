@@ -632,12 +632,13 @@ no reimplementar ni contradecir esa extensión al ejecutar C3.1/C3.2/C3.3.
 
 ## Unidad D.1 — Esquema y bucket
 
-**Verificar primero que `document_versions` está vacía** (query 6 de 0.0). Si lo está —y debe
-estarlo—, `drop table` + `create table` es más limpio que encadenar `alter`.
+**`document_versions` ya se eliminó** (cierre técnico pre-refinamiento, 2026-08-11,
+`supabase/migrations/20260811040000_cierre_tecnico_pre_refinamiento.sql`) — estaba vacía y
+sin ninguna policy RLS, scaffolding de un diseño que nunca se implementó. Cuando se retome
+esta unidad, el primer paso ya no es `drop table`, es directamente el `create table
+requirement_documents` de abajo.
 
 ```sql
-drop table document_versions;
-
 create table requirement_documents (
   id             uuid primary key default gen_random_uuid(),
   requirement_id uuid not null references requirements(id) on delete cascade,
