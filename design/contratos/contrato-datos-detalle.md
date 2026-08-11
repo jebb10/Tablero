@@ -1,41 +1,63 @@
-# Contrato de datos — Detalle de requerimiento (`design/fase-c-detalle-requerimiento.dc.html`)
+# Contrato de datos — Detalle de requerimiento (`/requerimiento/[item]`)
 
-Fuente de verdad del esquema: `src/lib/supabase/database.types.ts` + `supabase/migrations/`. Fuente de verdad de la lógica actual: `src/lib/requerimiento-data.ts`, `src/lib/fases.ts`, `src/components/fase-stepper.tsx`.
+Reescrito el 2026-08-11 para reflejar la implementación real (el contrato anterior describía el
+mockup previo a la Fase C y ya no correspondía al código). Fuente de verdad del esquema:
+`src/lib/supabase/database.types.ts` + `supabase/migrations/`. Fuente de verdad de la lógica:
+`src/lib/requerimiento-data.ts`, `src/lib/fases.ts`, `src/lib/actividades-data.ts`,
+`src/app/requerimiento/[item]/page.tsx`.
 
-Regla de rol: el Viewer ve toda la pantalla (info general, horas, tareas por fase, registro de actividades) en modo solo lectura. El único control que se oculta al Viewer es el botón **"+ Añadir actividad"** — el resto de la pantalla es idéntica para ambos roles.
+Regla de rol: el Viewer ve toda la pantalla en modo solo lectura. Los controles de escritura
+(botón "Editar"/"Cambio de alcance" en la cabecera, "Añadir tarea"/"Registrar horas"/edición
+inline por tarea, campo de fecha límite de fase) se ocultan vía `RoleGate` — solo Admin.
 
 ## Cabecera e información general
 
-| Elemento visual | Origen | Estado |
+| Elemento visual | Origen | Notas |
 | --- | --- | --- |
-| ID, nombre, descripción, cliente, asignados, fechas | `requirements.code/title/...`. Nota: no hay columna `description` corta ni `client`/`assignees` en el esquema real (`code`, `title`, `category`, `complexity`, `month_label`, `status`, `deadline`, `estimated_hours`, `executed_hours`, `billing_date`, `notes`, `documentation_folder_url`, `dev_environment_url`). | **Parcial.** "Descripción corta", "Cliente/Stakeholder" y "Asignado(s)" tal como se ven en el mockup **no existen** como columnas hoy — son datos de ejemplo. Requiere decidir con el PO si se agregan columnas nuevas a `requirements` o si se recorta el mockup a lo que sí existe. |
+| Código, estado (badge) | `requirements.code`, `requirements.status` → `dbAEstado()`. | |
+| Botones "Editar"/"Cambio de alcance" (solo Admin) | — | Enlazan a `/requerimiento/[item]/editar` y `/requerimiento/[item]/cambio-de-alcance`. |
+| Banner "Reemplazado por [link]" | `requirements.parent_requirement_id` de OTRO requerimiento apuntando a este + su `status = CERRADO_POR_CAMBIO_ALCANCE`. | Solo aparece si este requerimiento fue cerrado por cambio de alcance. |
+| Título, descripción | `requirements.title`, `requirements.description` (nullable). | |
+| Mes, complejidad (badges) | `requirements.month_label`, `requirements.complexity`. | |
+| Cliente/Stakeholder, Asignados | `requirements.client_stakeholder` (nullable), `requirements.assignees` (`text[]`, join con coma). | |
 
 ## KPIs de horas
 
-| Elemento visual | Origen | Estado |
+| Elemento visual | Origen | Notas |
 | --- | --- | --- |
-| Horas estimadas / consumidas / restantes | `requirements.estimated_hours`, `requirements.executed_hours`, resta calculada. | Existe y se consume hoy. |
-| Horas por fase (estimadas vs. consumidas) | `requirement_tasks.phase_number/phase_name/estimated_hours`, agrupado y sumado en `agruparPorFase()` (`src/lib/fases.ts`). | Existe y se consume hoy. Las 5 fases reales son: `Requerimientos`, `Diseño`, `Desarrollo`, `QA`, `Producción` (`src/lib/fases-orden.ts`, reforzado con `check constraint` en la BD — no se pueden usar otros nombres sin migrar el constraint). |
+| Horas estimadas / consumidas / restantes | `requirements.estimated_hours`, `requirements.executed_hours` (derivada por trigger desde `activity_logs`, no editable a mano), resta calculada en el cliente. | |
 
 ## Tareas por fase (acordeón)
 
-| Elemento visual | Origen | Estado |
-| --- | --- | --- |
-| Agrupación por las 5 fases reales, cada una expandible/colapsable | `requirement_tasks.phase_number/phase_name`. | Ya implementado: `tareas-por-fase.tsx` (reemplazó a `fase-stepper.tsx`) expone TODAS las tareas de cada fase al expandirse, no solo las de la fase en curso. Fases `en-curso`/`pendiente` abiertas por defecto, `completada` colapsadas (el usuario puede alternar cualquiera). |
-| Nombre de tarea | `requirement_tasks.task_name`. | Existe y se consume hoy. |
-| Descripción/detalle de tarea (`t.detalle`) | `requirement_tasks.detail`. | Existe y se consume hoy — **importante**: esta es la columna `detail`, NO `notes`. Son dos columnas distintas en el esquema real. |
-| Advertencia ⚠ bajo la tarea | `requirement_tasks.blockers ?? requirement_tasks.notes` (mismo fallback que usa `fase-stepper.tsx` hoy, línea `bloqueo = t.bloqueantes ?? t.notas`). | Existe y se consume hoy — se mantiene separado del campo `detail`, sin fusionarlos. |
-| Estado, asignado, fecha límite, horas por tarea | `requirement_tasks.status`, `due_date`, `estimated_hours`. Nota: no hay columna `assignee` en `requirement_tasks` — el "asignado" por tarea es dato de ejemplo hoy. | Parcial — falta columna `assignee` si se quiere ese dato real por tarea (hoy el asignado solo existe a nivel de requerimiento, como dato de ejemplo también). |
+`TareasPorFase` (`src/components/tareas-por-fase.tsx`), usado idéntico en Detalle y en
+`/planeacion/[requerimiento]/editar`. Para este PO, **"tarea" y "actividad" son el mismo concepto**
+desde la fusión del 2026-08-11 — no hay dos flujos separados.
 
-## Registro de actividades
-
-| Elemento visual | Origen | Estado |
+| Elemento visual | Origen | Notas |
 | --- | --- | --- |
-| Tabla de actividades (fecha, tipo, autor, horas, comentario) | Tabla `activity_logs`: `id`, `requirement_id`, `event_type` (check: `SEGUIMIENTO`/`PRESENTACION_FLUJO`/`GESTION_DOCUMENTAL`/`REFINAMIENTO_TECNICO`/`OTRO`), `title`, `notes`, `hours_spent`, `logged_at`. | **La tabla existe pero está vacía y sin ningún consumidor en el código** — ningún `src/lib/*-data.ts` la consulta todavía. Además, **RLS está habilitado pero sin ninguna policy**: hoy nadie puede leerla ni escribirla vía API, ni siquiera autenticado. Falta Unidad C3.1 (policies) antes de que esta sección funcione con datos reales. |
-| Botón "+ Añadir actividad" (modal, solo Admin) | Formulario mapeado 1:1 a columnas de `activity_logs`: Tipo → `event_type`, Título → `title`, Comentario/notas → `notes`, Horas → `hours_spent`, Fecha → `logged_at`. | **Diseño nuevo, sin implementación.** No existe columna de autor (`created_by`) en `activity_logs` — si se necesita registrar quién creó la actividad, hay que agregar esa columna (gap adicional, no resuelto por este rediseño). Requiere también las policies de RLS mencionadas arriba antes de poder escribir. |
+| Agrupación por las 5 fases reales, expandible/colapsable | `requirement_tasks.phase_number`/`phase_name` vía `agruparPorFase()` (`src/lib/fases.ts`). | Fases con tareas no completadas abiertas por defecto; `completada` colapsada. Contador "N/M completadas" por fase. |
+| Fecha límite de fase (encabezado de cada fase) | Tabla `requirement_phase_deadlines` (independiente de las tareas), vía `FaseFechaLimiteForm` (solo Admin). | Se dibuja también como hito propio en el Gantt de `/planeacion`. |
+| Botón "Añadir tarea" (solo Admin) | `AgregarTareaDialog` → Server Action `crearTarea()`. | Nombre, fecha límite (**obligatoria** — sin fecha, la tarea es invisible en el Gantt), fechas planeadas y horas consumidas iniciales, todo opcional salvo nombre/fecha límite. |
+| Nombre, detalle, estado, asignado de la tarea | `requirement_tasks.task_name`/`detail`/`status`/`assignee`. | `status` es un `CHECK` de 6 valores canónicos (`estados-tarea.ts`). |
+| Fecha límite / fechas planeadas de la tarea | `requirement_tasks.due_date`, `planned_start_date`/`planned_end_date` (+ `planned_dates_confirmed`). | |
+| Horas estimadas / horas consumidas de la tarea | `requirement_tasks.estimated_hours`, `requirement_tasks.executed_hours` (derivada por trigger desde `activity_logs.task_id`, no editable a mano). | |
+| Advertencia ⚠ bajo la tarea | `requirement_tasks.blockers ?? requirement_tasks.notes`. | |
+| Botón "Registrar horas" (solo Admin) | `RegistrarHorasDialog` → Server Action `registrarHoras()`, inserta en `activity_logs` con `task_id`. | Acumulable con el tiempo; solo se ve el total, sin desglose de cada registro. |
+| Edición inline (lápiz), eliminar tarea (solo Admin) | `src/components/tarea-acciones-admin/` → `actualizarTarea()`/`actualizarEstadoTarea()`/`eliminarTarea()`. | Eliminar una tarea borra en cascada sus `activity_logs` asociados (`on delete cascade`). |
+
+## Actividades sin fase (histórico, colapsable)
+
+| Elemento visual | Origen | Notas |
+| --- | --- | --- |
+| Bloque "Actividades sin fase asignada" (`ActividadesSinFase`, colapsado por defecto) | `activity_logs` con `task_id is null` — registradas antes de la fusión tarea/actividad del 2026-08-11. | Fecha, tipo (`event_type` vía `TIPO_ACTIVIDAD_LABEL`), autor (`nombre_autor()` RPC), horas, notas. Decisión del PO: se mantiene visible tal cual, no se migra ni se oculta. |
 
 ## Enlaces de acción
 
-| Elemento visual | Origen | Estado |
+| Elemento visual | Origen | Notas |
 | --- | --- | --- |
-| Botón único "Link del desarrollo" (unifica los 3 botones anteriores: Datos de prueba/Jira/GitHub) | `requirements.dev_environment_url` (columna `text`, nullable). | **Existe en BD pero sin consumidor en el código** — ninguna query la trae hoy. Se reutiliza esta columna en vez de crear una nueva. La columna `requirements.documentation_folder_url` (también existente y sin uso) queda sin destino tras esta unificación — a validar con el PO si se descarta o se reutiliza para otra cosa en el futuro. |
+| "Link del desarrollo" (o "Sin enlace configurado") | `requirements.dev_environment_url` (nullable, validado como URL en el formulario de edición). | Único enlace de esta sección — no hay botones separados de Datos de prueba/Jira/GitHub. |
+
+## Columnas de `requirements`/`requirement_tasks` sin representación en esta pantalla
+
+- `requirements.has_detail_tracking`: solo controla el atenuado/badge de la card en el Home, no se muestra aquí.
+- `requirement_tasks.milestone`, `sort_order`: uso interno (orden/hito), sin UI propia todavía.
