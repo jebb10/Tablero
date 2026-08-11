@@ -1,4 +1,5 @@
 import type { Estado, KPIs, Requerimiento } from "@/lib/types";
+import { formatearFecha as formatearFechaBase } from "@/lib/fechas";
 
 const BLOQUES: { estado: Estado; etiqueta: string }[] = [
   { estado: "En curso", etiqueta: "En curso" },
@@ -9,12 +10,7 @@ const BLOQUES: { estado: Estado; etiqueta: string }[] = [
 ];
 
 function formatearFecha(fecha: Date | null): string {
-  if (!fecha) return "—";
-  return new Intl.DateTimeFormat("es-CO", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  }).format(fecha);
+  return formatearFechaBase(fecha, { conAño: true }) ?? "—";
 }
 
 function formatearGeneracion(fecha: Date): string {

@@ -20,6 +20,7 @@ import { RequerimientoCard } from "@/components/requerimiento-card";
 import { cn } from "@/lib/utils";
 import type { Estado, HitoProximo, KPIs, Requerimiento } from "@/lib/types";
 import { SEMAFORO_TEXT_CLASS } from "@/lib/semaforo";
+import { formatearFecha as formatearFechaBase } from "@/lib/fechas";
 
 const BLOQUES: { estado: Estado; etiqueta: string; dot: string }[] = [
   { estado: "En curso", etiqueta: "En curso", dot: "bg-status-en-curso" },
@@ -46,8 +47,7 @@ function ordenarPorFechaLimite(a: Requerimiento, b: Requerimiento): number {
 }
 
 function formatearFecha(fecha: Date | null): string {
-  if (!fecha) return "Sin fecha";
-  return new Intl.DateTimeFormat("es-CO", { day: "2-digit", month: "short" }).format(fecha);
+  return formatearFechaBase(fecha) ?? "Sin fecha";
 }
 
 export function DashboardClient({

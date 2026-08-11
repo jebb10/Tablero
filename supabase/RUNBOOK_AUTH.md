@@ -15,7 +15,7 @@ puntos 1-10 verifican RLS, vigente desde B.4 — no dependen de que B.5 esté de
 [PASA] 1. Anónimo no lee "requirements"          — filas devueltas: 0
 [PASA] 1. Anónimo no lee "requirement_tasks"     — filas devueltas: 0
 [PASA] 1. Anónimo no lee "activity_logs"         — filas devueltas: 0
-[PASA] 1. Anónimo no lee "document_versions"     — filas devueltas: 0
+[PASA] 1. Anónimo no lee "document_versions"     — filas devueltas: 0 (tabla eliminada en el cierre técnico de 2026-08-11, ver nota abajo)
 [PASA] 2. Login de Viewer exitoso                — email: johan414@yopmail.com
 [PASA] 3. Viewer lee requirements                — filas: 1
 [PASA] 4. Viewer NO actualiza requirements        — filas actualizadas: 0, título sin cambios ("Sección de Noticias")

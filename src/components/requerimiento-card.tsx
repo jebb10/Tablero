@@ -5,6 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { RequerimientoIcono } from "@/lib/icons";
 import { SEMAFORO_DOT_CLASS, type Semaforo } from "@/lib/semaforo";
 import type { Requerimiento } from "@/lib/types";
+import { formatearFecha } from "@/lib/fechas";
 import { cn } from "@/lib/utils";
 
 const SEMAFORO_TITULO: Record<Semaforo, string> = {
@@ -15,17 +16,8 @@ const SEMAFORO_TITULO: Record<Semaforo, string> = {
   "sin-fecha": "Sin fecha límite",
 };
 
-function formatearFecha(fecha: Date | null): string | null {
-  if (!fecha) return null;
-  return new Intl.DateTimeFormat("es-CO", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  }).format(fecha);
-}
-
 export function RequerimientoCard({ req }: { req: Requerimiento }) {
-  const fecha = formatearFecha(req.fechaLimite);
+  const fecha = formatearFecha(req.fechaLimite, { conAño: true });
 
   const contenido = (
     <div

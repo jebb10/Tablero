@@ -45,3 +45,29 @@ export function diffDias(a: Date, b: Date): number {
   const bSinHora = new Date(b.getFullYear(), b.getMonth(), b.getDate());
   return Math.round((bSinHora.getTime() - aSinHora.getTime()) / msPorDia);
 }
+
+/** Valor para un <input type="date"> ("" si es null). Usa aISO en vez de
+ * toISOString() (que convierte a UTC y puede correr un día la fecha en
+ * horas de la tarde en America/Bogota, UTC-5). */
+export function aInputDate(fecha: Date | null): string {
+  return fecha ? aISO(fecha) : "";
+}
+
+/** Formato de fecha corto para UI ("es-CO", día/mes[/año]). `null` si no hay
+ * fecha (los call-sites deciden el fallback visual: "Sin fecha"/"—"/etc). */
+export function formatearFecha(fecha: Date, opciones?: { conAño?: boolean }): string;
+export function formatearFecha(
+  fecha: Date | null,
+  opciones?: { conAño?: boolean }
+): string | null;
+export function formatearFecha(
+  fecha: Date | null,
+  opciones: { conAño?: boolean } = {}
+): string | null {
+  if (!fecha) return null;
+  return new Intl.DateTimeFormat("es-CO", {
+    day: "2-digit",
+    month: "short",
+    ...(opciones.conAño ? { year: "numeric" as const } : {}),
+  }).format(fecha);
+}

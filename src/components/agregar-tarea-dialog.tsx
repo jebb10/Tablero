@@ -15,6 +15,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { crearTarea, type CrearTareaState } from "@/app/actions/tasks";
+import { useCerrarAlExito } from "@/hooks/use-cerrar-al-exito";
 
 const ESTADO_INICIAL: CrearTareaState = { error: null, success: false };
 
@@ -29,11 +30,7 @@ export function AgregarTareaDialog({
   const accionConId = crearTarea.bind(null, requirementId, phaseNumber);
   const [state, formAction, pending] = useActionState(accionConId, ESTADO_INICIAL);
 
-  const [successVisto, setSuccessVisto] = useState(state.success);
-  if (state.success !== successVisto) {
-    setSuccessVisto(state.success);
-    if (state.success) setOpen(false);
-  }
+  useCerrarAlExito(state.success, () => setOpen(false));
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

@@ -5,7 +5,10 @@ import { requireAdmin } from "@/lib/auth/session";
 import { getSupabaseClient } from "@/lib/supabase/server";
 import { PROJECT_SLUG } from "@/lib/project";
 import { slugify } from "@/lib/slug";
-import { ESTADOS_DB, type EstadoDb } from "@/lib/estados";
+import { ESTADOS_DB, ESTADO_DB_CERRADO_POR_CAMBIO_ALCANCE, type EstadoDb } from "@/lib/estados";
+import { z } from "zod";
+
+const devEnvironmentUrlSchema = z.string().url().nullable();
 
 export type GuardarRequerimientoState = { error: string | null; success: boolean };
 
@@ -56,6 +59,11 @@ function leerCamposComunes(formData: FormData): LecturaCampos {
   const deadline = texto(formData, "deadline");
   const parentRequirementId = texto(formData, "parentRequirementId");
 
+  const devEnvironmentUrl = devEnvironmentUrlSchema.safeParse(texto(formData, "devEnvironmentUrl"));
+  if (!devEnvironmentUrl.success) {
+    return { error: "La URL del ambiente de desarrollo no es válida." };
+  }
+
   return {
     error: null,
     valores: {
@@ -69,7 +77,7 @@ function leerCamposComunes(formData: FormData): LecturaCampos {
       estimated_hours: estimatedHours,
       billing_date: texto(formData, "billingDate"),
       notes: texto(formData, "notes"),
-      dev_environment_url: texto(formData, "devEnvironmentUrl"),
+      dev_environment_url: devEnvironmentUrl.data,
       has_detail_tracking: formData.get("hasDetailTracking") === "on",
       parent_requirement_id: parentRequirementId,
     },
@@ -197,7 +205,7 @@ export async function cerrarPorCambioDeAlcance(
 
   const { error: errorCierre } = await supabase
     .from("requirements")
-    .update({ status: "CERRADO_POR_CAMBIO_ALCANCE" })
+    .update({ status: ESTADO_DB_CERRADO_POR_CAMBIO_ALCANCE })
     .eq("id", idViejo);
 
   if (errorCierre) {

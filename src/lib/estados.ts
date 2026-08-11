@@ -10,6 +10,10 @@ export const ESTADOS_DB = [
 
 export type EstadoDb = (typeof ESTADOS_DB)[number];
 
+/** Único valor de ESTADOS_DB con lógica propia (cierre por cambio de alcance,
+ * Unidad C2.3) -- constante nombrada para no comparar/escribir el literal a mano. */
+export const ESTADO_DB_CERRADO_POR_CAMBIO_ALCANCE: EstadoDb = "CERRADO_POR_CAMBIO_ALCANCE";
+
 export const ESTADO_DB_A_ES: Record<EstadoDb, Estado> = {
   NO_INICIADO: "No iniciado",
   EN_CURSO: "En curso",

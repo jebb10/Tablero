@@ -5,12 +5,8 @@ import { useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import type { Fase } from "@/lib/types";
 import { estadoEsCompletada } from "@/lib/estados-tarea";
+import { formatearFecha } from "@/lib/fechas";
 import { cn } from "@/lib/utils";
-
-function formatearFecha(fecha: Date | null): string | null {
-  if (!fecha) return null;
-  return new Intl.DateTimeFormat("es-CO", { day: "2-digit", month: "short" }).format(fecha);
-}
 
 const ESTADO_COLOR: Record<string, string> = {
   completada: "text-status-entregado",
