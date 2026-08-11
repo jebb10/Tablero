@@ -37,17 +37,14 @@ Next.js (App Router) + TypeScript + Tailwind v4 + shadcn/ui, con Supabase
 
 ## Estado actual
 
-Fases 0 (fundaciones), B (auth/roles) y C (pantallas de escritura) **completas**.
-De la ronda C2/C3 en curso: **C1 (Gantt real), C2.1 (estados canónicos), C2.5
-(Server Actions por dominio) y C3 (fusión tarea/actividad + fecha límite de
-fase) completas y en producción.** Pendiente: C2.2 (edición inline —
-ya cubierta en la práctica por el acordeón unificado), C2.4 (navegar los 21
-requerimientos sin detalle) y C2.3 (crear/editar requerimiento). Fase D
-(documentos versionados) fuera de alcance de esta ronda, sin fecha de retoma.
+Fases 0 (fundaciones), B (auth/roles), C (pantallas de escritura), C1 (Gantt real), C2 (CRUD de
+requerimientos y tareas, completa) y C3 (bitácora de horas) **completas y verificadas en
+producción**. Único pendiente: Fase D (documentos versionados), fuera de alcance por ahora, sin
+fecha de retoma.
 
 **El detalle completo y siempre vigente vive en [`CLAUDE.md`](./CLAUDE.md)
-— léelo antes de tocar el código.** El diseño pendiente está en
-[`ROADMAP_V2.md`](./ROADMAP_V2.md) y [`PLAN_EJECUCION_C2_C3.md`](./PLAN_EJECUCION_C2_C3.md).
+— léelo antes de tocar el código.** El diseño de lo pendiente (Fase D) está en
+[`PENDIENTES.md`](./PENDIENTES.md).
 
 ## Correr en local
 

@@ -1,4 +1,4 @@
--- Unidad C2.1 (ROADMAP_V2.md) — constreñir requirement_tasks.status a un
+-- Unidad C2.1 (Fase C2, CRUD) — constreñir requirement_tasks.status a un
 -- conjunto canónico. Consulta real corrida en producción el 2026-08-10
 -- (165 filas): 'Completada' (148), 'En curso' (9), 'Pendiente' (5),
 -- 'No iniciada' (3) -- sin variantes de mayúsculas/espacios. 'Bloqueada' y

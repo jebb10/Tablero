@@ -21,7 +21,7 @@ Regla de rol: el Viewer ve toda la pantalla (info general, horas, tareas por fas
 
 | Elemento visual | Origen | Estado |
 | --- | --- | --- |
-| Agrupación por las 5 fases reales, cada una expandible/colapsable | `requirement_tasks.phase_number/phase_name`. | **Cambio respecto al código real de hoy**: `fase-stepper.tsx` actualmente solo muestra las tareas activas de la fase `en-curso` — el resto de las 185 tareas reales del proyecto nunca se renderiza (limitación documentada en `ROADMAP_V2.md`). Este rediseño corrige eso: cada fase expone TODAS sus tareas al expandirse. Comportamiento sugerido: fases `en-curso`/`pendiente` abiertas por defecto, `completada` colapsadas (el usuario puede alternar cualquiera). |
+| Agrupación por las 5 fases reales, cada una expandible/colapsable | `requirement_tasks.phase_number/phase_name`. | Ya implementado: `tareas-por-fase.tsx` (reemplazó a `fase-stepper.tsx`) expone TODAS las tareas de cada fase al expandirse, no solo las de la fase en curso. Fases `en-curso`/`pendiente` abiertas por defecto, `completada` colapsadas (el usuario puede alternar cualquiera). |
 | Nombre de tarea | `requirement_tasks.task_name`. | Existe y se consume hoy. |
 | Descripción/detalle de tarea (`t.detalle`) | `requirement_tasks.detail`. | Existe y se consume hoy — **importante**: esta es la columna `detail`, NO `notes`. Son dos columnas distintas en el esquema real. |
 | Advertencia ⚠ bajo la tarea | `requirement_tasks.blockers ?? requirement_tasks.notes` (mismo fallback que usa `fase-stepper.tsx` hoy, línea `bloqueo = t.bloqueantes ?? t.notas`). | Existe y se consume hoy — se mantiene separado del campo `detail`, sin fusionarlos. |

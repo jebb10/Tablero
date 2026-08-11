@@ -1,4 +1,4 @@
-// Unidad B.6 (ROADMAP_V2.md) — checklist de verificación de seguridad con evidencia real.
+// Unidad B.6 (Fase B, ver supabase/RUNBOOK_AUTH.md) — checklist de verificación de seguridad con evidencia real.
 //
 // Corre contra producción (https://tablero-pi.vercel.app + Supabase prod), usando las cuentas
 // reales de Admin y Viewer del PO. No crea usuarios de prueba ni toca datos que no revierta de

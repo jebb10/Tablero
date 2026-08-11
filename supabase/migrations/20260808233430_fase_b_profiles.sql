@@ -1,4 +1,4 @@
--- Unidad B.2 (ROADMAP_V2.md) — tabla de roles, función de rol y policies
+-- Unidad B.2 (Fase B, Auth) — tabla de roles, función de rol y policies
 -- mínimas de profiles. NO toca las policies de lectura pública existentes
 -- en requirements/requirement_tasks: el sitio sigue siendo público hasta
 -- el flip de RLS de la Unidad B.4.
@@ -13,7 +13,7 @@ alter table public.profiles enable row level security;
 -- IMPORTANTE: NO usar "force row level security" — is_admin() es
 -- security definer y su dueño (postgres) es dueño de la tabla, RLS no
 -- aplica al dueño salvo que se fuerce explícitamente. Forzarlo rompería
--- is_admin() con recursión infinita (ver ROADMAP_V2.md, Unidad B.2).
+-- is_admin() con recursión infinita.
 
 create or replace function public.is_admin() returns boolean
 language sql security definer stable set search_path = public as $$

@@ -1,4 +1,4 @@
-// Unidad B.2 (ROADMAP_V2.md) — bootstrap/actualización de usuarios (Admin/Viewer).
+// Unidad B.2 (Fase B, ver CLAUDE.md) — bootstrap/actualización de usuarios (Admin/Viewer).
 //
 // Crear usuarios a mano en el Dashboard de Supabase deja fácilmente un
 // usuario en auth.users sin fila en profiles (puede loguearse pero no tiene

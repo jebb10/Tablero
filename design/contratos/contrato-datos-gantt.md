@@ -15,7 +15,7 @@ navegable tipo calendario** (mes calendario completo / 7 días / 14 días,
 con botones "< Hoy >"), y también amplió el alcance de la pantalla de
 edición para poder **crear y eliminar tareas** (no solo editar fechas) —
 ver la sección "Navegación" abajo. El documento refleja el diseño final,
-no el plan original de `PLAN_IMPLEMENTACION_FASE_C.md`/`ROADMAP_V2.md`.
+no el plan original (historial de ejecución en git).
 
 Fuente de verdad del esquema: `src/lib/supabase/database.types.ts` +
 `supabase/migrations/`. Fuente de verdad de la lógica actual:

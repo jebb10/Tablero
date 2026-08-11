@@ -95,10 +95,9 @@ export async function getPlaneacionData(): Promise<{
           .filter((t) => t.phase_number === numero)
           .sort((a, b) => a.sort_order - b.sort_order)
           .map((t) => {
-            // planned_start_date/planned_end_date quedan NULL en Fase A (ver
-            // ROADMAP_SUPABASE.md §4.4 -- el match por nombre de tarea contra
-            // las hojas Gantt ocultas no fue viable). Fallback: due_date como
-            // marcador de un día.
+            // planned_start_date/planned_end_date quedan NULL en Fase A
+            // (el match por nombre de tarea contra las hojas Gantt ocultas
+            // no fue viable). Fallback: due_date como marcador de un día.
             const start = t.planned_start_date
               ? new Date(t.planned_start_date)
               : t.due_date

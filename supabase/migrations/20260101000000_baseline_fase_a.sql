@@ -1,4 +1,4 @@
--- Baseline de la Unidad 0.1 (ROADMAP_V2.md) — describe el estado ACTUAL de
+-- Baseline de la Unidad 0.1 (Fase 0, Fundaciones) — describe el estado ACTUAL de
 -- producción tal como se verificó en la Unidad 0.0 (2026-08-07), no la
 -- historia de cómo se llegó a él. Se marca como "ya aplicada" con
 -- `supabase migration repair` (no se ejecuta contra prod): prod ya tiene

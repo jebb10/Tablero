@@ -10,8 +10,7 @@ No pobla activity_logs ni document_versions (no hay fuente 1:1 en el Excel).
 planned_start_date/planned_end_date quedan NULL para todas las tareas: se
 inspeccionaron las 4 hojas Gantt ocultas y el match por nombre de tarea no es
 viable (nombres genericos, no coinciden con task_name de las hojas de
-detalle) -- ver ROADMAP_SUPABASE.md SS4.4. El Gantt (/planeacion) usa
-due_date como fallback.
+detalle). El Gantt (/planeacion) usa due_date como fallback.
 
 ADVERTENCIA (desde Fase C): --reset hace DELETE FROM requirements, y eso
 CASCADEA a activity_logs y document_versions. Esas tablas contienen datos

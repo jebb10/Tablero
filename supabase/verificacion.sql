@@ -1,10 +1,9 @@
--- Unidad 0.0 del ROADMAP_V2.md — queries read-only de verificacion del estado
+-- Unidad 0.0 (Fase 0, Fundaciones) — queries read-only de verificacion del estado
 -- real de la BD contra supabase/schema.sql. NUNCA se ejecutan automaticamente
 -- (no hay script ni CI que corra este archivo): se pegan a mano en el SQL
 -- Editor de Supabase cuando haga falta re-verificar el esquema o los datos.
 --
--- Resultados de la corrida del 2026-08-07 documentados en ROADMAP_V2.md,
--- seccion "Resultado de la Unidad 0.0".
+-- Resultados de la corrida del 2026-08-07 (ver historial de git para el detalle).
 
 -- 1. Columnas reales de todas las tablas public.*
 select column_name, data_type, is_nullable, column_default

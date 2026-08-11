@@ -1,4 +1,4 @@
--- Unidad C3.3 (ROADMAP_V2.md) — requirements.executed_hours pasa de valor
+-- Unidad C3.3 (Fase C3, Bitácora) — requirements.executed_hours pasa de valor
 -- estático migrado del Excel a columna derivada, mantenida por trigger a
 -- partir de activity_logs (misma decisión y mismo patrón ya usado por la
 -- extensión de horas por TAREA de C1, ver
@@ -7,12 +7,12 @@
 --
 -- El supuesto original de C3.3 ("activity_logs vacía antes del backfill")
 -- ya es falso desde Fase C (hay actividades reales en producción desde
--- 2026-08-09) — ver nota en ROADMAP_V2.md §C3.3. El backfill de abajo NO
+-- 2026-08-09). El backfill de abajo NO
 -- inserta el valor completo de executed_hours: inserta solo la DIFERENCIA
 -- entre ese valor heredado y lo que ya hay sumado en activity_logs, para no
 -- duplicar horas ya registradas.
 
--- 1. Backup de seguridad (mismo paso sugerido en ROADMAP_V2.md §C3.3.1).
+-- 1. Backup de seguridad.
 create table if not exists _backup_executed_hours as
 select id, code, executed_hours from requirements;
 
@@ -39,8 +39,8 @@ select
 from saldos
 where gap > 0;
 
--- 3. Verificación del invariante antes de activar el trigger (ROADMAP_V2.md
--- §C3.3.4): tras el backfill, executed_hours debe coincidir exactamente con
+-- 3. Verificación del invariante antes de activar el trigger: tras el
+-- backfill, executed_hours debe coincidir exactamente con
 -- la suma real de activity_logs para cada requerimiento.
 do $$
 declare

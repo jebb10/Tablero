@@ -1,8 +1,9 @@
--- Unidad B.4 (ROADMAP_V2.md:176-240) — flip de RLS a solo-autenticados.
+-- Unidad B.4 (Fase B, Auth) — flip de RLS a solo-autenticados.
 -- Hasta aquí, cualquiera con la anon key (pública en el bundle del
 -- navegador) podía leer projects/requirements/requirement_tasks por
 -- PostgREST aunque la UI pidiera login. Esta es la unidad que realmente
--- aporta seguridad: implementa la decisión #1 de ROADMAP_V2.md.
+-- aporta seguridad: implementa la decisión tomada con el PO de cerrar
+-- todo con login.
 --
 -- Precondición dura verificada antes de aplicar: B.3 desplegada y
 -- verificada en producción (login/logout/proxy.ts exigiendo sesión).
@@ -46,8 +47,7 @@ create policy "admin_delete" on public.requirement_tasks
 -- D.1 respectivamente — siguen vacías y sin policies hasta entonces.
 
 -- Trigger de updated_at (estaba comentado en schema.sql:118-124; se activa
--- ahora porque a partir de aquí puede haber escrituras). Contradicción #2
--- de ROADMAP_V2.md.
+-- ahora porque a partir de aquí puede haber escrituras).
 create or replace function public.set_updated_at() returns trigger
 language plpgsql as $$ begin new.updated_at = now(); return new; end; $$;
 

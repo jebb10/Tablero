@@ -158,8 +158,8 @@ export async function actualizarRequerimiento(
   redirect(`/requerimiento/${actualizado.slug}`);
 }
 
-// Cierra el requerimiento viejo y crea uno nuevo enlazado (decisión #5 de
-// PLAN_EJECUCION_C2_C3.md). No es una transacción real (supabase-js no
+// Cierra el requerimiento viejo y crea uno nuevo enlazado (Unidad C2.3,
+// decisión tomada con el PO). No es una transacción real (supabase-js no
 // expone una aquí): si el cierre del viejo falla tras crear el nuevo, se
 // avisa en vez de dejarlo huérfano en silencio -- caso raro (falla de red
 // entre dos requests seguidos), aceptado para el alcance de esta unidad.

@@ -61,8 +61,8 @@ exigido por la CLI.
 
 ## Gotcha #4 — OneDrive genera `desktop.ini` dentro de `supabase/migrations/` y de `.git/refs/`
 
-Esta carpeta del proyecto vive bajo sincronización de OneDrive (ver nota sobre `.env.local` en
-`ROADMAP_V2.md`), que a veces deposita archivos `desktop.ini` dentro de subcarpetas del repo —
+Esta carpeta del proyecto vive bajo sincronización de OneDrive, que a veces deposita archivos
+`desktop.ini` dentro de subcarpetas del repo —
 incluyendo `.git/refs/**` (rompe `git checkout -b`/`git pull` con
 `fatal: bad object refs/desktop.ini`) y `supabase/migrations/` (`supabase db push` imprime
 `Skipping migration desktop.ini...`, inofensivo pero ruidoso). No están trackeados por git: si

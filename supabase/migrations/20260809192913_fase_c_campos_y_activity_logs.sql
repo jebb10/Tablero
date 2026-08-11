@@ -1,4 +1,4 @@
--- Fase C, sección 0 (PLAN_IMPLEMENTACION_FASE_C.md) — campos nuevos de
+-- Fase C, sección 0 — campos nuevos de
 -- cabecera en requirements/requirement_tasks, contador de reabiertos vía
 -- trigger, y activity_logs con autor + RLS append-only.
 
@@ -49,7 +49,7 @@ create policy activity_logs_insert_admin
 
 -- Deliberadamente SIN policy de update/delete: el registro de actividades es
 -- append-only, igual que el patrón ya usado para "Cerrado por cambio de
--- alcance" (ver ROADMAP_V2.md) — ni siquiera Admin edita/borra una entrada ya guardada.
+-- alcance" — ni siquiera Admin edita/borra una entrada ya guardada.
 
 -- ROLLBACK:
 -- drop policy if exists activity_logs_insert_admin on activity_logs;

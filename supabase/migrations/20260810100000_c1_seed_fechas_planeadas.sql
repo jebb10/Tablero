@@ -1,4 +1,4 @@
--- Unidad C1.1 (ROADMAP_V2.md) — semillado one-off de planned_start_date/
+-- Unidad C1.1 (Fase C1, Gantt real) — semillado one-off de planned_start_date/
 -- planned_end_date en requirement_tasks. Verificado en vivo por el PO
 -- (SQL Editor, 2026-08-10): 164/164 filas con planned_start_date NULL,
 -- 88/164 (54%) con estimated_hours NULL. Idempotente: solo toca filas con

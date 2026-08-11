@@ -5,7 +5,7 @@
 -- corrió manualmente en el SQL Editor durante la Fase A.
 --
 -- Fase A — Esquema Supabase para dashboard-414 (Positiva Web 414)
--- Fuente: ROADMAP_SUPABASE.md §2. Correr una sola vez en el SQL Editor de Supabase
+-- HISTÓRICO. Correr una sola vez en el SQL Editor de Supabase
 -- (o vía conexión directa con el rol service_role/postgres), en un proyecto nuevo.
 
 create extension if not exists pgcrypto;

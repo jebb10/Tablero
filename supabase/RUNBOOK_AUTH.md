@@ -1,7 +1,7 @@
 # Runbook de verificación de seguridad (Fase B, Unidad B.6)
 
 Evidencia real (no por inspección visual) de que RLS bloquea a un Viewer y a un usuario anónimo,
-siguiendo el checklist de 11 puntos de `ROADMAP_V2.md`. Script reutilizable:
+siguiendo el checklist de 11 puntos de la Unidad B.6. Script reutilizable:
 `scripts/verificar_seguridad_fase_b.mjs` (lee credenciales de un archivo `--env-file` local,
 gitignored — nunca las recibe hardcodeadas ni las escribe a disco).
 

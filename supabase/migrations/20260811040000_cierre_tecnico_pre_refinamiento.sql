@@ -1,6 +1,5 @@
 -- Cierre técnico pre-refinamiento visual (2026-08-11)
--- Ver AUDITORIA_CORTE_2026-08-11.md en la raíz del repo para el detalle
--- completo de cada hallazgo. Resumen de esta migración:
+-- Ver CLAUDE.md ("Deuda técnica conocida") para contexto. Resumen de esta migración:
 --   1. Elimina document_versions (Fase D, fuera de alcance, sin datos,
 --      RLS sin ninguna policy — se rediseña desde cero cuando se retome).
 --   2. ON DELETE explícito en 2 FK que caían en NO ACTION por defecto.

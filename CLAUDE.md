@@ -8,211 +8,79 @@ el detalle de tareas por fase al hacer drill-down. Este es un proyecto **vivo,
 construido por fases** — no asumas que la fase actual es la versión final;
 consulta siempre "Estado actual" abajo antes de proponer cambios grandes.
 
-## Estado actual: Fase 0, Fase B, Fase C, C1, C2 completa (C2.1/C2.2/C2.3/C2.4/C2.5) y C3 completas y verificadas
+## Estado actual: Fases 0, B, C, C1, C2 y C3 completas y verificadas — solo Fase D pendiente
 
 - Desplegado en Vercel: [tablero-pi.vercel.app](https://tablero-pi.vercel.app/)
-  (repo: `https://github.com/jebb10/Tablero.git`). **RLS ya exige sesión
-  para leer datos** desde la Unidad B.4 (2026-08-09): la anon key pública
-  del bundle del navegador ya no puede leer `projects`/`requirements`/
-  `requirement_tasks` por PostgREST. Desde la Unidad B.3 **ya existe
-  `/login` real**: login, logout, recuperar/restablecer contraseña
-  completos, y `src/proxy.ts` redirige a `/login` cualquier ruta sin
-  sesión. **Unidad B.5 (`RoleGate`) completa**: la UI ya oculta controles/
-  indicadores solo-Admin a los Viewers, no solo la RLS — ver
-  `src/components/auth/role-gate.tsx`. **Unidad B.6 completa**: checklist
-  de seguridad de 11 puntos corrido contra producción con evidencia real
-  (11/11 en verde) — ver `supabase/RUNBOOK_AUTH.md`.
-- **El flujo completo de recuperar/restablecer contraseña se probó en vivo
-  con éxito en producción (confirmado por el PO)**: pedir el correo, llegar
-  el enlace, aterrizar en `/login/restablecer` y definir la nueva
-  contraseña funcionó de punta a punta en `https://tablero-pi.vercel.app`.
-  El Redirect URL de `/auth/callback` de producción **ya está whitelisteado**
-  en Supabase (Authentication → URL Configuration). **Sigue sin configurarse
-  un SMTP propio** — pospuesto explícitamente por el PO hasta después de
-  cerrar Fase C (riesgo bajo hoy, con 1 Admin + pocos Viewers).
-- **El sistema de diseño de Claude Design para B.3 (login) y B.5
-  (RoleGate) ya llegó e integró** — ver `design/` en la raíz del repo y
-  los tokens nuevos en `src/app/globals.css` (`--surface-muted`,
-  `--success`, `--destructive-text`, `--warning-bg`/`--warning-text`,
-  `--primary-hover`/`--primary-disabled`). **Además, el 2026-08-09
-  llegaron 3 maquetas nuevas de Fase C** (home, Gantt, detalle de
-  requerimiento) — ver la tabla "Diseños de Claude Design entregados" en
-  `ROADMAP_V2.md` para el mapeo exacto a cada unidad pendiente.
-- **A partir de la Fase B, el flujo de git cambió**: rama + PR (autoaprobado
-  por el PO) en vez de push directo a `origin/main` como en toda la Fase 0.
-  Vercel no tiene previews por PR — la verificación real en producción solo
-  ocurre después de mergear.
-- El PO decidió revertir la decisión de "sin BD, sin multi-proyecto" de la
-  antigua Fase 5 (ver más abajo) para convertir esto en una aplicación real:
-  multi-proyecto, con login por roles y escritura. La migración a Supabase
-  (Fase A del nuevo roadmap), la Fase 0 (fundaciones: migraciones
-  versionadas, tipos generados, CI, backup, andamiaje compartido — ver más
-  abajo) y la Fase B (auth/roles) ya están completas; Fase C (pantallas de
-  escritura, versión original del PR #9), la Unidad C1 (Gantt real), la
-  Fase C2 (CRUD, completa) y la Fase C3 (bitácora de horas) ya están
-  completas; solo la Fase D (documentos versionados, fuera de alcance de
-  esta ronda) sigue pendiente — ver
-  `ROADMAP_V2.md` para el diseño vigente completo y
-  `PLAN_EJECUCION_C2_C3.md` para las decisiones tomadas y el estado de
-  ejecución de esta ronda (`ROADMAP_SUPABASE.md` queda como historial,
-  superado).
-- Lee de un proyecto Supabase (Postgres + API REST), ver "Fuente de datos"
-  abajo. **El Google Sheet / `.xlsx` que se usaba antes de la Fase A ya no
-  existe** — el archivo (`legado/REQUERIMIENTOS BOLSAS DE HORAS 414.xlsx`)
-  se borró físicamente el 2026-08-06, una vez verificada la migración. No
-  es fuente de datos, no requiere mantenimiento, y no hace falta seguir
-  pensando en él (el gotcha de fórmulas sin recalcular, las hojas ocultas,
-  etc. son historia, no tareas pendientes).
-- **Backup (Unidad 0.5): completo y verificado (2026-08-09).** Ver sección
-  "Backup" abajo.
-- Cubre: vista principal con KPIs, búsqueda/filtros, 4 bloques de estado y
-  semáforo por fecha límite; drill-down por requerimiento con línea de
-  tiempo de fases; vista `/planeacion` (Gantt) con sidebar colapsable.
-- **✅ Resuelto (2026-08-10, Unidad C1)**: `planned_start_date`/
-  `planned_end_date` ya no están `NULL` — semillados en producción (164/164
-  tareas, 0 filas con fecha faltante/invertida/absurda) y editables desde
-  `/planeacion/[requerimiento]/editar`. Ver bullet de C1 más abajo.
-- **Fase C ya fue implementada y mergeada a `main` (PR #9, commit
-  `ce1dc7d`) — desplegada en producción**: implementa Home (KPIs "Reabiertos"/"Salud del
-  proyecto", fase actual, hitos próximos — `kpi-strip.tsx`,
-  `dashboard-data.ts`), el Gantt visual (rombos de hito, indicador de texto
-  "fecha estimada, no confirmada" para `planned_dates_confirmed = false` —
-  `gantt-timeline.tsx`), el detalle (acordeón de tareas por fase con TODAS
-  las tareas, no solo las de la fase en curso — `tareas-por-fase.tsx`,
-  reemplaza a `fase-stepper.tsx`, ya borrado) y el registro de actividades
-  (modal "Añadir actividad", solo Admin vía `RoleGate`, con el autor visible
-  para el Viewer vía la función `nombre_autor()`) — todo contra el proyecto
-  Supabase real, con 2 migraciones ya aplicadas
-  (`20260809192913_fase_c_campos_y_activity_logs.sql`,
-  `20260809221243_fix_autor_actividad_visible_a_viewer.sql`).
-  **Esto NO es lo mismo que las unidades C1 (Gantt de fechas reales, ✅
-  completa desde 2026-08-10, ver bullet más abajo)/C2 (CRUD de
-  requerimientos y tareas)/C3 (bitácora de horas ejecutadas vía trigger) de
-  `ROADMAP_V2.md`; C2/C3 siguen pendientes** — son dos desgloses distintos
-  de "Fase C" con el mismo prefijo, no confundirlos
-  (ver `PLAN_IMPLEMENTACION_FASE_C.md`, ya marcado como ejecutado, para el
-  detalle exacto de lo implementado). Verificado en código: acordeón
-  completo, botón de actividad gateado por rol, sin referencias colgantes a
-  `documentation_folder_url` (columna eliminada en la migración).
-  **Verificación en vivo completada y aprobada por el PO (2026-08-10)**:
-  KPI "Reabiertos" tras reabrir un requerimiento, cambio de color de
-  "Salud del proyecto" con una tarea vencida, autor correcto en una
-  actividad nueva, y que un Viewer no puede insertar en `activity_logs`
-  vía API directa — los 4 puntos de la sección 5 de
-  `PLAN_IMPLEMENTACION_FASE_C.md` en verde. **Fase C queda cerrada por
-  completo.**
-- **✅ Unidad C1 (Gantt de fechas reales) completa y verificada
-  (2026-08-10, PR #10, rama `fase-c1` mergeada a `main`)**: semillado de
-  `planned_start_date`/`planned_end_date` (164/164 tareas, criterio mixto
-  horas/6 o duración fija por fase), pantalla
-  `/planeacion/[requerimiento]/editar` (edición de fechas vía RPC
-  `rpc_set_planned_dates`, más crear/eliminar tareas — alcance ampliado en
-  vivo con el PO, que originalmente pertenecía a C2), Gantt rediseñado con
-  **ventana navegable** (mes calendario/semana/14 días + botones
-  "< Hoy >", en vez de comprimir todo el rango — pivot de diseño pedido
-  por el PO tras revisar el primer corte en producción), nuevo estado de
-  semáforo `"vencido"` (distinto de "rojo"/próximo a vencer), y una
-  **extensión de horas ejecutadas por tarea** fuera del diseño original de
-  C3 (`activity_logs.task_id` + `requirement_tasks.executed_hours` vía
-  trigger — ver nota en `ROADMAP_V2.md` §C3.3 para quien retome C3). Ver
-  `design/contratos/contrato-datos-gantt.md` para el detalle completo del
-  estado final.
-- **✅ Unidad C2.1 (status de tarea a conjunto canónico) completa y
-  verificada (2026-08-10, PR #12, rama `fase-c2-1` mergeada a `main`)**:
-  `requirement_tasks.status` pasa de texto libre a un `CHECK constraint`
-  de 6 valores (`No iniciada`, `Pendiente`, `En curso`, `Bloqueada`,
-  `Completada`, `Cancelada`) — ver detalle completo en "Roadmap de fases"
-  más abajo y en `PLAN_EJECUCION_C2_C3.md` (plan vigente de esta ronda,
-  en la raíz del repo, con estado de ejecución unidad por unidad). En el
-  camino se cerró también el **PR #11** (rama `fix-lint-c1`): `npm run
-  lint` estaba roto en `main` desde el PR #10 por reglas nuevas de
-  `eslint-config-next`, sin cambio de comportamiento.
-- **✅ Unidad C2.5 (reestructuración de Server Actions + componentes
-  shadcn) completa (2026-08-10, PR #13, rama `fase-c2-5`)**: las Server Actions
-  del proyecto (antes repartidas en `src/app/actions.ts`,
-  `src/app/requerimiento/[item]/actions.ts` y
-  `src/app/planeacion/[requerimiento]/editar/actions.ts`) se consolidaron
-  por dominio en `src/app/actions/{ui,requirements,tasks,activity-logs}.ts`
-  (los 3 archivos originales se eliminaron; `requirements.ts` queda como
-  stub sin exports hasta C2.3). Se instalaron los 5 componentes shadcn que
-  faltaban bajo el preset Base UI (`table`, `textarea`, `alert-dialog`,
-  `checkbox`, `dialog` — solo `label` ya existía) vía `npx shadcn add`, sin
-  necesidad de escribir ninguno a mano. **Ojo para el futuro**: ese mismo
-  comando sobreescribió `button.tsx` con la versión genérica del registro,
-  perdiendo momentáneamente los tokens de Claude Design
-  (`--primary-hover`/`--primary-disabled`) — se revirtió a mano; cualquier
-  `npx shadcn add` posterior debe revisar `git diff` de los componentes ya
-  personalizados antes de commitear.
-- **✅ Unidad C3.2/C3.3 rediseñadas en vivo varias veces y cerradas (2026-08-11, PR #15,
-  mergeado a `main`) — diseño final: "tarea" y "actividad" son el mismo concepto.** Historial de pivots (no repetirlos): 1) actividad con selector de Fase
-  en un modal global — descartado; 2) actividad por fase dentro de `TareasPorFase`, separada
-  de las tareas — descartado, el PO no quería dos cosas para lo mismo; 3) **diseño
-  definitivo**: un solo botón "Añadir tarea" por fase (`agregar-tarea-dialog.tsx`) crea una
-  tarea con nombre/fechas/estado/horas consumidas iniciales opcionales; para sumar más horas
-  a una tarea ya existente hay un botón "Registrar horas" (`registrar-horas-dialog.tsx`,
-  reutiliza `activity_logs.task_id` + el trigger de C1) — solo se ve el total acumulado, sin
-  desglose. Cada tarea tiene también un editor de estado (los 6 valores canónicos) y edición
-  de fechas planeadas/eliminar, todo junto en `tarea-acciones-admin.tsx` (partido en una
-  carpeta en el cierre técnico de 2026-08-11, ver más abajo). Se ejecutó además
-  la Unidad C3.3 del roadmap (`requirements.executed_hours` pasa de valor estático migrado a
-  columna derivada por trigger desde `activity_logs`, con backfill de la brecha para no
-  duplicar horas). **Se unificó la vista de tareas**: Detalle y Planeación → Editar usan el
-  mismo `TareasPorFase` (se eliminó `EditarFechasForm`) — esa vista se partió en la carpeta
-  `src/components/tarea-acciones-admin/` en el cierre técnico de 2026-08-11, ver ese bullet
-  más abajo. **Fecha límite de fase (nueva)**:
-  tabla `requirement_phase_deadlines`, un campo por fase en el acordeón, se dibuja como hito
-  propio en el Gantt (`gantt-timeline.tsx`), independiente de las fechas de las tareas. Se
-  migraron a tarea las 2 actividades que se habían registrado en modo "fase sin tarea"
-  durante el pivot intermedio (las más viejas, sin fase, siguen en el histórico
-  `ActividadesSinFase`). Se corrigió también un bug real: crear una tarea sin ninguna fecha
-  la dejaba invisible en el Gantt sin ningún aviso — `dueDate` es obligatorio desde ahora.
-- **✅ Hotfix + C2.2/C2.4/C2.3 completas (2026-08-11, PR #16, rama
-  `fase-c2-cierre`) — Fase C2 queda cerrada por completo.** A pedido
-  explícito del PO, las 4 unidades se probaron juntas en local contra el
-  Supabase real y se mergearon en un solo PR (no el patrón de 1 unidad = 1
-  rama = 1 PR de las rondas anteriores) — ver `PLAN_HOTFIX_C2_CIERRE.md`
-  para el detalle completo. **Hotfix**: eliminar una tarea con horas
-  registradas dejaba esas horas huérfanas pero sumando igual al total del
-  requerimiento (`activity_logs.task_id` tenía `on delete set null`) —
-  ahora es `on delete cascade`, y se reparó el único caso ya afectado en
-  producción ("Estandarización Mapas", 21h → 15h). **C2.2**: edición
-  inline de nombre/fecha límite/notas/bloqueantes/asignado de una tarea ya
-  creada (`actualizarTarea()`, botón de lápiz en
-  `src/components/tarea-acciones-admin/`), contador "N/M completadas" por fase y
-  atenuado visual de tareas completadas en `tareas-por-fase.tsx`. **C2.4**:
-  los 21 requerimientos sin detalle ya son navegables (se quitó el gateo
-  por `has_detail_tracking` tanto en `requerimiento-card.tsx` como en
-  `getRequerimientoDetalle()`), muestran sus metadatos igual, y
-  `crearTarea()` marca `has_detail_tracking = true` al recibir su primera
-  tarea. **C2.3**: `src/app/actions/requirements.ts` (antes stub) ya tiene
-  `crearRequerimiento`/`actualizarRequerimiento`/`cerrarPorCambioDeAlcance`,
-  con `RequerimientoForm` compartido por las 3 páginas nuevas
-  (`/requerimiento/nuevo`, `[item]/editar`, `[item]/cambio-de-alcance`) —
-  12 campos, no 13: `documentation_folder_url` ya no existe como columna
-  (se eliminó en la migración de Fase C, antes de que se escribiera el
-  plan original de C2.3).
-- **✅ Cierre técnico pre-refinamiento visual (2026-08-11, rama
-  `fase-cierre-tecnico`)**: tras una auditoría integral (ver
-  `AUDITORIA_CORTE_2026-08-11.md`), se corrigieron los puntos que
-  encarecerían el refinamiento visual de pantallas y se dejó un contrato de
-  datos limpio, ignorando el historial de fases pasadas salvo lo ya vigente
-  aquí. Se eliminó `document_versions` (scaffolding vacío de Fase D, sin
-  policies — se recrea cuando se diseñe esa fase de verdad); se agregaron
-  `ON DELETE SET NULL` explícito en 2 FK, un índice en
-  `activity_logs.task_id`, un trigger de `updated_at` en
-  `requirement_phase_deadlines`, y se protegió `executed_hours` contra
-  `UPDATE` directo (`REVOKE`, los triggers que la mantienen ya son
-  `security definer`). `Tarea.estado` ahora usa el tipo `EstadoTarea` (ya
-  no `string`); `formatearFecha()` (antes duplicada en 6 componentes) vive
-  en `src/lib/fechas.ts`; `tarea-acciones-admin.tsx` se partió en
-  `src/components/tarea-acciones-admin/` (estado, fechas planeadas, editar,
-  eliminar); `requerimiento-form.tsx` y el resto de controles crudos
-  (`<select>`/`<textarea>`/`window.confirm`) migraron a los componentes
-  shadcn ya instalados (`Select`, `Textarea`, `Checkbox`, `AlertDialog`).
-- **Sigue faltando**: únicamente la Fase D (documentos versionados en
-  Storage, **explícitamente fuera de alcance de esta ronda de trabajo**,
-  sin fecha de retoma) — ver `ROADMAP_V2.md` para su diseño. Fase 0, Fase
-  B, Fase C, C1, C2 completa y C3 ya están completas.
+  (repo: `https://github.com/jebb10/Tablero.git`). Login real por roles
+  (Admin/Viewer) vía Supabase Auth, con recuperar/restablecer contraseña
+  verificado en producción. **RLS exige sesión para leer y solo Admin para
+  escribir** (`projects`/`requirements`/`requirement_tasks`); la UI también
+  oculta controles solo-Admin a los Viewers vía `RoleGate`
+  (`src/components/auth/role-gate.tsx`), no solo la RLS. Checklist de
+  seguridad de 11 puntos corrido contra producción, evidencia en
+  `supabase/RUNBOOK_AUTH.md`. **Sigue sin configurarse un SMTP propio** —
+  pospuesto explícitamente por el PO (riesgo bajo hoy, con 1 Admin + pocos
+  Viewers).
+- El sistema de diseño de Claude Design (`design/` en la raíz del repo) ya
+  integró: login, `RoleGate`, home, Gantt, detalle de requerimiento —
+  tokens en `src/app/globals.css`.
+- **Flujo de git**: rama + PR (autoaprobado por el PO), no push directo a
+  `origin/main`. Vercel no tiene previews por PR — la verificación real en
+  producción ocurre después de mergear.
+- Cubre: vista principal (Home) con KPIs, búsqueda/filtros, 4 bloques de
+  estado y semáforo por fecha límite; drill-down por requerimiento con
+  acordeón de tareas por fase; vista `/planeacion` (Gantt navegable con
+  sidebar colapsable), con edición de fechas/tareas en
+  `/planeacion/[requerimiento]/editar` (mismo componente que el Detalle).
+  Registro de horas por tarea (fusión tarea/actividad) con bitácora
+  append-only.
+- Lee y escribe en Supabase (Postgres + API REST), ver "Fuente de datos"
+  abajo. **Backup diario verificado** — ver "Backup" abajo.
+- **Todas las fases planificadas hasta hoy (0, B, C, C1, C2, C3) están
+  completas y verificadas en producción.** El detalle de ejecución de cada
+  una (decisiones tomadas con el PO, pivots de diseño, PRs #9–#16) vive en
+  el historial de git — no se conserva como documento aparte en el repo.
+- **Único pendiente real: Fase D** (documentos versionados en Storage),
+  explícitamente fuera de alcance, sin fecha de retoma — diseño completo
+  conservado en [`PENDIENTES.md`](./PENDIENTES.md).
+
+## Deuda técnica conocida (no bloqueante)
+
+Detectada en la auditoría integral del cierre técnico de 2026-08-11 (los hallazgos bloqueantes de esa
+auditoría ya se corrigieron: `Tarea.estado` usa `EstadoTarea`, `formatearFecha()` vive en
+`src/lib/fechas.ts`, `tarea-acciones-admin.tsx` se partió en carpeta, los controles crudos migraron a
+shadcn). Lo que queda es deuda documentada, no bloqueante para seguir trabajando:
+
+**Capa de datos**
+- 4 `Pick<...>` ad-hoc distintos sobre `requirements` sin adaptador común (`dashboard-data.ts`,
+  `requerimiento-data.ts` ×2, `planeacion-data.ts`); dos rutas de agrupación por fase separadas
+  (`fases.ts` vs. inline en `planeacion-data.ts`).
+- `estados.ts` ("fuente única de estados") no se usa de punta a punta —
+  `requerimiento-data.ts:116` y `actions/requirements.ts:200` comparan el literal
+  `"CERRADO_POR_CAMBIO_ALCANCE"` a mano.
+- `database.types.ts` puede desincronizarse tras una migración si no se corre
+  `npm run types:db` — verificar tras cada `db push`.
+- Validación solo en escritura (zod únicamente en `guardarFechasPlaneadas`); el resto de Server
+  Actions valida a mano (`typeof x !== "string"`). `dev_environment_url` no tiene validación de
+  formato en servidor.
+- Caché in-memory asimétrica: Home la tiene (`dashboard-data.ts`), Planeación no — riesgo bajo de que
+  ambas vistas muestren datos distintos tras un fallo transitorio de Supabase.
+- `EventoActividad` exportado en `actividades-data.ts` sin uso real (`Actividad.eventType` es
+  `string` suelto).
+
+**Base de datos**
+- FKs sin `ON DELETE` explícito: `requirements.parent_requirement_id`, `activity_logs.created_by`
+  (caen en `NO ACTION` por defecto, inconsistente con el resto del esquema que sí es explícito).
+- Columnas candidatas a huérfanas: `requirements.parent_requirement_id` (jerarquía nunca usada),
+  `requirements.billing_date` (tipo `text`, resabio del Excel), `requirement_tasks.completed_date`,
+  `requirement_tasks.detail`.
+
+**Server Actions / componentes**
+- Patrón `successVisto` (cerrar diálogo tras éxito) duplicado línea por línea en 3 diálogos;
+  `aInputDate()` duplicada en 2 archivos.
+- `actividades-sin-fase.tsx` + `actividad-tipos.ts`: legacy intencional del histórico pre-fusión
+  tarea/actividad (2026-08-11) — sigue siendo necesario, pero conviene que el PO decida
+  explícitamente si se archiva visualmente o se mantiene visible antes de rediseñar esa zona.
 
 ## Fuente de datos
 
@@ -256,9 +124,8 @@ Unidad 0.1.
 Los datos se migraron una sola vez con `scripts/migrate_to_supabase.py`
 (Python + openpyxl + `supabase-py`, idempotente vía upsert) — el detalle
 campo a campo de esa migración (qué hoja mapeaba a qué columna, etc.) ya no
-vive en ningún documento vigente (se recortó de `ROADMAP_SUPABASE.md` el
-2026-08-09 por ser historia ya ejecutada); sigue disponible en el historial
-de git de ese archivo si algún día hiciera falta. No hay polling ni
+vive en ningún documento vigente; sigue disponible en el historial de git
+si algún día hiciera falta. No hay polling ni
 caché de servidor más allá de una caché in-memory del último resultado
 bueno (para resiliencia si Supabase no responde en un request puntual) — el
 botón "Sincronizar" (RN-05, tenía sentido solo cuando la fuente era externa)
@@ -416,7 +283,7 @@ no hay ningún consumidor de ese código.
   control MVP)**: el texto completo de `Notas` NO se muestra en ningún lado
   hoy, ni siquiera en el drill-down — es alcance recortado confirmado por el
   PO, no un pendiente. Lo único visible relacionado es `bloqueantes`/`notas`
-  a nivel de **tarea** individual en `fase-stepper.tsx`, que es un campo
+  a nivel de **tarea** individual en `tareas-por-fase.tsx`, que es un campo
   distinto (de la hoja de detalle, no de `Dashboard Principal`).
 - **RN-04** (contenido de card + navegación): ver `requerimiento-card.tsx`.
 - **RN-05** (sync manual, sin polling): **superada desde la Fase A** — ya
@@ -431,109 +298,17 @@ no hay ningún consumidor de ese código.
   crecer más allá de 28 requerimientos, pero **esto no está probado a
   escala** — ver Roadmap.
 
-## Roadmap de fases (lo que falta)
+## Pendiente
 
-Este proyecto se construye por fases; no completes de una vez lo que
-pertenece a una fase futura sin confirmarlo primero. **El orden de fases fue
-reordenado por el PO el 2026-08-01** (cuestionario de 24+ preguntas) — no es
-el orden original con el que arrancó el proyecto.
+Este proyecto se construyó por fases (0, A, B, C, C1, C2, C3), todas completas y verificadas en
+producción a fecha 2026-08-11. **No completes de una vez trabajo de una fase futura sin
+confirmarlo primero con el PO.**
 
-Fases previas a la migración a Supabase (todas ✅ completas, era-Excel — no
-se repite el detalle aquí porque el Excel ya no es parte de la app):
-**Fase 0** (reorganización inicial del Excel), **Fase 0.1** (auditoría/
-estandarización de las 7 hojas de detalle), **Fase 1** (MVP local),
-**Fase 2** (marca Positiva + calidad de datos + PDF + resiliencia),
-**punto de control MVP** (2026-08-01, nivelación de git/documentación/
-arquitectura antes de seguir), **Fase 3a** (Google Drive como fuente de
-datos temporal, previa a Supabase).
+**Único pendiente real: Fase D** (documentos versionados en Storage — sin versionado real: subir
+reemplaza y borra el anterior), explícitamente fuera de alcance, sin fecha de retoma — diseño
+completo conservado en [`PENDIENTES.md`](./PENDIENTES.md) para cuando se retome.
 
-**A partir de aquí, el PO revirtió explícitamente la decisión de "sin BD,
-sin caché, sin multi-proyecto" de la antigua Fase 5 (ver planes abajo,
-conservados como historial) y pidió una migración real a Supabase.** Las
-Fases 3 (Acceso)/4 (Datos más completos)/5 (Escala) que seguían aquí quedan
-**superadas** por el nuevo roadmap — no se ejecutan tal como estaban
-planteadas:
-- El login de la vieja "Fase 3" (Auth.js + Google, sin roles) fue
-  reemplazado por **Fase B** del nuevo roadmap: Supabase Auth nativo, con
-  roles Admin/Viewer.
-- La vieja "Fase 4" (Gantt) ya se ejecutó como parte de la nueva **Fase A**
-  (`/planeacion`, ver Fuente de datos arriba).
-- La vieja "Fase 5" (decisión de no usar BD) fue **revertida por el PO**:
-  ya hay base de datos, y el modelo soporta multi-proyecto (aunque sin
-  selector en la UI todavía, ver Fuente de datos arriba).
-
-- **Fase A — Migración a Supabase (multi-proyecto, solo lectura), semáforo,
-  Gantt:** ✅ completa (2026-08-06). Ver "Estado actual" y "Fuente de datos"
-  arriba para el resumen; decisiones tomadas con el PO (más de 30 preguntas
-  de descubrimiento) y resumen ejecutivo del cierre en `ROADMAP_SUPABASE.md`
-  (historial, recortado el 2026-08-09).
-- **Fase 0 — Fundaciones:** ✅ **completa** (2026-08-09). Unidades 0.0–0.4
-  completadas 2026-08-07; Unidad 0.6 (andamiaje compartido: `slug.ts`,
-  `estados.ts`, `fechas.ts`, `fases-orden.ts`, `zod`) y Unidad 0.5 (backup,
-  con ensayo de restauración real verificado) completadas 2026-08-09. Diseño
-  completo en `ROADMAP_V2.md`. Siguiente: Fase B (Auth).
-- **Fase B — Supabase Auth + roles (Admin/Viewer):** ✅ **completa**
-  (2026-08-09). El detalle de verificación en vivo de cada unidad no se
-  conserva como documento aparte (lo esencial ya vive en "Seguridad" arriba
-  y en `supabase/RUNBOOK_AUTH.md`). Resumen: clientes SSR + `proxy.ts` (B.1),
-  `profiles` + `is_admin()` + usuarios reales (B.2), `/login` + logout +
-  recuperar/restablecer contraseña (B.3, alcance ampliado respecto al diseño
-  original), flip de RLS a solo-autenticados (B.4, 2026-08-09:
-  `projects`/`requirements`/`requirement_tasks` ya no son legibles con la
-  anon key, trigger `updated_at` activado), `RoleGate` ocultando contenido
-  solo-Admin en la UI (B.5), checklist de seguridad de 11 puntos con
-  evidencia real contra producción (B.6, 11/11 en verde). Único pendiente
-  conocido, pospuesto explícitamente por el PO: SMTP propio en Supabase,
-  hasta después de cerrar Fase C. Desde la Unidad B.1, Fase B usó rama +
-  PR (no push directo a `main`).
-- **Fase C — Pantallas de escritura:** ✅ **completa** (2026-08-10).
-  Home/Gantt-visual/Detalle/Registro de actividades implementados,
-  mergeados a `main` (PR #9) y verificados en vivo (los 4 puntos de la
-  sección 5 de `PLAN_IMPLEMENTACION_FASE_C.md`, aprobado por el PO) — ver
-  "Estado actual" arriba.
-- **Unidad C1 — Gantt de fechas reales:** ✅ **completa** (2026-08-10, PR
-  #10). Ver "Estado actual" arriba para el detalle completo.
-- **Unidad C2.1 — Estado de tarea a conjunto canónico:** ✅ **completa**
-  (2026-08-10, rama `fase-c2-1`). `requirement_tasks.status` pasa de texto
-  libre a un `CHECK constraint` de 6 valores (`No iniciada`, `Pendiente`,
-  `En curso`, `Bloqueada`, `Completada`, `Cancelada`) — los 165 valores
-  reales ya coincidían exactamente, sin necesidad de `UPDATE` de
-  normalización. Nuevo `src/lib/estados-tarea.ts`
-  (`ESTADOS_TAREA`/`estadoEsCompletada()`) reemplaza los 6 sitios dispersos
-  que comparaban `status.toLowerCase() === "completada"` (o, en un caso,
-  sin normalizar). **Fuera de plan, resuelto en el camino**: `npm run lint`
-  estaba roto en `main` desde el PR #10 por una versión más nueva de
-  `eslint-config-next` (PR #11, rama `fix-lint-c1`, mergeado antes de
-  C2.1, sin cambio de comportamiento).
-- **Unidad C2.5 — Reestructuración de Server Actions + componentes
-  shadcn:** ✅ **completa** (2026-08-10, PR #13, rama `fase-c2-5`). Ver "Estado
-  actual" arriba para el detalle completo, incluyendo el cuidado a tener
-  en cuenta con `npx shadcn add` sobreescribiendo componentes ya
-  personalizados.
-- **Hotfix (horas huérfanas al eliminar tarea) + Unidades C2.2/C2.4/C2.3 —
-  Fase C2 completa:** ✅ **completa** (2026-08-11, PR #16, rama
-  `fase-c2-cierre`). Ver "Estado actual" arriba para el detalle completo de
-  las 4 unidades y `PLAN_HOTFIX_C2_CIERRE.md` para el plan de ejecución.
-  Desviación del flujo de git de las rondas anteriores, a pedido explícito
-  del PO: las 4 unidades se probaron juntas en local y se mergearon en un
-  solo PR, no 1 rama/PR por unidad.
-- **Fase D — Documentos versionados (sin versionado real: subir reemplaza y
-  borra el anterior):** pendiente, y **explícitamente fuera de alcance de
-  la ronda de trabajo C2/C3 iniciada 2026-08-10** (decisión del PO, sin
-  fecha de retoma) — diseño completo en `ROADMAP_V2.md` para cuando se
-  retome.
-
-Resumen ejecutivo de la Fase A: `ROADMAP_SUPABASE.md` (en la raíz de este
-repo) — queda como historial, **superado**. Diseño vigente de lo que falta
-(C1 en adelante): `ROADMAP_V2.md` (en la raíz de este repo) — se mantiene
-liviano a propósito, solo con el diseño de unidades pendientes; incluye la
-tabla de 14 puntos donde `ROADMAP_SUPABASE.md` contradice lo que hay en
-disco. El detalle de verificación en vivo de las unidades ya cerradas (Fase
-0, Fase B) no se conserva como documento aparte — lo esencial ya vive en
-`supabase/RUNBOOK_AUTH.md` y en los resúmenes de arriba. Lo implementado de
-Fase C vive en `PLAN_IMPLEMENTACION_FASE_C.md` (ejecutado, rama `fase-c`).
-**Fase C2 y Fase C3 ya están completas — `PLAN_EJECUCION_C2_C3.md` (con
-las ~20 decisiones tomadas con el PO el 2026-08-10) y
-`PLAN_HOTFIX_C2_CIERRE.md` (cierre de C2.2/C2.4/C2.3 + hotfix, 2026-08-11)
-quedan en la raíz de este repo como historial de ejecución, no como
-trabajo pendiente. Solo la Fase D sigue sin empezar.**
+El detalle de ejecución de las fases ya cerradas (decisiones tomadas con el PO, pivots de diseño,
+contradicciones resueltas del diseño original) no se conserva como documento aparte en el repo —
+vive en el historial de git (PRs #9–#16) y, para lo aún relevante operativamente, en
+`supabase/RUNBOOK_AUTH.md`/`RUNBOOK_BACKUP.md`/`MIGRACIONES.md`.
