@@ -1,26 +1,53 @@
 # Dashboard 414 — Seguimiento de Requerimientos (Positiva Web)
 
-Dashboard ejecutivo del proyecto Positiva Web 414. Next.js (App Router) +
-TypeScript + Tailwind v4 + shadcn/ui, con Supabase (Postgres + API REST)
-como fuente de datos.
+## Objetivo
 
-**Demo desplegada:** [tablero-pi.vercel.app](https://tablero-pi.vercel.app/)
+Herramienta de uso diario para el seguimiento del proyecto de software real
+"Positiva Web 414": para cada uno de los 28 requerimientos, muestra en qué
+estado va, cuántas horas se han consumido frente a lo estimado, y el detalle
+de sus tareas por fase (Requerimientos → Diseño → Desarrollo → QA →
+Producción). No es un reporte estático ni un ejercicio de aprendizaje — es
+la única fuente de verdad del PO para saber, en cualquier momento, en qué va
+cada requerimiento y quién ha registrado qué trabajo.
+
+Next.js (App Router) + TypeScript + Tailwind v4 + shadcn/ui, con Supabase
+(Postgres + API REST + Auth) como fuente de datos y autenticación.
+
+**Desplegado en producción:** [tablero-pi.vercel.app](https://tablero-pi.vercel.app/)
+
+## Qué hace hoy
+
+- **Home** (`/`): KPIs (total, por estado, horas, bloqueados, reabiertos,
+  vencidas, "Salud del proyecto"), búsqueda/filtros, 4 bloques de estado,
+  semáforo por fecha límite, panel de calidad de datos.
+- **Detalle de requerimiento** (`/requerimiento/[item]`): acordeón "Tareas
+  por fase" — cada tarea con estado, fechas (límite + planeadas), horas
+  consumidas y bloqueantes; botón "Añadir tarea" y "Registrar horas" por
+  fase (Admin); bloque aparte para el historial de actividad anterior a la
+  fusión tarea/actividad.
+- **Planeación** (`/planeacion`): Gantt navegable (mes/semana/14 días,
+  botones "< Hoy >"), semáforo por tarea, hito propio por fase (fecha
+  límite de fase, independiente de las tareas). `/planeacion/[req]/editar`
+  usa exactamente el mismo acordeón de tareas que el Detalle — un solo
+  lugar para crear/editar/eliminar tareas y registrar horas.
+- **Login por roles**: Admin (escribe) / Viewer (solo lectura) vía Supabase
+  Auth — `/login`, recuperar/restablecer contraseña. RLS exige sesión para
+  leer, y solo Admin para escribir; la UI también oculta los controles de
+  escritura a un Viewer (`RoleGate`), no solo la base de datos.
 
 ## Estado actual
 
-**Fase B (Supabase Auth + roles Admin/Viewer) completa**: login real, RLS
-exige sesión para leer y solo Admin puede escribir, la UI oculta
-controles de escritura a los Viewers (`RoleGate`), y la seguridad quedó
-verificada con evidencia real contra producción (`supabase/RUNBOOK_AUTH.md`).
-**Fase C (pantallas de escritura) completa**: implementada, mergeada a
-`main` (PR #9) y verificada en vivo en producción, aprobada por el PO.
-**El estado detallado y
-siempre vigente vive en [`CLAUDE.md`](./CLAUDE.md) — no se duplica aquí
-para evitar que este resumen se desactualice.**
+Fases 0 (fundaciones), B (auth/roles) y C (pantallas de escritura) **completas**.
+De la ronda C2/C3 en curso: **C1 (Gantt real), C2.1 (estados canónicos), C2.5
+(Server Actions por dominio) y C3 (fusión tarea/actividad + fecha límite de
+fase) completas y en producción.** Pendiente: C2.2 (edición inline —
+ya cubierta en la práctica por el acordeón unificado), C2.4 (navegar los 21
+requerimientos sin detalle) y C2.3 (crear/editar requerimiento). Fase D
+(documentos versionados) fuera de alcance de esta ronda, sin fecha de retoma.
 
-**Toda la documentación real del proyecto vive en [`CLAUDE.md`](./CLAUDE.md)**:
-arquitectura, fuente de datos, reglas de negocio, estado actual y roadmap
-de fases (`ROADMAP_V2.md`). Empieza ahí.
+**El detalle completo y siempre vigente vive en [`CLAUDE.md`](./CLAUDE.md)
+— léelo antes de tocar el código.** El diseño pendiente está en
+[`ROADMAP_V2.md`](./ROADMAP_V2.md) y [`PLAN_EJECUCION_C2_C3.md`](./PLAN_EJECUCION_C2_C3.md).
 
 ## Correr en local
 

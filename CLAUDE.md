@@ -143,9 +143,8 @@ consulta siempre "Estado actual" abajo antes de proponer cambios grandes.
   (`--primary-hover`/`--primary-disabled`) — se revirtió a mano; cualquier
   `npx shadcn add` posterior debe revisar `git diff` de los componentes ya
   personalizados antes de commitear.
-- **Unidad C3.2/C3.3 rediseñadas en vivo varias veces el 2026-08-11, sobre la rama
-  `fase-c3-fase-actividad` (sin PR todavía) — diseño final: "tarea" y "actividad" son el
-  mismo concepto.** Historial de pivots (no repetirlos): 1) actividad con selector de Fase
+- **✅ Unidad C3.2/C3.3 rediseñadas en vivo varias veces y cerradas (2026-08-11, PR #15,
+  mergeado a `main`) — diseño final: "tarea" y "actividad" son el mismo concepto.** Historial de pivots (no repetirlos): 1) actividad con selector de Fase
   en un modal global — descartado; 2) actividad por fase dentro de `TareasPorFase`, separada
   de las tareas — descartado, el PO no quería dos cosas para lo mismo; 3) **diseño
   definitivo**: un solo botón "Añadir tarea" por fase (`agregar-tarea-dialog.tsx`) crea una
