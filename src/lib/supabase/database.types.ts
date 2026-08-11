@@ -146,7 +146,6 @@ export type Database = {
         Row: {
           assignee: string | null
           blockers: string | null
-          completed_date: string | null
           created_at: string
           detail: string | null
           due_date: string | null
@@ -169,7 +168,6 @@ export type Database = {
         Insert: {
           assignee?: string | null
           blockers?: string | null
-          completed_date?: string | null
           created_at?: string
           detail?: string | null
           due_date?: string | null
@@ -192,7 +190,6 @@ export type Database = {
         Update: {
           assignee?: string | null
           blockers?: string | null
-          completed_date?: string | null
           created_at?: string
           detail?: string | null
           due_date?: string | null
@@ -225,7 +222,6 @@ export type Database = {
       requirements: {
         Row: {
           assignees: string[] | null
-          billing_date: string | null
           category: string | null
           client_stakeholder: string | null
           code: string
@@ -250,7 +246,6 @@ export type Database = {
         }
         Insert: {
           assignees?: string[] | null
-          billing_date?: string | null
           category?: string | null
           client_stakeholder?: string | null
           code: string
@@ -275,7 +270,6 @@ export type Database = {
         }
         Update: {
           assignees?: string[] | null
-          billing_date?: string | null
           category?: string | null
           client_stakeholder?: string | null
           code?: string
