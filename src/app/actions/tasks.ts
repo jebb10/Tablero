@@ -196,9 +196,10 @@ export async function eliminarTarea(
   }
 
   const supabase = await getSupabaseClient();
-  // activity_logs.task_id es "on delete set null" (ver migración
-  // 20260810120000_c1_ext_horas_por_tarea.sql) -- borrar una tarea no
-  // borra su bitácora de actividades, solo desvincula el task_id.
+  // activity_logs.task_id es "on delete cascade" desde el hotfix
+  // 20260811030000_fix_cascade_horas_tarea_eliminada.sql -- borrar una
+  // tarea borra también su bitácora de horas asociada, para que el total
+  // del requerimiento baje correctamente.
   const { error } = await supabase.from("requirement_tasks").delete().eq("id", taskId);
 
   if (error) {

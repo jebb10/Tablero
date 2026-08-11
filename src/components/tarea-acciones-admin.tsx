@@ -31,6 +31,7 @@ export function TareaAccionesAdmin({
   estadoActual,
   plannedStartDate,
   plannedEndDate,
+  executedHours,
 }: {
   taskId: string;
   taskName: string;
@@ -39,6 +40,7 @@ export function TareaAccionesAdmin({
   estadoActual: string | null;
   plannedStartDate: Date | null;
   plannedEndDate: Date | null;
+  executedHours: number;
 }) {
   const router = useRouter();
   const [inicio, setInicio] = useState(aInputDate(plannedStartDate));
@@ -53,7 +55,11 @@ export function TareaAccionesAdmin({
   const [errorEliminar, setErrorEliminar] = useState<string | null>(null);
 
   async function onEliminar() {
-    if (!window.confirm(`¿Eliminar la tarea "${taskName}"? Esta acción no se puede deshacer.`)) return;
+    const aviso =
+      executedHours > 0
+        ? `¿Eliminar la tarea "${taskName}"? Se perderán ${executedHours}h registradas. Esta acción no se puede deshacer.`
+        : `¿Eliminar la tarea "${taskName}"? Esta acción no se puede deshacer.`;
+    if (!window.confirm(aviso)) return;
     setEliminando(true);
     setErrorEliminar(null);
     const formData = new FormData();
