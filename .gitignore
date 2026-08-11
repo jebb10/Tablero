@@ -52,3 +52,6 @@ desktop.ini
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# export local para llevar HTML renderizado a Claude Design (one-off)
+/design/html-export/
