@@ -12,6 +12,7 @@ export type CrearTareaState = { error: string | null; success: boolean };
 export type EliminarTareaState = { error: string | null; success: boolean };
 export type ActualizarEstadoState = { error: string | null; success: boolean };
 export type GuardarFechaLimiteFaseState = { error: string | null; success: boolean };
+export type ActualizarTareaState = { error: string | null; success: boolean };
 
 // Unidad C1.2 — guardado atómico de fechas planeadas vía RPC
 // rpc_set_planned_dates (security invoker: hereda RLS del caller, un
@@ -128,6 +129,16 @@ export async function crearTarea(
     });
   }
 
+  // Unidad C2.4: un requerimiento de los 21 "sin detalle" que recibe su
+  // primera tarea pasa a tener detalle real -- has_detail_tracking ya no
+  // gatea el acordeón (siempre se consulta), pero sigue determinando el
+  // atenuado/badge "Sin detalle" de la card en el Home (dashboard-data.ts).
+  await supabase
+    .from("requirements")
+    .update({ has_detail_tracking: true })
+    .eq("id", requirementId)
+    .eq("has_detail_tracking", false);
+
   refresh();
   return { error: null, success: true };
 }
@@ -149,6 +160,55 @@ export async function actualizarEstadoTarea(
 
   if (error) {
     return { error: "No se pudo actualizar el estado.", success: false };
+  }
+
+  refresh();
+  return { error: null, success: true };
+}
+
+// Unidad C2.2 — resto de campos de la tarea (nombre, fecha límite, notas,
+// bloqueantes, asignado) que hasta ahora solo se fijaban al crearla en
+// crearTarea() y quedaban fijos para siempre.
+export async function actualizarTarea(
+  taskId: string,
+  _prevState: ActualizarTareaState,
+  formData: FormData
+): Promise<ActualizarTareaState> {
+  await requireAdmin();
+
+  const taskName = formData.get("taskName");
+  const dueDate = formData.get("dueDate");
+  const notes = formData.get("notes");
+  const blockers = formData.get("blockers");
+  const assignee = formData.get("assignee");
+
+  if (typeof taskName !== "string" || !taskName.trim()) {
+    return { error: "El nombre de la tarea es obligatorio.", success: false };
+  }
+  if (typeof dueDate !== "string" || !dueDate.trim()) {
+    return { error: "La fecha límite es obligatoria.", success: false };
+  }
+
+  const supabase = await getSupabaseClient();
+  const { error } = await supabase
+    .from("requirement_tasks")
+    .update({
+      task_name: taskName.trim(),
+      due_date: dueDate,
+      notes: typeof notes === "string" && notes.trim() ? notes.trim() : null,
+      blockers: typeof blockers === "string" && blockers.trim() ? blockers.trim() : null,
+      assignee: typeof assignee === "string" && assignee.trim() ? assignee.trim() : null,
+    })
+    .eq("id", taskId);
+
+  if (error) {
+    if (error.code === "23505") {
+      return {
+        error: "Ya existe otra tarea con ese nombre en esta fase.",
+        success: false,
+      };
+    }
+    return { error: "No se pudo actualizar la tarea.", success: false };
   }
 
   refresh();
@@ -196,9 +256,10 @@ export async function eliminarTarea(
   }
 
   const supabase = await getSupabaseClient();
-  // activity_logs.task_id es "on delete set null" (ver migración
-  // 20260810120000_c1_ext_horas_por_tarea.sql) -- borrar una tarea no
-  // borra su bitácora de actividades, solo desvincula el task_id.
+  // activity_logs.task_id es "on delete cascade" desde el hotfix
+  // 20260811030000_fix_cascade_horas_tarea_eliminada.sql -- borrar una
+  // tarea borra también su bitácora de horas asociada, para que el total
+  // del requerimiento baje correctamente.
   const { error } = await supabase.from("requirement_tasks").delete().eq("id", taskId);
 
   if (error) {

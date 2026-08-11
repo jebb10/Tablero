@@ -1,5 +1,9 @@
+import Link from "next/link";
+import { Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { ErrorDatosBanner } from "@/components/error-datos-banner";
 import { DashboardClient } from "@/components/dashboard-client";
+import { RoleGate } from "@/components/auth/role-gate";
 import { getDashboardData } from "@/lib/dashboard-data";
 
 // Sin esto, Next intenta pre-renderizar esta página en build time (una sola
@@ -12,13 +16,23 @@ export default async function Home() {
 
   return (
     <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6 p-6">
-      <header>
-        <h1 className="text-2xl font-bold tracking-tight">
-          Dashboard 414 — Bolsas de Horas
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          Estado actual de los requerimientos del proyecto Positiva Web 414.
-        </p>
+      <header className="flex items-center justify-between gap-2">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">
+            Dashboard 414 — Bolsas de Horas
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Estado actual de los requerimientos del proyecto Positiva Web 414.
+          </p>
+        </div>
+        <RoleGate role="admin">
+          <Link href="/requerimiento/nuevo">
+            <Button type="button" size="sm">
+              <Plus className="h-4 w-4" />
+              Nuevo requerimiento
+            </Button>
+          </Link>
+        </RoleGate>
       </header>
       {ultimoResultadoNulo ? (
         <ErrorDatosBanner soloBanner />

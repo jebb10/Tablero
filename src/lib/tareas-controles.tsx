@@ -39,6 +39,11 @@ export function construirControlesTareas(fases: Fase[], requirementId: string) {
             estadoActual={t.estado}
             plannedStartDate={t.plannedStartDate}
             plannedEndDate={t.plannedEndDate}
+            executedHours={t.executedHours}
+            dueDate={t.fechaLimite}
+            notas={t.notas}
+            bloqueantes={t.bloqueantes}
+            asignado={t.asignado}
           />
         </RoleGate>,
       ])

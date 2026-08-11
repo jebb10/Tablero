@@ -26,13 +26,12 @@ function formatearFecha(fecha: Date | null): string | null {
 
 export function RequerimientoCard({ req }: { req: Requerimiento }) {
   const fecha = formatearFecha(req.fechaLimite);
-  const esNavegable = req.tieneDetalle;
 
   const contenido = (
     <div
       className={cn(
         "flex h-full min-h-44 flex-col gap-2 rounded-lg border bg-card p-3 transition-colors",
-        esNavegable && "hover:border-primary/50 hover:shadow-sm",
+        "hover:border-primary/50 hover:shadow-sm",
         req.bloqueado && "border-status-bloqueo border-2",
         !req.tieneDetalle && "bg-muted/40 text-muted-foreground"
       )}
@@ -124,10 +123,6 @@ export function RequerimientoCard({ req }: { req: Requerimiento }) {
       )}
     </div>
   );
-
-  if (!esNavegable) {
-    return contenido;
-  }
 
   return (
     <Link href={`/requerimiento/${req.slug}`} className="block h-full">

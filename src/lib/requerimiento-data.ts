@@ -27,6 +27,51 @@ export interface RequerimientoDetalleResult {
   error: boolean;
   requerimiento: RequerimientoDetalle | null;
   fases: Fase[] | null;
+  errorTareas: boolean;
+  reemplazadoPor: { code: string; slug: string; title: string } | null;
+}
+
+export type RequerimientoParaEditar = Pick<
+  Database["public"]["Tables"]["requirements"]["Row"],
+  | "id"
+  | "code"
+  | "title"
+  | "category"
+  | "complexity"
+  | "month_label"
+  | "status"
+  | "deadline"
+  | "estimated_hours"
+  | "billing_date"
+  | "notes"
+  | "dev_environment_url"
+  | "has_detail_tracking"
+  | "parent_requirement_id"
+>;
+
+/** Unidad C2.3 — datos completos de un requerimiento para el formulario de edición. */
+export async function getRequerimientoParaEditar(
+  slug: string
+): Promise<RequerimientoParaEditar | null> {
+  const supabase = await getSupabaseClient();
+
+  const { data: proyecto } = await supabase
+    .from("projects")
+    .select("id")
+    .eq("slug", PROJECT_SLUG)
+    .single();
+  if (!proyecto) return null;
+
+  const { data } = await supabase
+    .from("requirements")
+    .select(
+      "id, code, title, category, complexity, month_label, status, deadline, estimated_hours, billing_date, notes, dev_environment_url, has_detail_tracking, parent_requirement_id"
+    )
+    .eq("project_id", proyecto.id)
+    .eq("slug", slug)
+    .maybeSingle();
+
+  return data ?? null;
 }
 
 /**
@@ -54,16 +99,45 @@ export async function getRequerimientoDetalle(slug: string): Promise<Requerimien
       .eq("slug", slug)
       .maybeSingle();
     if (errorRequerimiento) throw errorRequerimiento;
-    if (!requerimiento) return { error: false, requerimiento: null, fases: null };
+    if (!requerimiento) {
+      return {
+        error: false,
+        requerimiento: null,
+        fases: null,
+        errorTareas: false,
+        reemplazadoPor: null,
+      };
+    }
 
-    let fases: Fase[] | null = null;
-    if (requerimiento.has_detail_tracking) {
-      const { data: tareas } = await supabase
-        .from("requirement_tasks")
-        .select(
-          "id, phase_number, phase_name, task_name, detail, status, estimated_hours, due_date, completed_date, milestone, blockers, notes, sort_order, assignee, planned_start_date, planned_end_date, planned_dates_confirmed, executed_hours"
-        )
-        .eq("requirement_id", requerimiento.id);
+    // Unidad C2.3 — si este requerimiento quedó CERRADO_POR_CAMBIO_ALCANCE,
+    // buscar el requerimiento nuevo que lo reemplazó (parent_requirement_id
+    // apunta a este) para mostrar el banner "Reemplazado por [link]".
+    let reemplazadoPor: { code: string; slug: string; title: string } | null = null;
+    if (requerimiento.status === "CERRADO_POR_CAMBIO_ALCANCE") {
+      const { data: reemplazo } = await supabase
+        .from("requirements")
+        .select("code, slug, title")
+        .eq("parent_requirement_id", requerimiento.id)
+        .maybeSingle();
+      reemplazadoPor = reemplazo ?? null;
+    }
+
+    // Unidad C2.4: los 28 requerimientos muestran su acordeón de tareas,
+    // con o sin has_detail_tracking -- ya no gatea la consulta, solo sigue
+    // usándose para el atenuado visual de la card en el Home. Query propia
+    // (no lanza al try/catch general) para distinguir "sin tareas" (array
+    // vacío, normal en los que aún no tienen ninguna) de "falló la consulta".
+    let fases: Fase[] = agruparPorFase([]);
+    let errorTareas = false;
+    const { data: tareas, error: errorConsultaTareas } = await supabase
+      .from("requirement_tasks")
+      .select(
+        "id, phase_number, phase_name, task_name, detail, status, estimated_hours, due_date, completed_date, milestone, blockers, notes, sort_order, assignee, planned_start_date, planned_end_date, planned_dates_confirmed, executed_hours"
+      )
+      .eq("requirement_id", requerimiento.id);
+    if (errorConsultaTareas) {
+      errorTareas = true;
+    } else {
       const fechasLimiteFase = await getFechasLimiteFase(requerimiento.id);
       fases = agruparPorFase(tareas ?? []).map((fase, i) => ({
         ...fase,
@@ -71,8 +145,8 @@ export async function getRequerimientoDetalle(slug: string): Promise<Requerimien
       }));
     }
 
-    return { error: false, requerimiento, fases };
+    return { error: false, requerimiento, fases, errorTareas, reemplazadoPor };
   } catch {
-    return { error: true, requerimiento: null, fases: null };
+    return { error: true, requerimiento: null, fases: null, errorTareas: false, reemplazadoPor: null };
   }
 }
