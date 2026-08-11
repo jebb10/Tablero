@@ -28,15 +28,9 @@ export interface Requerimiento {
   semaforo: Semaforo;
   reabierto: number;
   faseActual: string | null;
+  tieneTareaBloqueda: boolean;
+  tieneTareaEnCurso: boolean;
 }
-
-export interface CalidadDatos {
-  camposFaltantes: number;
-  requerimientosAfectados: number;
-  filas: { req: string; campo: string }[];
-}
-
-export type SaludProyecto = "verde" | "amarillo" | "rojo";
 
 export interface HitoProximo {
   nombre: string;
@@ -52,11 +46,7 @@ export interface KPIs {
   horasEstimadasTotal: number;
   horasEjecutadasTotal: number;
   bloqueados: number;
-  calidad: CalidadDatos;
   reabiertos: number;
-  vencidas: number;
-  entregasIncumplidas: number;
-  salud: SaludProyecto;
 }
 
 export interface Tarea {

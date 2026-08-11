@@ -2,18 +2,9 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { ChevronDown, ChevronUp, Diamond, FileDown, Search } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { ChevronDown, ChevronUp, Diamond, FileDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { KpiStrip } from "@/components/kpi-strip";
-import { DataQualityPanel } from "@/components/data-quality-panel";
 import { ErrorDatosBanner } from "@/components/error-datos-banner";
 import { PdfReport } from "@/components/pdf-report";
 import { RequerimientoCard } from "@/components/requerimiento-card";
@@ -34,8 +25,6 @@ const BLOQUES: { estado: Estado; etiqueta: string; dot: string }[] = [
 ];
 
 const ESTADO_CERRADO: Estado = "Cerrado por cambio de alcance";
-
-const TODOS = "__todos__";
 
 function ordenarPorFechaLimite(a: Requerimiento, b: Requerimiento): number {
   if (a.fechaLimite && b.fechaLimite) {
@@ -61,44 +50,17 @@ export function DashboardClient({
   hitosProximos: HitoProximo[];
   error?: boolean;
 }) {
-  const [busqueda, setBusqueda] = useState("");
-  const [complejidad, setComplejidad] = useState(TODOS);
-  const [mes, setMes] = useState(TODOS);
   const [cerradosExpandido, setCerradosExpandido] = useState(false);
 
-  const complejidades = useMemo(
-    () =>
-      Array.from(
-        new Set(requerimientos.map((r) => r.complejidad).filter(Boolean))
-      ) as string[],
-    [requerimientos]
-  );
-  const meses = useMemo(
-    () => Array.from(new Set(requerimientos.map((r) => r.mes).filter(Boolean))) as string[],
-    [requerimientos]
-  );
-
-  const filtrados = useMemo(() => {
-    const texto = busqueda.trim().toLowerCase();
-    return requerimientos.filter((r) => {
-      if (texto && !`${r.nombre} ${r.item}`.toLowerCase().includes(texto)) {
-        return false;
-      }
-      if (complejidad !== TODOS && r.complejidad !== complejidad) return false;
-      if (mes !== TODOS && r.mes !== mes) return false;
-      return true;
-    });
-  }, [requerimientos, busqueda, complejidad, mes]);
-
   const cerrados = useMemo(
-    () => filtrados.filter((r) => r.estado === ESTADO_CERRADO).sort(ordenarPorFechaLimite),
-    [filtrados]
+    () => requerimientos.filter((r) => r.estado === ESTADO_CERRADO).sort(ordenarPorFechaLimite),
+    [requerimientos]
   );
 
   const proximasFechas = useMemo(
     () =>
       requerimientos
-        .filter((r) => r.fechaLimite !== null)
+        .filter((r) => r.estado === "En curso" && r.tieneTareaEnCurso && r.fechaLimite !== null)
         .sort(ordenarPorFechaLimite)
         .slice(0, 4),
     [requerimientos]
@@ -123,8 +85,6 @@ export function DashboardClient({
             </Button>
           </div>
         </div>
-
-        <DataQualityPanel calidad={kpis.calidad} />
 
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="flex flex-col gap-2.5 rounded-xl border bg-card p-4">
@@ -177,49 +137,8 @@ export function DashboardClient({
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-        <div className="relative flex-1 min-w-[16rem]">
-          <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Buscar por nombre o ID..."
-            value={busqueda}
-            onChange={(e) => setBusqueda(e.target.value)}
-            className="pl-8"
-          />
-        </div>
-        <Select
-          value={complejidad}
-          onValueChange={(value) => setComplejidad(value ?? TODOS)}
-        >
-          <SelectTrigger className="w-40">
-            <SelectValue placeholder="Complejidad" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={TODOS}>Toda complejidad</SelectItem>
-            {complejidades.map((c) => (
-              <SelectItem key={c} value={c}>
-                {c}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select value={mes} onValueChange={(value) => setMes(value ?? TODOS)}>
-          <SelectTrigger className="w-44">
-            <SelectValue placeholder="Mes" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={TODOS}>Todo mes</SelectItem>
-            {meses.map((m) => (
-              <SelectItem key={m} value={m}>
-                {m}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
       {BLOQUES.map(({ estado, etiqueta, dot }) => {
-        const items = filtrados
+        const items = requerimientos
           .filter((r) => r.estado === estado)
           .sort(ordenarPorFechaLimite);
         return (

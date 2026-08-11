@@ -4,7 +4,9 @@ import { getKPIs } from "./kpis";
 import { PROJECT_SLUG } from "./project";
 import { getSupabaseClient } from "./supabase/server";
 import { dbAEstado } from "./estados";
-import { estadoEsCompletada } from "./estados-tarea";
+import { estadoTareaDesdeDb } from "./estados-tarea";
+import { getFechasLimiteFasePorRequerimientos } from "./fase-deadlines";
+import { FASES_ORDEN } from "./fases-orden";
 import type { Database } from "./supabase/database.types";
 import type { HitoProximo, KPIs, Requerimiento } from "./types";
 
@@ -22,7 +24,6 @@ type TaskForHome = Pick<
   | "status"
   | "due_date"
   | "planned_end_date"
-  | "milestone"
 >;
 
 function contieneBloqueo(notas: string | null): boolean {
@@ -51,7 +52,8 @@ type RequirementRow = Pick<
 function adaptar(
   row: RequirementRow,
   idsConTareas: Set<string>,
-  faseActual: string | null
+  faseActual: string | null,
+  tareasDelRequerimiento: TaskForHome[]
 ): Requerimiento {
   const horasEstimadas = row.estimated_hours;
   const horasEjecutadas = row.executed_hours;
@@ -86,6 +88,12 @@ function adaptar(
     semaforo: calcularSemaforo(fechaLimite),
     reabierto: row.reopened_count,
     faseActual,
+    tieneTareaBloqueda: tareasDelRequerimiento.some(
+      (t) => estadoTareaDesdeDb(t.status) === "Bloqueada"
+    ),
+    tieneTareaEnCurso: tareasDelRequerimiento.some(
+      (t) => estadoTareaDesdeDb(t.status) === "En curso"
+    ),
   };
 }
 
@@ -126,7 +134,7 @@ export async function getDashboardData(): Promise<
 
     const { data: tareas, error: errorTareas } = await supabase
       .from("requirement_tasks")
-      .select("requirement_id, phase_number, phase_name, status, due_date, planned_end_date, milestone")
+      .select("requirement_id, phase_number, phase_name, status, due_date, planned_end_date")
       .in("requirement_id", idsConDetalle.length > 0 ? idsConDetalle : [""]);
     if (errorTareas) throw errorTareas;
 
@@ -138,37 +146,36 @@ export async function getDashboardData(): Promise<
     }
     const idsConTareas = new Set(tareasPorRequerimiento.keys());
 
-    const requerimientos = (filas ?? []).map((r) =>
-      adaptar(r, idsConTareas, calcularFaseActual(tareasPorRequerimiento.get(r.id) ?? []))
-    );
+    const requerimientos = (filas ?? []).map((r) => {
+      const tareasDelReq = tareasPorRequerimiento.get(r.id) ?? [];
+      return adaptar(r, idsConTareas, calcularFaseActual(tareasDelReq), tareasDelReq);
+    });
 
     const requerimientoPorId = new Map((filas ?? []).map((r) => [r.id, r]));
-    const hoy = new Date();
-    const hitosProximos: HitoProximo[] = (tareas ?? [])
-      .filter((t) => t.milestone !== null && !estadoEsCompletada(t.status))
-      .map((t) => {
-        const fechaStr = t.planned_end_date ?? t.due_date;
-        return { t, fecha: fechaStr ? new Date(fechaStr) : null };
-      })
-      .sort((a, b) => {
-        if (a.fecha && b.fecha) return a.fecha.getTime() - b.fecha.getTime();
-        if (a.fecha) return -1;
-        if (b.fecha) return 1;
-        return 0;
-      })
-      .slice(0, 5)
-      .map(({ t, fecha }) => {
-        const req = requerimientoPorId.get(t.requirement_id);
+
+    const idsEnCurso = (filas ?? [])
+      .filter((r) => dbAEstado(r.status) === "En curso")
+      .map((r) => r.id);
+    const fechasFase = await getFechasLimiteFasePorRequerimientos(idsEnCurso);
+    const hitosProximos: HitoProximo[] = Array.from(fechasFase.entries())
+      .map(([clave, fecha]) => {
+        const separador = clave.lastIndexOf("-");
+        const requirementId = clave.slice(0, separador);
+        const phaseNumero = Number(clave.slice(separador + 1));
+        const req = requerimientoPorId.get(requirementId);
+        const fase = FASES_ORDEN.find((f) => f.numero === phaseNumero);
         return {
-          nombre: t.milestone as string,
+          nombre: fase?.nombre ?? `Fase ${phaseNumero}`,
           requerimientoCodigo: req?.code ?? "",
           requerimientoNombre: req?.title ?? "",
           requerimientoSlug: req?.slug ?? "",
           fecha,
         };
-      });
+      })
+      .sort((a, b) => (a.fecha && b.fecha ? a.fecha.getTime() - b.fecha.getTime() : 0))
+      .slice(0, 5);
 
-    const kpis = getKPIs(requerimientos, tareas ?? [], hoy);
+    const kpis = getKPIs(requerimientos);
     ultimoResultadoBueno = { requerimientos, kpis, hitosProximos };
     return { requerimientos, kpis, hitosProximos, error: false, ultimoResultadoNulo: false };
   } catch {
@@ -177,7 +184,7 @@ export async function getDashboardData(): Promise<
     }
     return {
       requerimientos: [],
-      kpis: getKPIs([], [], new Date()),
+      kpis: getKPIs([]),
       hitosProximos: [],
       error: true,
       ultimoResultadoNulo: true,
