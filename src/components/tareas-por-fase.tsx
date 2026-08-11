@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import type { Fase } from "@/lib/types";
+import { estadoEsCompletada } from "@/lib/estados-tarea";
 import { cn } from "@/lib/utils";
 
 function formatearFecha(fecha: Date | null): string | null {
@@ -43,6 +44,7 @@ export function TareasPorFase({
       {fases.map((fase, i) => {
         const abierta = abiertas[fase.nombre];
         const fechaLimiteFase = formatearFecha(fase.fechaLimiteFase);
+        const completadas = fase.tareas.filter((t) => estadoEsCompletada(t.estado)).length;
 
         return (
           <div key={fase.nombre} className="overflow-hidden rounded-lg border">
@@ -57,7 +59,9 @@ export function TareasPorFase({
                   {ETIQUETA_ESTADO[fase.estado]}
                 </span>
                 <span className="text-xs text-muted-foreground">
-                  {fase.tareas.length} {fase.tareas.length === 1 ? "tarea" : "tareas"}
+                  {fase.tareas.length === 0
+                    ? "0 tareas"
+                    : `${completadas}/${fase.tareas.length} completadas`}
                 </span>
                 {fechaLimiteFase && (
                   <span className="text-xs text-muted-foreground">Fase límite: {fechaLimiteFase}</span>
@@ -87,8 +91,12 @@ export function TareasPorFase({
                     const fin = formatearFecha(t.plannedEndDate);
                     const bloqueo = t.bloqueantes ?? t.notas;
                     const sinFecha = !t.fechaLimite && !t.plannedStartDate;
+                    const completada = estadoEsCompletada(t.estado);
                     return (
-                      <div key={t.id} className="flex flex-col gap-1 p-3.5">
+                      <div
+                        key={t.id}
+                        className={cn("flex flex-col gap-1 p-3.5", completada && "opacity-60")}
+                      >
                         <div className="flex flex-wrap items-baseline justify-between gap-2">
                           <p className="text-sm font-medium">{t.tarea}</p>
                           {t.estado && (
