@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { startTransition, useActionState } from "react";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -28,7 +28,9 @@ export function EstadoTareaSelect({
     if (!value) return;
     const formData = new FormData();
     formData.append("status", value);
-    estadoFormAction(formData);
+    startTransition(() => {
+      estadoFormAction(formData);
+    });
   }
 
   return (
@@ -36,7 +38,12 @@ export function EstadoTareaSelect({
       <Label htmlFor={`status-${taskId}`} className="text-xs text-muted-foreground">
         Estado
       </Label>
-      <Select name="status" defaultValue={estadoActual ?? undefined} onValueChange={onValueChange}>
+      <Select
+        key={estadoActual}
+        name="status"
+        defaultValue={estadoActual ?? undefined}
+        onValueChange={onValueChange}
+      >
         <SelectTrigger id={`status-${taskId}`} className="h-8 text-sm">
           <SelectValue placeholder="Estado" />
         </SelectTrigger>

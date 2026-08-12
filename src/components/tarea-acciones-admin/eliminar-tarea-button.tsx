@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
@@ -27,7 +26,6 @@ export function EliminarTareaButton({
   taskName: string;
   executedHours: number;
 }) {
-  const router = useRouter();
   const [eliminando, setEliminando] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -40,8 +38,6 @@ export function EliminarTareaButton({
     setEliminando(false);
     if (resultado.error) {
       setError(resultado.error);
-    } else {
-      router.refresh();
     }
   }
 
