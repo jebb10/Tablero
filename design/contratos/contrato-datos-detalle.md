@@ -29,9 +29,13 @@ inline por tarea, campo de fecha límite de fase) se ocultan vía `RoleGate` —
 
 ## Tareas por fase (acordeón)
 
-`TareasPorFase` (`src/components/tareas-por-fase.tsx`), usado idéntico en Detalle y en
-`/planeacion/[requerimiento]/editar`. Para este PO, **"tarea" y "actividad" son el mismo concepto**
-desde la fusión del 2026-08-11 — no hay dos flujos separados.
+`TareasPorFase` (`src/components/tareas-por-fase.tsx`). Para este PO, **"tarea" y "actividad" son
+el mismo concepto** desde la fusión del 2026-08-11 — no hay dos flujos separados. Desde el
+refinamiento del 2026-08-12 (PR #25), esta es la **única** pantalla de edición de tareas/fechas —
+la antigua `/planeacion/[requerimiento]/editar` (que usaba este mismo componente) se eliminó; desde
+Planeación se llega aquí con el botón "Detalle". El encabezado de cada fase ahora también muestra
+horas estimadas/consumidas de la fase, y cada tarea lleva borde naranja institucional si está "En
+curso" o rojo si está "Bloqueada" (conviven con la advertencia ⚠ de la fila de abajo).
 
 | Elemento visual | Origen | Notas |
 | --- | --- | --- |

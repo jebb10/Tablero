@@ -20,16 +20,21 @@ Next.js (App Router) + TypeScript + Tailwind v4 + shadcn/ui, con Supabase
 - **Home** (`/`): KPIs (total de requerimientos, horas ejecutadas/estimadas,
   en curso, reabiertos, con bloqueo activo), 4 bloques de estado, semáforo
   por fecha límite.
-- **Detalle de requerimiento** (`/requerimiento/[item]`): acordeón "Tareas
-  por fase" — cada tarea con estado, fechas (límite + planeadas), horas
-  consumidas y bloqueantes; botón "Añadir tarea" y "Registrar horas" por
-  fase (Admin); bloque aparte para el historial de actividad anterior a la
-  fusión tarea/actividad.
+- **Detalle de requerimiento** (`/requerimiento/[item]`): link al ambiente
+  de desarrollo junto al título; acordeón "Tareas por fase" — encabezado de
+  cada fase con estado, fecha límite, conteo de tareas y horas
+  estimadas/consumidas de esa fase; cada tarea con estado, fechas (límite +
+  planeadas), horas consumidas y bloqueantes, con borde naranja
+  institucional si está "En curso" o rojo si está "Bloqueada"; botón
+  "Añadir tarea" y "Registrar horas" por fase (Admin); bloque aparte para
+  el historial de actividad anterior a la fusión tarea/actividad. Es la
+  única pantalla de edición de tareas/fechas — también se llega aquí desde
+  el botón "Detalle" de Planeación.
 - **Planeación** (`/planeacion`): Gantt navegable (mes/semana/14 días,
   botones "< Hoy >"), semáforo por tarea, hito propio por fase (fecha
-  límite de fase, independiente de las tareas). `/planeacion/[req]/editar`
-  usa exactamente el mismo acordeón de tareas que el Detalle — un solo
-  lugar para crear/editar/eliminar tareas y registrar horas.
+  límite de fase, independiente de las tareas). El botón "Detalle" por
+  requerimiento navega al Detalle del requerimiento (arriba) para
+  crear/editar/eliminar tareas y registrar horas.
 - **Login por roles**: Admin (escribe) / Viewer (solo lectura) vía Supabase
   Auth — `/login`, recuperar/restablecer contraseña. RLS exige sesión para
   leer, y solo Admin para escribir; la UI también oculta los controles de
@@ -39,8 +44,9 @@ Next.js (App Router) + TypeScript + Tailwind v4 + shadcn/ui, con Supabase
 
 Fases 0 (fundaciones), B (auth/roles), C (pantallas de escritura), C1 (Gantt real), C2 (CRUD de
 requerimientos y tareas, completa) y C3 (bitácora de horas) **completas y verificadas en
-producción**. No hay trabajo pendiente del roadmap — el proyecto está listo para refinamiento
-visual de pantallas.
+producción**. No hay trabajo pendiente del roadmap — el proyecto está en ciclo de refinamiento
+visual pantalla por pantalla: Home (2026-08-11) y Detalle de requerimiento (2026-08-12) ya
+refinadas; Planeación/Gantt pendiente.
 
 **El detalle completo y siempre vigente vive en [`CLAUDE.md`](./CLAUDE.md)
 — léelo antes de tocar el código.**

@@ -29,11 +29,11 @@ consulta siempre "Estado actual" abajo antes de proponer cambios grandes.
   producción ocurre después de mergear.
 - Cubre: vista principal (Home) con KPIs, búsqueda/filtros, 4 bloques de
   estado y semáforo por fecha límite; drill-down por requerimiento con
-  acordeón de tareas por fase; vista `/planeacion` (Gantt navegable con
-  sidebar colapsable), con edición de fechas/tareas en
-  `/planeacion/[requerimiento]/editar` (mismo componente que el Detalle).
-  Registro de horas por tarea (fusión tarea/actividad) con bitácora
-  append-only.
+  acordeón de tareas por fase (edición de tareas/fechas incluida — pantalla
+  única, ver más abajo); vista `/planeacion` (Gantt navegable con sidebar
+  colapsable), con un botón "Detalle" por requerimiento que navega al
+  drill-down. Registro de horas por tarea (fusión tarea/actividad) con
+  bitácora append-only.
 - Lee y escribe en Supabase (Postgres + API REST), ver "Fuente de datos"
   abajo. **Backup diario verificado** — ver "Backup" abajo.
 - **Todas las fases planificadas (0, B, C, C1, C2, C3) están completas y
@@ -42,7 +42,22 @@ consulta siempre "Estado actual" abajo antes de proponer cambios grandes.
   diseño, PRs #9–#20) vive en el historial de git — no se conserva como
   documento aparte en el repo. Ninguna fase de documentos versionados
   (antes "Fase D") sigue en pie ni como diseño futuro — se descartó por
-  completo.
+  completo. **Refinamiento visual pantalla por pantalla en curso desde el
+  2026-08-11 (fuera del roadmap de fases, ciclo continuo pedido por el
+  PO)**: Home refinada (PR #19/#24) y Detalle del requerimiento refinado
+  (PR #25, 2026-08-12) — ver el punto siguiente. Pendiente: Planeación/Gantt.
+- **Detalle del requerimiento (`/requerimiento/[item]`) es ahora la única
+  pantalla de edición de tareas/fechas** — la antigua
+  `/planeacion/[requerimiento]/editar` se eliminó (2026-08-12, PR #25) al
+  confirmarse que era un subconjunto casi vacío del mismo componente
+  `TareasPorFase`. Desde Planeación, el botón "Detalle" navega directo al
+  drill-down (sin `requireAdmin()` bloqueante — mismo patrón de acceso que
+  ya tenía Detalle: `RoleGate` oculta controles de edición, cualquier
+  usuario autenticado puede ver la pantalla). El link del ambiente de
+  desarrollo vive en el header de Detalle, junto al título; el encabezado
+  de cada fase muestra horas estimadas/consumidas de esa fase; las tareas
+  "En curso"/"Bloqueada" tienen borde de color (naranja institucional/rojo)
+  en su tarjeta individual.
 
 ## Fuente de datos
 
@@ -236,8 +251,8 @@ para repetir la verificación: `scripts/verificar_seguridad_fase_b.mjs`
 | `src/hooks/use-cerrar-al-exito.ts` | `useCerrarAlExito()` (cierre técnico 2026-08-11) — cierra un diálogo/formulario apenas una Server Action reporta éxito; reemplaza el patrón `successVisto` que estaba duplicado en 3 componentes. |
 | `src/components/fase-fecha-limite-form.tsx` | `FaseFechaLimiteForm` — fecha límite propia de cada fase (`requirement_phase_deadlines`, independiente de las tareas), configurable en el encabezado del acordeón; se dibuja como hito propio en el Gantt. |
 | `src/lib/fase-deadlines.ts` | `getFechasLimiteFase(requirementId)` — lee `requirement_phase_deadlines`, usado por `requerimiento-data.ts`. `planeacion-data.ts` hace su propia consulta batch para todos los requerimientos del Gantt. |
-| `src/lib/tareas-controles.tsx` | `construirControlesTareas(fases, requirementId)` — arma los botones/acciones de Admin (`RoleGate` + diálogos) que consume `TareasPorFase`; compartido entre Detalle y Planeación → Editar, para que ambas pantallas usen exactamente la misma vista de tareas. |
-| `src/components/tareas-por-fase.tsx` | `TareasPorFase` — acordeón por fase (tarea = actividad, un solo concepto): lista de tareas con estado/fechas/horas consumidas, botón "Añadir tarea" y campo de fecha límite de fase en el encabezado (Admin), controles de edición inline por tarea. Usado idéntico en `/requerimiento/[item]` y `/planeacion/[requerimiento]/editar`. |
+| `src/lib/tareas-controles.tsx` | `construirControlesTareas(fases, requirementId)` — arma los botones/acciones de Admin (`RoleGate` + diálogos) que consume `TareasPorFase`, usado por Detalle del requerimiento. |
+| `src/components/tareas-por-fase.tsx` | `TareasPorFase` — acordeón por fase (tarea = actividad, un solo concepto): encabezado de fase a 2 líneas (nombre/estado/fecha límite + conteo de tareas/horas estimadas-consumidas de la fase), botón "Añadir tarea" y campo de fecha límite de fase (Admin), controles de edición inline por tarea. Cada tarjeta de tarea lleva borde naranja institucional si está "En curso" o rojo si está "Bloqueada" (refinamiento 2026-08-12, PR #25), conviviendo con la advertencia de texto libre existente (`bloqueantes`/`notas`). Usado solo en `/requerimiento/[item]` — desde el PR #25 es la única pantalla de edición de tareas/fechas. |
 | `src/components/actividades-sin-fase.tsx` | `ActividadesSinFase` — bloque colapsable con las actividades históricas SIN tarea asociada (`task_id is null`) — de antes de la fusión tarea/actividad, con su "Tipo" viejo. |
 | `src/app/requerimiento/[item]/page.tsx` | Página de drill-down por requerimiento (RN-04/05). Llama a `getRequerimientoDetalle(slug)` (`src/lib/requerimiento-data.ts`) → `<ErrorDatosBanner soloBanner />` si falla; ídem para `getActividades()` (Fase C). |
 | `src/app/actions/ui.ts` | Server Action `reintentar()` (`refresh()`) (Unidad C2.5, antes en `src/app/actions.ts`) — usada solo por el banner de error. |
