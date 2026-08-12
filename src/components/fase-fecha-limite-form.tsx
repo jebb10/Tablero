@@ -29,7 +29,7 @@ export function FaseFechaLimiteForm({
   // pertenecer al mismo <form> (sigue siendo un submit normal).
   return (
     <form action={formAction} className="contents" onClick={(e) => e.stopPropagation()}>
-      <div className="col-start-1 row-start-1 flex w-36 flex-col gap-0.5 justify-self-end">
+      <div className="col-start-1 row-start-1 flex w-full flex-col gap-0.5 justify-self-end sm:w-36">
         <label htmlFor={`fase-fecha-${requirementId}-${phaseNumber}`} className="text-[10px] text-muted-foreground">
           Fecha límite de fase
         </label>

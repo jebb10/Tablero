@@ -99,7 +99,7 @@ export function TareasPorFase({
                   )}
                 </div>
               </button>
-              <div className="grid shrink-0 grid-cols-2 items-end justify-items-end gap-x-1 gap-y-0.5">
+              <div className="grid w-full shrink-0 grid-cols-2 items-end justify-items-stretch gap-x-1 gap-y-0.5 sm:w-auto sm:justify-items-end">
                 {camposFechaLimiteFase[i]}
                 <button
                   type="button"

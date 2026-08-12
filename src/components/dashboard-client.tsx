@@ -178,7 +178,7 @@ export function DashboardClient({
                 Sin requerimientos en este estado.
               </p>
             ) : (
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
                 {items.map((r) => (
                   <RequerimientoCard key={r.item} req={r} />
                 ))}
@@ -209,7 +209,7 @@ export function DashboardClient({
             )}
           </div>
           {cerradosExpandido && (
-            <div className="grid grid-cols-2 gap-3 border-t p-3.5 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+            <div className="grid grid-cols-1 gap-3 border-t p-3.5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
               {cerrados.map((r) => (
                 <RequerimientoCard key={r.item} req={r} />
               ))}

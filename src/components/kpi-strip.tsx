@@ -21,7 +21,7 @@ function Kpi({
   const contenido = (
     <div
       className={cn(
-        "flex flex-1 items-center gap-3 rounded-lg border bg-card p-3 min-w-[10rem]",
+        "flex w-full items-center gap-3 rounded-lg border bg-card p-3",
         acento === "atencion" && "border-status-atencion/40 bg-status-atencion/5",
       )}
     >
@@ -51,9 +51,9 @@ function Kpi({
 
   if (nombres && nombres.length > 0) {
     const trigger = href ? (
-      <a href={href} className="flex flex-1 min-w-[10rem]" />
+      <a href={href} className="flex w-full" />
     ) : (
-      <div className="flex flex-1 min-w-[10rem]" />
+      <div className="flex w-full" />
     );
     return (
       <Tooltip>
@@ -73,7 +73,7 @@ function Kpi({
 
   if (!href) return contenido;
   return (
-    <a href={href} className="flex flex-1 min-w-[10rem]">
+    <a href={href} className="flex w-full">
       {contenido}
     </a>
   );
@@ -89,7 +89,7 @@ export function KpiStrip({
   nombresBloqueados?: string[];
 }) {
   return (
-    <div className="flex flex-wrap gap-3">
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
       <Kpi icono={ListChecks} etiqueta="Requerimientos" valor={String(kpis.total)} />
       <Kpi
         icono={Timer}
