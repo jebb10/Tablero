@@ -67,9 +67,14 @@ export function agruparPorFase(filas: RequirementTaskRow[]): Fase[] {
       ? filasFase.reduce((acc, f) => acc + (f.estimated_hours ?? 0), 0)
       : null;
 
+    const horasEjecutadas = filasFase.length
+      ? filasFase.reduce((acc, f) => acc + (f.executed_hours ?? 0), 0)
+      : null;
+
     return {
       nombre,
       horasEstimadas,
+      horasEjecutadas,
       tareas,
       estado: estadoDeFase(tareas),
       fechaLimiteFase: null,

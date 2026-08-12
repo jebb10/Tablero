@@ -84,7 +84,25 @@ export default async function RequerimientoPage({
             </Link>
           </p>
         )}
-        <h1 className="text-2xl font-bold tracking-tight">{requerimiento.title}</h1>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h1 className="text-2xl font-bold tracking-tight">{requerimiento.title}</h1>
+          {requerimiento.dev_environment_url ? (
+            <a
+              href={requerimiento.dev_environment_url}
+              target="_blank"
+              rel="noreferrer"
+              className="flex w-fit shrink-0 items-center gap-2 rounded-lg border bg-card px-3 py-1.5 text-sm font-medium"
+            >
+              <Link2 className="h-4 w-4" />
+              Link del desarrollo
+            </a>
+          ) : (
+            <span className="flex w-fit shrink-0 items-center gap-2 rounded-lg border bg-muted/40 px-3 py-1.5 text-sm text-muted-foreground">
+              <Link2 className="h-4 w-4" />
+              Sin enlace configurado
+            </span>
+          )}
+        </div>
         {requerimiento.description && (
           <p className="max-w-xl text-sm text-muted-foreground">{requerimiento.description}</p>
         )}
@@ -139,23 +157,6 @@ export default async function RequerimientoPage({
           )}
           <TareasPorFase fases={fases ?? []} {...construirControlesTareas(fases ?? [], requerimiento.id)} />
         </div>
-      )}
-
-      {requerimiento.dev_environment_url ? (
-        <a
-          href={requerimiento.dev_environment_url}
-          target="_blank"
-          rel="noreferrer"
-          className="flex w-fit items-center gap-2 rounded-lg border bg-card px-4 py-2 text-sm font-medium"
-        >
-          <Link2 className="h-4 w-4" />
-          Link del desarrollo
-        </a>
-      ) : (
-        <span className="flex w-fit items-center gap-2 rounded-lg border bg-muted/40 px-4 py-2 text-sm text-muted-foreground">
-          <Link2 className="h-4 w-4" />
-          Sin enlace configurado
-        </span>
       )}
     </main>
   );

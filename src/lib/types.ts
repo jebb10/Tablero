@@ -69,6 +69,7 @@ export type EstadoFase = "completada" | "en-curso" | "pendiente";
 export interface Fase {
   nombre: string;
   horasEstimadas: number | null;
+  horasEjecutadas: number | null;
   tareas: Tarea[];
   estado: EstadoFase;
   fechaLimiteFase: Date | null;

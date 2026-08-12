@@ -50,22 +50,33 @@ export function TareasPorFase({
                 onClick={() => setAbiertas((prev) => ({ ...prev, [fase.nombre]: !prev[fase.nombre] }))}
                 className="flex flex-1 items-center gap-2.5 text-left"
               >
-                <h3 className="text-sm font-semibold">{fase.nombre}</h3>
-                <span className={cn("text-xs font-medium", ESTADO_COLOR[fase.estado])}>
-                  {ETIQUETA_ESTADO[fase.estado]}
-                </span>
-                <span className="text-xs text-muted-foreground">
-                  {fase.tareas.length === 0
-                    ? "0 tareas"
-                    : `${completadas}/${fase.tareas.length} completadas`}
-                </span>
-                {fechaLimiteFase && (
-                  <span className="text-xs text-muted-foreground">Fase límite: {fechaLimiteFase}</span>
-                )}
+                <div className="flex flex-1 flex-col gap-0.5">
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    <h3 className="text-sm font-semibold">{fase.nombre}</h3>
+                    <span className={cn("text-xs font-medium", ESTADO_COLOR[fase.estado])}>
+                      {ETIQUETA_ESTADO[fase.estado]}
+                    </span>
+                    {fechaLimiteFase && (
+                      <span className="text-xs text-muted-foreground">Fase límite: {fechaLimiteFase}</span>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2.5 text-xs text-muted-foreground">
+                    <span>
+                      {fase.tareas.length === 0
+                        ? "0 tareas"
+                        : `${completadas}/${fase.tareas.length} completadas`}
+                    </span>
+                    {(fase.horasEstimadas !== null || fase.horasEjecutadas !== null) && (
+                      <span>
+                        Estimadas: {fase.horasEstimadas ?? 0}h · Consumidas: {fase.horasEjecutadas ?? 0}h
+                      </span>
+                    )}
+                  </div>
+                </div>
                 {abierta ? (
-                  <ChevronUp className="ml-auto h-4 w-4 shrink-0 text-muted-foreground" />
+                  <ChevronUp className="h-4 w-4 shrink-0 self-center text-muted-foreground" />
                 ) : (
-                  <ChevronDown className="ml-auto h-4 w-4 shrink-0 text-muted-foreground" />
+                  <ChevronDown className="h-4 w-4 shrink-0 self-center text-muted-foreground" />
                 )}
               </button>
               <div className="flex shrink-0 flex-wrap items-end gap-1.5">
@@ -75,9 +86,9 @@ export function TareasPorFase({
             </div>
 
             {abierta && (
-              <div className="flex flex-col divide-y border-t">
+              <div className="flex flex-col gap-2 border-t p-3.5">
                 {fase.tareas.length === 0 ? (
-                  <p className="p-3.5 text-sm text-muted-foreground">
+                  <p className="text-sm text-muted-foreground">
                     Sin tareas registradas en esta fase.
                   </p>
                 ) : (
@@ -88,10 +99,17 @@ export function TareasPorFase({
                     const bloqueo = t.bloqueantes ?? t.notas;
                     const sinFecha = !t.fechaLimite && !t.plannedStartDate;
                     const completada = estadoEsCompletada(t.estado);
+                    const enCurso = t.estado === "En curso";
+                    const bloqueada = t.estado === "Bloqueada";
                     return (
                       <div
                         key={t.id}
-                        className={cn("flex flex-col gap-1 p-3.5", completada && "opacity-60")}
+                        className={cn(
+                          "flex flex-col gap-1 rounded-md border p-3.5",
+                          completada && "opacity-60",
+                          enCurso && "border-primary",
+                          bloqueada && "border-status-bloqueo"
+                        )}
                       >
                         <div className="flex flex-wrap items-baseline justify-between gap-2">
                           <p className="text-sm font-medium">{t.tarea}</p>

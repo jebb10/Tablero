@@ -46,15 +46,8 @@ function referenciaInicial(requerimiento: PlaneacionRequerimiento, hoy: Date): D
 
 export function PlaneacionClient({
   requerimientos,
-  esAdmin,
 }: {
   requerimientos: PlaneacionRequerimiento[];
-  // Calculado en el Server Component (page.tsx) -- RoleGate no se puede
-  // importar aquí (usa server-only), así que la decisión de mostrar el
-  // botón "Editar fechas" viaja como prop. La seguridad real la sigue
-  // dando requireAdmin() en /planeacion/[requerimiento]/editar y la RLS
-  // de la RPC, no este booleano.
-  esAdmin: boolean;
 }) {
   const [seleccionadoId, setSeleccionadoId] = useState<string | null>(
     requerimientos[0]?.id ?? null
@@ -192,17 +185,15 @@ export function PlaneacionClient({
                     </button>
                   ))}
                 </div>
-                {esAdmin && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    nativeButton={false}
-                    render={<Link href={`/planeacion/${seleccionado.slug}/editar`} />}
-                  >
-                    <CalendarCog className="h-4 w-4" />
-                    Editar fechas
-                  </Button>
-                )}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  nativeButton={false}
+                  render={<Link href={`/requerimiento/${seleccionado.slug}`} />}
+                >
+                  <CalendarCog className="h-4 w-4" />
+                  Detalle
+                </Button>
               </div>
             </header>
             <GanttTimeline
