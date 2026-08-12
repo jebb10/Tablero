@@ -68,4 +68,19 @@ describe("agruparPorFase", () => {
     const fases = agruparPorFase([]);
     expect(fases.every((f) => f.horasEjecutadas === null)).toBe(true);
   });
+
+  it("horasEstimadas sale del mapa manual por fase, no de sumar tareas", () => {
+    const fases = agruparPorFase(
+      [tarea({ phase_number: 3, phase_name: "Desarrollo", estimated_hours: 999 })],
+      new Map([[3, 40]])
+    );
+    const desarrollo = fases.find((f) => f.nombre === "Desarrollo")!;
+    expect(desarrollo.horasEstimadas).toBe(40);
+  });
+
+  it("horasEstimadas es null si no hay valor manual para esa fase", () => {
+    const fases = agruparPorFase([tarea({ phase_number: 3, phase_name: "Desarrollo" })]);
+    const desarrollo = fases.find((f) => f.nombre === "Desarrollo")!;
+    expect(desarrollo.horasEstimadas).toBeNull();
+  });
 });

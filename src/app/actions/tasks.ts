@@ -9,9 +9,12 @@ import {
   crearTareaSchema,
   actualizarEstadoTareaSchema,
   actualizarTareaSchema,
+  actualizarHorasTareaSchema,
   guardarFechaLimiteFaseSchema,
   eliminarTareaSchema,
 } from "@/lib/tarea-schema";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/lib/supabase/database.types";
 
 export type GuardarFechasState = { error: string | null; success: boolean };
 export type CrearTareaState = { error: string | null; success: boolean };
@@ -19,6 +22,25 @@ export type EliminarTareaState = { error: string | null; success: boolean };
 export type ActualizarEstadoState = { error: string | null; success: boolean };
 export type GuardarFechaLimiteFaseState = { error: string | null; success: boolean };
 export type ActualizarTareaState = { error: string | null; success: boolean };
+export type ActualizarHorasTareaState = { error: string | null; success: boolean };
+
+/** Recalcula requirements.executed_hours como la suma de executed_hours de
+ * todas sus tareas -- reemplaza el trigger que antes mantenía esta columna
+ * a partir de activity_logs (eliminada 2026-08-12). Se llama después de
+ * cualquier escritura que cambie las horas ejecutadas de una tarea. */
+async function recalcularHorasEjecutadasRequerimiento(
+  supabase: SupabaseClient<Database>,
+  requirementId: string
+) {
+  const { data: tareas } = await supabase
+    .from("requirement_tasks")
+    .select("executed_hours")
+    .eq("requirement_id", requirementId);
+
+  const total = (tareas ?? []).reduce((acc, t) => acc + (t.executed_hours ?? 0), 0);
+
+  await supabase.from("requirements").update({ executed_hours: total }).eq("id", requirementId);
+}
 
 // Unidad C1.2 — guardado atómico de fechas planeadas vía RPC
 // rpc_set_planned_dates (security invoker: hereda RLS del caller, un
@@ -60,14 +82,14 @@ export async function crearTarea(
   _prevState: CrearTareaState,
   formData: FormData
 ): Promise<CrearTareaState> {
-  const profile = await requireAdmin();
+  await requireAdmin();
 
   const parsed = crearTareaSchema.safeParse({
     taskName: formData.get("taskName"),
     dueDate: formData.get("dueDate"),
     plannedStartDate: formData.get("plannedStartDate"),
     plannedEndDate: formData.get("plannedEndDate"),
-    hoursSpent: formData.get("hoursSpent"),
+    executedHours: formData.get("executedHours"),
   });
   if (!parsed.success) {
     return { error: parsed.error.issues[0].message, success: false };
@@ -78,9 +100,7 @@ export async function crearTarea(
   }
   const { taskName, dueDate: dueDateRaw, plannedStartDate: inicioRaw, plannedEndDate: finRaw } =
     parsed.data;
-  const hoursSpent = parsed.data.hoursSpent !== null && parsed.data.hoursSpent > 0
-    ? parsed.data.hoursSpent
-    : null;
+  const executedHours = parsed.data.executedHours ?? 0;
 
   const supabase = await getSupabaseClient();
 
@@ -105,6 +125,7 @@ export async function crearTarea(
       due_date: dueDateRaw,
       planned_start_date: inicioRaw,
       planned_end_date: finRaw,
+      executed_hours: executedHours,
       sort_order: sortOrder,
     })
     .select("id")
@@ -117,16 +138,8 @@ export async function crearTarea(
     };
   }
 
-  if (hoursSpent !== null) {
-    await supabase.from("activity_logs").insert({
-      requirement_id: requirementId,
-      task_id: nuevaTarea.id,
-      phase_number: phaseNumber,
-      title: "Registro de horas",
-      hours_spent: hoursSpent,
-      logged_at: dueDateRaw,
-      created_by: profile.userId,
-    });
+  if (executedHours > 0) {
+    await recalcularHorasEjecutadasRequerimiento(supabase, requirementId);
   }
 
   // Unidad C2.4: un requerimiento de los 21 "sin detalle" que recibe su
@@ -217,6 +230,41 @@ export async function actualizarTarea(
   return { error: null, success: true };
 }
 
+// Reemplaza al antiguo "Registrar horas" (activity_logs, eliminada
+// 2026-08-12): ahora requirement_tasks.executed_hours es un campo normal
+// que el Admin edita directamente, y el total del requerimiento se
+// recalcula en el mismo paso.
+export async function actualizarHorasTarea(
+  taskId: string,
+  requirementId: string,
+  _prevState: ActualizarHorasTareaState,
+  formData: FormData
+): Promise<ActualizarHorasTareaState> {
+  await requireAdmin();
+
+  const parsed = actualizarHorasTareaSchema.safeParse({
+    executedHours: formData.get("executedHours"),
+  });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0].message, success: false };
+  }
+
+  const supabase = await getSupabaseClient();
+  const { error } = await supabase
+    .from("requirement_tasks")
+    .update({ executed_hours: parsed.data.executedHours })
+    .eq("id", taskId);
+
+  if (error) {
+    return { error: "No se pudo actualizar las horas.", success: false };
+  }
+
+  await recalcularHorasEjecutadasRequerimiento(supabase, requirementId);
+
+  refresh();
+  return { error: null, success: true };
+}
+
 export async function guardarFechaLimiteFase(
   requirementId: string,
   phaseNumber: number,
@@ -247,6 +295,7 @@ export async function guardarFechaLimiteFase(
 }
 
 export async function eliminarTarea(
+  requirementId: string,
   _prevState: EliminarTareaState,
   formData: FormData
 ): Promise<EliminarTareaState> {
@@ -258,15 +307,15 @@ export async function eliminarTarea(
   }
 
   const supabase = await getSupabaseClient();
-  // activity_logs.task_id es "on delete cascade" desde el hotfix
-  // 20260811030000_fix_cascade_horas_tarea_eliminada.sql -- borrar una
-  // tarea borra también su bitácora de horas asociada, para que el total
-  // del requerimiento baje correctamente.
   const { error } = await supabase.from("requirement_tasks").delete().eq("id", parsed.data.taskId);
 
   if (error) {
     return { error: "No se pudo eliminar la tarea.", success: false };
   }
+
+  // Ya no hay trigger sobre activity_logs que baje el total del
+  // requerimiento al borrar una tarea con horas -- se recalcula aquí.
+  await recalcularHorasEjecutadasRequerimiento(supabase, requirementId);
 
   refresh();
   return { error: null, success: true };

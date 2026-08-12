@@ -35,8 +35,15 @@ function estadoDeFase(tareas: Tarea[]): EstadoFase {
   return "en-curso";
 }
 
-/** Agrupa las filas planas de requirement_tasks en el shape Fase[] que consume TareasPorFase. */
-export function agruparPorFase(filas: RequirementTaskRow[]): Fase[] {
+/** Agrupa las filas planas de requirement_tasks en el shape Fase[] que
+ * consume TareasPorFase. `horasEstimadasPorFase` (2026-08-12): horas
+ * estimadas manuales por fase (`requirement_phase_deadlines.estimated_hours`)
+ * -- ya no se calculan sumando `estimated_hours` de las tareas, ese campo
+ * quedó sin uso (nunca fue editable). */
+export function agruparPorFase(
+  filas: RequirementTaskRow[],
+  horasEstimadasPorFase?: Map<number, number>
+): Fase[] {
   const porNumero = new Map<number, RequirementTaskRow[]>();
   for (const fila of filas) {
     const lista = porNumero.get(fila.phase_number) ?? [];
@@ -63,9 +70,7 @@ export function agruparPorFase(filas: RequirementTaskRow[]): Fase[] {
       executedHours: f.executed_hours,
     }));
 
-    const horasEstimadas = filasFase.length
-      ? filasFase.reduce((acc, f) => acc + (f.estimated_hours ?? 0), 0)
-      : null;
+    const horasEstimadas = horasEstimadasPorFase?.get(numero) ?? null;
 
     const horasEjecutadas = filasFase.length
       ? filasFase.reduce((acc, f) => acc + (f.executed_hours ?? 0), 0)

@@ -8,22 +8,34 @@ const textoOpcional = z
   .nullable()
   .transform((v) => (v ? v : null));
 
+const horasOpcionales = z
+  .string()
+  .trim()
+  .optional()
+  .nullable()
+  .transform((v) => (v ? Number(v) : null))
+  .refine((v) => v === null || (Number.isFinite(v) && v >= 0), {
+    message: "Las horas deben ser un número válido.",
+  });
+
 export const crearTareaSchema = z.object({
   taskName: z.string().trim().min(1, "El nombre de la tarea es obligatorio."),
   dueDate: z.string().trim().min(1, "La fecha límite es obligatoria."),
   plannedStartDate: textoOpcional,
   plannedEndDate: textoOpcional,
-  hoursSpent: z
+  executedHours: horasOpcionales,
+});
+export type CrearTareaInput = z.infer<typeof crearTareaSchema>;
+
+export const actualizarHorasTareaSchema = z.object({
+  executedHours: z
     .string()
     .trim()
-    .optional()
-    .nullable()
-    .transform((v) => (v ? Number(v) : null))
-    .refine((v) => v === null || (Number.isFinite(v) && v >= 0), {
+    .transform((v) => Number(v))
+    .refine((v) => Number.isFinite(v) && v >= 0, {
       message: "Las horas deben ser un número válido.",
     }),
 });
-export type CrearTareaInput = z.infer<typeof crearTareaSchema>;
 
 export const actualizarEstadoTareaSchema = z.object({
   status: z.enum(ESTADOS_TAREA),

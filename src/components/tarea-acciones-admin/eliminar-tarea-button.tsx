@@ -20,10 +20,12 @@ import { eliminarTarea, type EliminarTareaState } from "@/app/actions/tasks";
 export function EliminarTareaButton({
   taskId,
   taskName,
+  requirementId,
   executedHours,
 }: {
   taskId: string;
   taskName: string;
+  requirementId: string;
   executedHours: number;
 }) {
   const [eliminando, setEliminando] = useState(false);
@@ -34,7 +36,11 @@ export function EliminarTareaButton({
     setError(null);
     const formData = new FormData();
     formData.append("taskId", taskId);
-    const resultado: EliminarTareaState = await eliminarTarea({ error: null, success: false }, formData);
+    const resultado: EliminarTareaState = await eliminarTarea(
+      requirementId,
+      { error: null, success: false },
+      formData
+    );
     setEliminando(false);
     if (resultado.error) {
       setError(resultado.error);

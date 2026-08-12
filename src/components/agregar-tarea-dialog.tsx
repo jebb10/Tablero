@@ -66,8 +66,8 @@ export function AgregarTareaDialog({
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="hoursSpent">Horas consumidas (opcional)</Label>
-            <Input id="hoursSpent" name="hoursSpent" type="number" step="0.5" min="0" />
+            <Label htmlFor="executedHours">Horas ejecutadas (opcional)</Label>
+            <Input id="executedHours" name="executedHours" type="number" step="0.5" min="0" />
           </div>
 
           {state.error && <p className="text-sm text-status-bloqueo">{state.error}</p>}

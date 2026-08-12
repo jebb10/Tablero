@@ -17,6 +17,7 @@ import {
 import { ESTADOS_DB, ESTADO_DB_A_ES } from "@/lib/estados";
 import { slugify } from "@/lib/slug";
 import { categoryFromCode } from "@/lib/category";
+import { FASES_ORDEN } from "@/lib/fases-orden";
 import type { GuardarRequerimientoState } from "@/app/actions/requirements";
 
 export interface RequerimientoFormValores {
@@ -32,6 +33,8 @@ export interface RequerimientoFormValores {
   dev_environment_url: string | null;
   has_detail_tracking: boolean;
   parent_requirement_id: string | null;
+  /** Horas estimadas manuales por fase (2026-08-12), clave = phase_number. */
+  phaseEstimatedHours?: Map<number, number>;
 }
 
 const ESTADO_INICIAL: GuardarRequerimientoState = { error: null, success: false };
@@ -50,6 +53,21 @@ export function RequerimientoForm({
   const [category, setCategory] = useState(valoresIniciales?.category ?? "");
   const [slug, setSlug] = useState(valoresIniciales ? "" : slugify(code));
   const [editandoSlug, setEditandoSlug] = useState(false);
+  const [horasEstimadasTotal, setHorasEstimadasTotal] = useState(
+    valoresIniciales?.estimated_hours ?? 0
+  );
+  const [horasPorFase, setHorasPorFase] = useState<Record<number, string>>(() =>
+    Object.fromEntries(
+      FASES_ORDEN.map((f) => [
+        f.numero,
+        String(valoresIniciales?.phaseEstimatedHours?.get(f.numero) ?? ""),
+      ])
+    )
+  );
+  const sumaHorasPorFase = Object.values(horasPorFase).reduce(
+    (acc, v) => acc + (v.trim() ? Number(v) : 0),
+    0
+  );
 
   function onCodeChange(value: string) {
     setCode(value);
@@ -136,16 +154,45 @@ export function RequerimientoForm({
           <Input id="deadline" name="deadline" type="date" defaultValue={valoresIniciales?.deadline ?? ""} />
         </div>
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="estimatedHours">Horas estimadas</Label>
+          <Label htmlFor="estimatedHours">Horas estimadas (Total)</Label>
           <Input
             id="estimatedHours"
             name="estimatedHours"
             type="number"
             step="0.5"
             min="0"
-            defaultValue={valoresIniciales?.estimated_hours ?? 0}
+            value={horasEstimadasTotal}
+            onChange={(e) => setHorasEstimadasTotal(Number(e.target.value))}
           />
         </div>
+      </div>
+
+      <div className="flex flex-col gap-1.5 rounded-lg border p-3">
+        <p className="text-sm font-medium">Horas estimadas por fase (opcional)</p>
+        <p className="text-xs text-muted-foreground">
+          Independiente del total de arriba — no es obligatorio que la suma coincida.
+        </p>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+          {FASES_ORDEN.map((f) => (
+            <div key={f.numero} className="flex flex-col gap-1.5">
+              <Label htmlFor={`phaseEstimatedHours_${f.numero}`}>{f.nombre}</Label>
+              <Input
+                id={`phaseEstimatedHours_${f.numero}`}
+                name={`phaseEstimatedHours_${f.numero}`}
+                type="number"
+                step="0.5"
+                min="0"
+                value={horasPorFase[f.numero]}
+                onChange={(e) =>
+                  setHorasPorFase((prev) => ({ ...prev, [f.numero]: e.target.value }))
+                }
+              />
+            </div>
+          ))}
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Suma de fases: {sumaHorasPorFase}h de {horasEstimadasTotal}h totales
+        </p>
       </div>
 
       <div className="flex flex-col gap-1.5">

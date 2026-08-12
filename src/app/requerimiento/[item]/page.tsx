@@ -5,10 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ErrorDatosBanner } from "@/components/error-datos-banner";
 import { TareasPorFase } from "@/components/tareas-por-fase";
-import { ActividadesSinFase } from "@/components/actividades-sin-fase";
 import { RoleGate } from "@/components/auth/role-gate";
 import { getRequerimientoDetalle } from "@/lib/requerimiento-data";
-import { getActividades } from "@/lib/actividades-data";
 import { dbAEstado } from "@/lib/estados";
 import { construirControlesTareas } from "@/lib/tareas-controles";
 
@@ -33,9 +31,6 @@ export default async function RequerimientoPage({
   if (!requerimiento) {
     notFound();
   }
-
-  const { actividades, error: errorActividades } = await getActividades(requerimiento.id);
-  const actividadesSinFase = actividades.filter((a) => a.taskId == null);
 
   const horasEstimadas = requerimiento.estimated_hours;
   const horasEjecutadas = requerimiento.executed_hours;
@@ -125,9 +120,6 @@ export default async function RequerimientoPage({
           )}
         </div>
       </header>
-
-      {errorActividades && <ErrorDatosBanner soloBanner />}
-      <ActividadesSinFase actividades={actividadesSinFase} />
 
       <div className="grid grid-cols-3 gap-3">
         <div className="rounded-xl border bg-card p-4">

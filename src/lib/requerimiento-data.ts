@@ -1,7 +1,7 @@
 import { agruparPorFase } from "./fases";
 import { PROJECT_SLUG } from "./project";
 import { getSupabaseClient } from "./supabase/server";
-import { getFechasLimiteFase } from "./fase-deadlines";
+import { getFechasLimiteFase, getHorasEstimadasFase } from "./fase-deadlines";
 import { FASES_ORDEN } from "./fases-orden";
 import type { Database } from "./supabase/database.types";
 import type { Fase } from "./types";
@@ -47,7 +47,10 @@ export type RequerimientoParaEditar = Pick<
   | "dev_environment_url"
   | "has_detail_tracking"
   | "parent_requirement_id"
->;
+> & {
+  /** Horas estimadas manuales por fase (2026-08-12), clave = phase_number. */
+  phaseEstimatedHours: Map<number, number>;
+};
 
 /** Unidad C2.3 — datos completos de un requerimiento para el formulario de edición. */
 export async function getRequerimientoParaEditar(
@@ -71,7 +74,10 @@ export async function getRequerimientoParaEditar(
     .eq("slug", slug)
     .maybeSingle();
 
-  return data ?? null;
+  if (!data) return null;
+
+  const phaseEstimatedHours = await getHorasEstimadasFase(data.id);
+  return { ...data, phaseEstimatedHours };
 }
 
 /**
@@ -138,8 +144,11 @@ export async function getRequerimientoDetalle(slug: string): Promise<Requerimien
     if (errorConsultaTareas) {
       errorTareas = true;
     } else {
-      const fechasLimiteFase = await getFechasLimiteFase(requerimiento.id);
-      fases = agruparPorFase(tareas ?? []).map((fase, i) => ({
+      const [fechasLimiteFase, horasEstimadasFase] = await Promise.all([
+        getFechasLimiteFase(requerimiento.id),
+        getHorasEstimadasFase(requerimiento.id),
+      ]);
+      fases = agruparPorFase(tareas ?? [], horasEstimadasFase).map((fase, i) => ({
         ...fase,
         fechaLimiteFase: fechasLimiteFase.get(FASES_ORDEN[i].numero) ?? null,
       }));
