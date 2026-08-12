@@ -14,6 +14,12 @@ const ESTADO_COLOR: Record<string, string> = {
   pendiente: "text-muted-foreground",
 };
 
+const ESTADO_CHIP_BG: Record<string, string> = {
+  completada: "bg-status-entregado/10",
+  "en-curso": "bg-status-en-curso/10",
+  pendiente: "bg-muted",
+};
+
 const ETIQUETA_ESTADO: Record<string, string> = {
   completada: "Completado",
   "en-curso": "En curso",
@@ -36,52 +42,79 @@ export function TareasPorFase({
   );
 
   return (
-    <div className="flex flex-col gap-2.5">
+    <div className="flex flex-col gap-3">
       {fases.map((fase, i) => {
         const abierta = abiertas[fase.nombre];
         const fechaLimiteFase = formatearFecha(fase.fechaLimiteFase);
         const completadas = fase.tareas.filter((t) => estadoEsCompletada(t.estado)).length;
+        const hayHoras =
+          fase.tareas.length > 0 && (fase.horasEstimadas !== null || fase.horasEjecutadas !== null);
+        const sobrepresupuesto =
+          fase.horasEstimadas !== null &&
+          fase.horasEjecutadas !== null &&
+          fase.horasEjecutadas > fase.horasEstimadas;
 
         return (
           <div key={fase.nombre} className="overflow-hidden rounded-lg border">
-            <div className="flex flex-wrap items-center justify-between gap-2.5 bg-muted/40 px-3.5 py-2.5">
+            <div className="flex flex-wrap items-center justify-between gap-3 bg-muted/40 px-4 py-3">
               <button
                 type="button"
                 onClick={() => setAbiertas((prev) => ({ ...prev, [fase.nombre]: !prev[fase.nombre] }))}
                 className="flex flex-1 items-center gap-2.5 text-left"
               >
-                <div className="flex flex-1 flex-col gap-0.5">
+                <div className="flex flex-1 flex-col gap-1.5">
                   <div className="flex flex-wrap items-center gap-2.5">
                     <h3 className="text-sm font-semibold">{fase.nombre}</h3>
-                    <span className={cn("text-xs font-medium", ESTADO_COLOR[fase.estado])}>
+                    <span
+                      className={cn(
+                        "rounded-full px-2 py-0.5 text-xs font-medium",
+                        ESTADO_COLOR[fase.estado],
+                        ESTADO_CHIP_BG[fase.estado]
+                      )}
+                    >
                       {ETIQUETA_ESTADO[fase.estado]}
                     </span>
-                    {fechaLimiteFase && (
-                      <span className="text-xs text-muted-foreground">Fase límite: {fechaLimiteFase}</span>
-                    )}
                   </div>
-                  <div className="flex flex-wrap items-center gap-2.5 text-xs text-muted-foreground">
+                  <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                     <span>
                       {fase.tareas.length === 0
                         ? "0 tareas"
                         : `${completadas}/${fase.tareas.length} completadas`}
                     </span>
-                    {(fase.horasEstimadas !== null || fase.horasEjecutadas !== null) && (
-                      <span>
-                        Estimadas: {fase.horasEstimadas ?? 0}h · Consumidas: {fase.horasEjecutadas ?? 0}h
-                      </span>
+                    {fechaLimiteFase && (
+                      <>
+                        <span aria-hidden>·</span>
+                        <span>Fase límite: {fechaLimiteFase}</span>
+                      </>
                     )}
                   </div>
+                  {hayHoras && (
+                    <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                      <span>Estimadas: {fase.horasEstimadas ?? 0}h</span>
+                      <span aria-hidden>·</span>
+                      <span className={cn(sobrepresupuesto && "font-medium text-status-overbudget")}>
+                        Consumidas: {fase.horasEjecutadas ?? 0}h
+                      </span>
+                    </div>
+                  )}
                 </div>
-                {abierta ? (
-                  <ChevronUp className="h-4 w-4 shrink-0 self-center text-muted-foreground" />
-                ) : (
-                  <ChevronDown className="h-4 w-4 shrink-0 self-center text-muted-foreground" />
-                )}
               </button>
-              <div className="flex shrink-0 flex-wrap items-end gap-1.5">
+              <div className="grid shrink-0 grid-cols-2 items-end justify-items-end gap-x-1 gap-y-0.5">
                 {camposFechaLimiteFase[i]}
-                {botonesAgregarTarea[i]}
+                <button
+                  type="button"
+                  onClick={() => setAbiertas((prev) => ({ ...prev, [fase.nombre]: !prev[fase.nombre] }))}
+                  className="col-start-2 row-start-1 self-center"
+                >
+                  {abierta ? (
+                    <ChevronUp className="h-4 w-4 shrink-0 text-muted-foreground" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
+                  )}
+                </button>
+                <div className="col-start-2 row-start-2 justify-self-end">
+                  {botonesAgregarTarea[i]}
+                </div>
               </div>
             </div>
 
@@ -128,7 +161,6 @@ export function TareasPorFase({
                               Planeado: {inicio ?? "—"} → {fin ?? "—"}
                             </span>
                           )}
-                          {t.horas !== null && <span>Horas estimadas: {t.horas}</span>}
                           <span>Horas consumidas: {t.executedHours}h</span>
                         </div>
                         {bloqueo && <p className="text-xs text-status-bloqueo">⚠ {bloqueo}</p>}

@@ -14,60 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      activity_logs: {
-        Row: {
-          created_by: string | null
-          event_type: string
-          hours_spent: number
-          id: string
-          logged_at: string
-          notes: string | null
-          phase_number: number | null
-          requirement_id: string
-          task_id: string | null
-          title: string
-        }
-        Insert: {
-          created_by?: string | null
-          event_type?: string
-          hours_spent?: number
-          id?: string
-          logged_at?: string
-          notes?: string | null
-          phase_number?: number | null
-          requirement_id: string
-          task_id?: string | null
-          title: string
-        }
-        Update: {
-          created_by?: string | null
-          event_type?: string
-          hours_spent?: number
-          id?: string
-          logged_at?: string
-          notes?: string | null
-          phase_number?: number | null
-          requirement_id?: string
-          task_id?: string | null
-          title?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "activity_logs_requirement_id_fkey"
-            columns: ["requirement_id"]
-            isOneToOne: false
-            referencedRelation: "requirements"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "activity_logs_task_id_fkey"
-            columns: ["task_id"]
-            isOneToOne: false
-            referencedRelation: "requirement_tasks"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       profiles: {
         Row: {
           created_at: string
@@ -115,19 +61,22 @@ export type Database = {
       }
       requirement_phase_deadlines: {
         Row: {
-          due_date: string
+          due_date: string | null
+          estimated_hours: number | null
           phase_number: number
           requirement_id: string
           updated_at: string
         }
         Insert: {
-          due_date: string
+          due_date?: string | null
+          estimated_hours?: number | null
           phase_number: number
           requirement_id: string
           updated_at?: string
         }
         Update: {
-          due_date?: string
+          due_date?: string | null
+          estimated_hours?: number | null
           phase_number?: number
           requirement_id?: string
           updated_at?: string

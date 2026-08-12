@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { RegistrarHorasDialog } from "@/components/registrar-horas-dialog";
+import { EditarHorasDialog } from "./editar-horas-dialog";
 import { EstadoTareaSelect } from "./estado-tarea-select";
 import { FechasPlaneadasForm } from "./fechas-planeadas-form";
 import { EditarTareaForm } from "./editar-tarea-form";
@@ -13,7 +13,6 @@ export function TareaAccionesAdmin({
   taskId,
   taskName,
   requirementId,
-  phaseNumber,
   estadoActual,
   plannedStartDate,
   plannedEndDate,
@@ -26,7 +25,6 @@ export function TareaAccionesAdmin({
   taskId: string;
   taskName: string;
   requirementId: string;
-  phaseNumber: number;
   estadoActual: string | null;
   plannedStartDate: Date | null;
   plannedEndDate: Date | null;
@@ -62,14 +60,19 @@ export function TareaAccionesAdmin({
         plannedEndDate={plannedEndDate}
       />
 
-      <RegistrarHorasDialog taskId={taskId} requirementId={requirementId} phaseNumber={phaseNumber} />
+      <EditarHorasDialog taskId={taskId} requirementId={requirementId} executedHours={executedHours} />
 
       <Button type="button" size="sm" variant="ghost" onClick={() => setEditando(true)}>
         <Pencil className="h-3.5 w-3.5" />
         Editar
       </Button>
 
-      <EliminarTareaButton taskId={taskId} taskName={taskName} executedHours={executedHours} />
+      <EliminarTareaButton
+        taskId={taskId}
+        taskName={taskName}
+        requirementId={requirementId}
+        executedHours={executedHours}
+      />
     </div>
   );
 }

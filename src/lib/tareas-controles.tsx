@@ -27,7 +27,7 @@ export function construirControlesTareas(fases: Fase[], requirementId: string) {
   ));
 
   const accionesTarea: Record<string, ReactNode> = Object.fromEntries(
-    fases.flatMap((f, i) =>
+    fases.flatMap((f) =>
       f.tareas.map((t) => [
         t.id,
         <RoleGate role="admin" key={t.id}>
@@ -35,7 +35,6 @@ export function construirControlesTareas(fases: Fase[], requirementId: string) {
             taskId={t.id}
             taskName={t.tarea}
             requirementId={requirementId}
-            phaseNumber={FASES_ORDEN[i].numero}
             estadoActual={t.estado}
             plannedStartDate={t.plannedStartDate}
             plannedEndDate={t.plannedEndDate}

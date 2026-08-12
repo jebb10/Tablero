@@ -6,6 +6,7 @@ import { getSupabaseClient } from "@/lib/supabase/server";
 import { PROJECT_SLUG } from "@/lib/project";
 import { slugify } from "@/lib/slug";
 import { ESTADOS_DB, ESTADO_DB_CERRADO_POR_CAMBIO_ALCANCE, type EstadoDb } from "@/lib/estados";
+import { FASES_ORDEN } from "@/lib/fases-orden";
 import { z } from "zod";
 
 const devEnvironmentUrlSchema = z.string().url().nullable();
@@ -90,6 +91,39 @@ function slugParaCrear(formData: FormData, code: string): string {
   return slugify(manual ?? code);
 }
 
+// Horas estimadas por fase (2026-08-12): opcional, independiente del total
+// -- no hay validación de que la suma coincida (decisión del PO). Un campo
+// vacío se guarda como null (permite "borrar" un estimado ya puesto).
+function leerHorasPorFase(
+  formData: FormData
+): { phaseNumber: number; estimatedHours: number | null }[] {
+  return FASES_ORDEN.map((f) => {
+    const raw = formData.get(`phaseEstimatedHours_${f.numero}`);
+    const valorTexto = typeof raw === "string" ? raw.trim() : "";
+    const valor = valorTexto ? Number(valorTexto) : null;
+    return {
+      phaseNumber: f.numero,
+      estimatedHours: valor !== null && Number.isFinite(valor) && valor >= 0 ? valor : null,
+    };
+  });
+}
+
+async function guardarHorasPorFase(
+  supabase: Awaited<ReturnType<typeof getSupabaseClient>>,
+  requirementId: string,
+  formData: FormData
+) {
+  const filas = leerHorasPorFase(formData).map((f) => ({
+    requirement_id: requirementId,
+    phase_number: f.phaseNumber,
+    estimated_hours: f.estimatedHours,
+  }));
+
+  await supabase
+    .from("requirement_phase_deadlines")
+    .upsert(filas, { onConflict: "requirement_id,phase_number" });
+}
+
 export async function crearRequerimiento(
   _prevState: GuardarRequerimientoState,
   formData: FormData
@@ -114,7 +148,7 @@ export async function crearRequerimiento(
   const { data: nuevo, error } = await supabase
     .from("requirements")
     .insert({ ...leido.valores, project_id: proyecto.id, slug })
-    .select("slug")
+    .select("id, slug")
     .single();
 
   if (error || !nuevo) {
@@ -123,6 +157,8 @@ export async function crearRequerimiento(
     }
     return { error: "No se pudo crear el requerimiento.", success: false };
   }
+
+  await guardarHorasPorFase(supabase, nuevo.id, formData);
 
   redirect(`/requerimiento/${nuevo.slug}`);
 }
@@ -155,6 +191,8 @@ export async function actualizarRequerimiento(
     }
     return { error: "No se pudo actualizar el requerimiento.", success: false };
   }
+
+  await guardarHorasPorFase(supabase, requirementId, formData);
 
   redirect(`/requerimiento/${actualizado.slug}`);
 }
@@ -194,7 +232,7 @@ export async function cerrarPorCambioDeAlcance(
       slug,
       parent_requirement_id: idViejo,
     })
-    .select("slug")
+    .select("id, slug")
     .single();
 
   if (errorNuevo || !nuevo) {
@@ -203,6 +241,8 @@ export async function cerrarPorCambioDeAlcance(
     }
     return { error: "No se pudo crear el requerimiento de reemplazo.", success: false };
   }
+
+  await guardarHorasPorFase(supabase, nuevo.id, formData);
 
   const { error: errorCierre } = await supabase
     .from("requirements")
