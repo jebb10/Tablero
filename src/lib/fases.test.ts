@@ -54,4 +54,18 @@ describe("agruparPorFase", () => {
     const desarrollo = fases.find((f) => f.nombre === "Desarrollo")!;
     expect(desarrollo.estado).toBe("en-curso");
   });
+
+  it("calcula horasEjecutadas sumando executed_hours de las tareas de la fase", () => {
+    const fases = agruparPorFase([
+      tarea({ phase_number: 3, phase_name: "Desarrollo", executed_hours: 4 }),
+      tarea({ phase_number: 3, phase_name: "Desarrollo", executed_hours: 2.5 }),
+    ]);
+    const desarrollo = fases.find((f) => f.nombre === "Desarrollo")!;
+    expect(desarrollo.horasEjecutadas).toBe(6.5);
+  });
+
+  it("horasEjecutadas es null si la fase no tiene tareas", () => {
+    const fases = agruparPorFase([]);
+    expect(fases.every((f) => f.horasEjecutadas === null)).toBe(true);
+  });
 });
