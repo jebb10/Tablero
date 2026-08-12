@@ -51,6 +51,15 @@ cambios grandes.
   (PR #25, 2026-08-12) y modelo de horas + encabezado de fase rediseñado
   (PR #26, 2026-08-12) — ver los dos puntos siguientes. Pendiente:
   Planeación/Gantt.
+- **Responsive mobile (PR #28, 2026-08-12)**: Home y Detalle del
+  requerimiento se apilan en viewports angostos (verificado a 412px de
+  ancho) en vez de comprimirse — nav sin nombre de usuario visible por
+  debajo de `sm`, header de Home en columna, grid de tarjetas a 1 columna
+  bajo `sm`, KPI strip como grid 2/3/5 columnas, tarjetas de horas del
+  Detalle apiladas bajo `sm`, y el bloque de fecha límite de fase +
+  "Añadir tarea" a ancho completo en su propia fila. El layout de
+  escritorio no cambió. Planeación/Gantt no se tocó — sigue sin
+  refinamiento visual, mobile incluido.
 - **Detalle del requerimiento (`/requerimiento/[item]`) es ahora la única
   pantalla de edición de tareas/fechas** — la antigua
   `/planeacion/[requerimiento]/editar` se eliminó (2026-08-12, PR #25) al
@@ -322,5 +331,5 @@ no quedó ningún rastro de esa fase en el código actual. **No hay ningún trab
 roadmap** — no se planea ninguna fase de documentos versionados ni ninguna otra fase futura. El
 detalle de ejecución de las fases ya cerradas (decisiones tomadas con el PO, pivots de diseño,
 contradicciones resueltas del diseño original) no se conserva como documento aparte en el repo —
-vive en el historial de git (PRs #9–#26) y, para lo aún relevante operativamente, en
+vive en el historial de git (PRs #9–#28) y, para lo aún relevante operativamente, en
 `supabase/RUNBOOK_AUTH.md`/`RUNBOOK_BACKUP.md`/`MIGRACIONES.md`.
