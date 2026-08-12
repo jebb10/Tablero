@@ -18,7 +18,7 @@ export type Database = {
         Row: {
           created_by: string | null
           event_type: string
-          hours_spent: number | null
+          hours_spent: number
           id: string
           logged_at: string
           notes: string | null
@@ -30,7 +30,7 @@ export type Database = {
         Insert: {
           created_by?: string | null
           event_type?: string
-          hours_spent?: number | null
+          hours_spent?: number
           id?: string
           logged_at?: string
           notes?: string | null
@@ -42,7 +42,7 @@ export type Database = {
         Update: {
           created_by?: string | null
           event_type?: string
-          hours_spent?: number | null
+          hours_spent?: number
           id?: string
           logged_at?: string
           notes?: string | null
@@ -231,7 +231,7 @@ export type Database = {
           description: string | null
           dev_environment_url: string | null
           estimated_hours: number | null
-          executed_hours: number | null
+          executed_hours: number
           has_detail_tracking: boolean
           id: string
           month_label: string | null
@@ -255,7 +255,7 @@ export type Database = {
           description?: string | null
           dev_environment_url?: string | null
           estimated_hours?: number | null
-          executed_hours?: number | null
+          executed_hours?: number
           has_detail_tracking?: boolean
           id?: string
           month_label?: string | null
@@ -279,7 +279,7 @@ export type Database = {
           description?: string | null
           dev_environment_url?: string | null
           estimated_hours?: number | null
-          executed_hours?: number | null
+          executed_hours?: number
           has_detail_tracking?: boolean
           id?: string
           month_label?: string | null
