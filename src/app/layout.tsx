@@ -41,7 +41,7 @@ export default async function RootLayout({
     <html lang="es" className={`${montserrat.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
         {profile && (
-          <nav className="flex items-center gap-4 border-b bg-card px-6 py-2.5 print:hidden">
+          <nav className="flex items-center gap-4 border-b bg-card px-3 py-2.5 sm:px-6 print:hidden">
             <Link href="/" className="text-sm font-semibold">
               Dashboard
             </Link>
@@ -52,7 +52,9 @@ export default async function RootLayout({
               Planeación
             </Link>
             <div className="ml-auto flex items-center gap-3">
-              <span className="text-sm text-muted-foreground">{nombreVisible(profile)}</span>
+              <span className="hidden text-sm text-muted-foreground sm:inline">
+                {nombreVisible(profile)}
+              </span>
               <RoleBadge role={profile.role} />
               <form action={cerrarSesion}>
                 <Button type="submit" variant="ghost" size="sm">

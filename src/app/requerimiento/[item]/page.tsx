@@ -49,13 +49,13 @@ export default async function RequerimientoPage({
       </Link>
 
       <header className="flex flex-col gap-2">
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <span className="text-sm font-semibold text-muted-foreground">{requerimiento.code}</span>
             <Badge variant="secondary">{dbAEstado(requerimiento.status)}</Badge>
           </div>
           <RoleGate role="admin">
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Link href={`/requerimiento/${slug}/editar`}>
                 <Button type="button" size="sm" variant="outline">
                   <Pencil className="h-3.5 w-3.5" />
@@ -121,7 +121,7 @@ export default async function RequerimientoPage({
         </div>
       </header>
 
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <div className="rounded-xl border bg-card p-4">
           <p className="text-xs text-muted-foreground">Horas estimadas</p>
           <p className="text-xl font-bold">{horasEstimadas ?? "—"}h</p>

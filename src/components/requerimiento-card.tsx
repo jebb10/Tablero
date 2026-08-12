@@ -84,7 +84,7 @@ export function RequerimientoCard({ req }: { req: Requerimiento }) {
               </span>
             </div>
             <Progress value={Math.min(req.porcentajeAvance ?? 0, 100)} className="h-1.5" />
-            <div className="flex justify-between text-[11px]">
+            <div className="flex flex-wrap justify-between gap-1 text-[11px]">
               <span
                 className={cn(
                   "font-mono text-muted-foreground",
