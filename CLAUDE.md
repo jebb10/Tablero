@@ -39,7 +39,7 @@ consulta siempre "Estado actual" abajo antes de proponer cambios grandes.
 - **Todas las fases planificadas (0, B, C, C1, C2, C3) están completas y
   verificadas en producción — no hay trabajo pendiente del roadmap.** El
   detalle de ejecución de cada una (decisiones tomadas con el PO, pivots de
-  diseño, PRs #9–#16) vive en el historial de git — no se conserva como
+  diseño, PRs #9–#20) vive en el historial de git — no se conserva como
   documento aparte en el repo. Ninguna fase de documentos versionados
   (antes "Fase D") sigue en pie ni como diseño futuro — se descartó por
   completo.
@@ -178,17 +178,18 @@ para repetir la verificación: `scripts/verificar_seguridad_fase_b.mjs`
   `requireAdmin()`** (`src/lib/auth/session.ts`), no confiar solo en RLS
   para dar feedback claro al usuario.
 - **Control de versiones**: repo git local, rama `main` (tracking
-  `origin/main`), remoto `https://github.com/jebb10/Tablero.git`. Un solo
-  commit con todo el historial real del proyecto (el commit inicial de
-  `create-next-app` y el placeholder que traía el repo remoto quedaron
-  reemplazados con confirmación explícita del PO — ver punto de control MVP).
+  `origin/main`), remoto `https://github.com/jebb10/Tablero.git`. Flujo
+  rama + PR desde la Fase B (antes, push directo a `main` en la Fase 0).
+  El commit inicial de `create-next-app` y el placeholder que traía el
+  repo remoto quedaron reemplazados con confirmación explícita del PO en
+  el punto de control MVP — desde ahí el historial crece por PR normal.
 
 ### Archivos clave
 
 | Archivo | Responsabilidad |
 | --- | --- |
 | `supabase/migrations/` | DDL versionado (tablas, RLS, seed del proyecto), aplicado vía `npm run db:push` (CLI de Supabase). El DDL original de la Fase A quedó archivado en `supabase/legado/schema-fase-a.sql` ("HISTÓRICO. No ejecutar"). |
-| `scripts/migrate_to_supabase.py` | Script one-time (admin-run) que migró el `.xlsx` legado a Supabase vía `supabase-py`. Idempotente (upsert), reporte de verificación al final. No se vuelve a correr salvo que haya que re-migrar desde cero (`--reset`) — inejecutable hoy de todas formas, el `.xlsx` fuente ya no existe. |
+*(`scripts/migrate_to_supabase.py` migró el `.xlsx` legado a Supabase una sola vez en la Fase A; se eliminó del repo en la limpieza de 2026-08-11 — el `.xlsx` fuente ya no existe y el script era inejecutable. Detalle campo a campo en el historial de git si algún día hiciera falta.)*
 | `scripts/create_user.mjs` | Script admin-run (Unidad B.2) para crear/actualizar usuarios: `auth.admin.createUser` + upsert en `profiles`, idempotente por email. Lee `SUPABASE_SECRET_KEY` de entorno, nunca del código. Único flujo soportado para altas de usuario — evita el estado roto de un usuario en `auth.users` sin fila en `profiles`. |
 | `src/lib/supabase/server.ts` | `getSupabaseClient()` (async, Unidad B.1) — cliente `anon` de `@supabase/ssr` (`createServerClient`) con cookies de sesión vía `cookies()` de `next/headers`. Usado por Server Components/data-loaders. |
 | `src/lib/supabase/config.ts` | `SUPABASE_URL`/`SUPABASE_ANON_KEY` hardcodeadas (Unidad B.1, antes vivían en `server.ts`) — mismo motivo que el antiguo `SHEET_ID`, ver "Fuente de datos". |
@@ -204,23 +205,27 @@ para repetir la verificación: `scripts/verificar_seguridad_fase_b.mjs`
 | `src/lib/supabase/database.types.ts` | Tipos generados vía `npm run types:db` (CLI de Supabase) — usado por los tres módulos `src/lib/*-data.ts` para tipar las consultas sin `as`. |
 | `src/lib/project.ts` | `PROJECT_SLUG` — default hardcodeado del único proyecto sembrado (`positiva-web-414`). |
 | `src/lib/estados.ts` | Fuente única de estados: `ESTADOS_DB`, `ESTADO_DB_A_ES`/`ESTADO_ES_A_DB`, `dbAEstado()` (con `console.warn` para valores no mapeados). Sustituye el `Record` de 4 claves que antes vivía inline en `dashboard-data.ts`. |
-| `src/lib/slug.ts` | `slugify()` — port TS del de `scripts/migrate_to_supabase.py`, verificado contra los 28 códigos reales en `src/lib/__tests__/slug.fixtures.json`. |
+| `src/lib/estados-tarea.ts` | Equivalente a `estados.ts` para `requirement_tasks.status` (6 valores canónicos de la Unidad C2.1) — `estadoEsCompletada()` es la función más cubierta por tests del repo. |
+| `src/lib/category.ts` | Mapeo de categoría de requerimiento usado por `requerimiento-card.tsx`/`RequerimientoIcono`. |
+| `src/lib/tarea-schema.ts` | Esquemas zod de las Server Actions de `src/app/actions/tasks.ts` (crear/editar tarea, fechas planeadas). |
+| `src/lib/actividad-schema.ts` | Esquema zod de `registrarHoras()` (`src/app/actions/activity-logs.ts`). |
+| `src/lib/planeacion-fechas-schema.ts` | Esquema zod de `guardarFechasPlaneadas()`, consumido por la RPC `rpc_set_planned_dates`. |
+| `src/lib/slug.ts` | `slugify()` — port TS del script de migración one-time ya retirado del repo, verificado contra los 28 códigos reales en `src/lib/__tests__/slug.fixtures.json`. |
 | `src/lib/fases-orden.ts` | `FASES_ORDEN` — antes duplicado en `fases.ts` y `planeacion-data.ts`. |
 | `src/lib/fechas.ts` | `hoyLocal()`/`aISO()`/`desdeISO()`/`sumarDias()`/`diffDias()`/`aInputDate()` en zona `America/Bogota` — fuente única de formateo de fechas, usada por varios componentes de tareas/fases. |
 | `src/lib/semaforo.ts` | `calcularSemaforo(deadline)` — rojo/ámbar/verde/sin-fecha por proximidad de fecha límite (umbrales 3/10 días). Reusado en la card y en `/planeacion`. |
 | `src/lib/fases.ts` | `agruparPorFase(filas)` — agrupa filas planas de `requirement_tasks` en el shape `Fase[]` que consume `FaseStepper`. |
 | `src/lib/planeacion-data.ts` | `getPlaneacionData()` — consulta requerimientos con `has_detail_tracking` + sus tareas, arma el shape que consume `/planeacion`. |
-| `src/lib/kpis.ts` | `getKPIs()`, `getCalidadDatos()` — puramente sobre el array de `Requerimiento[]` ya adaptado, sin tocar Supabase directamente. |
+| `src/lib/kpis.ts` | `getKPIs()` — puramente sobre el array de `Requerimiento[]` ya adaptado, sin tocar Supabase directamente. |
 | `src/lib/dashboard-data.ts` | `getDashboardData()` — consulta `requirements` por `project_id`, adapta cada fila DB → `Requerimiento` (mismo shape de siempre), con caché in-memory del último resultado bueno si Supabase no responde. Único punto de entrada que usa `src/app/page.tsx`. |
 | `src/lib/requerimiento-data.ts` | `getRequerimientoDetalle(slug)` — consulta `requirements`+`requirement_tasks` en Supabase por `slug`, con su propio try/catch. Único punto de entrada del drill-down, usado por `src/app/requerimiento/[item]/page.tsx`. |
-| `src/lib/types.ts` | Tipos compartidos (`Requerimiento`, `Fase`, `Tarea`, `KPIs`, `CalidadDatos`, etc.). `Requerimiento` ganó `semaforo: Semaforo`; perdió `hojaDetalle` (concepto específico de Excel, ya no aplica). |
+| `src/lib/types.ts` | Tipos compartidos (`Requerimiento`, `Fase`, `Tarea`, `KPIs`, etc.). `Requerimiento` ganó `semaforo: Semaforo`; perdió `hojaDetalle` (concepto específico de Excel, ya no aplica). |
 | `src/lib/icons.tsx` | `RequerimientoIcono` (componente, no una función que devuelve un componente — así lo exige la regla `react-hooks/static-components` de eslint) que mapea el ícono por patrón en el nombre del requerimiento. |
 | `src/app/page.tsx` | Server Component: llama `getDashboardData()`, muestra solo el banner de error si no hay ningún dato previo bueno. |
 | `src/app/planeacion/page.tsx` + `src/components/planeacion/*` | Vista Gantt: `gantt-sidebar.tsx` (colapsable desktop + drawer mobile vía `Sheet`), `gantt-timeline.tsx` (grid CSS por día, sin librería externa), `planeacion-client.tsx` (orquestador). |
 | `src/components/dashboard-client.tsx` | KPIs, búsqueda/filtros, los 4 bloques de estado, botón Exportar PDF, atenúa el dashboard si `error` es `true`. **Ya no tiene botón "Sincronizar"** (se retiró — ver "Fuente de datos"). |
 | `src/components/requerimiento-card.tsx` | Card individual ampliada (~176px, badge de mes, fila horas/fecha, dot de semáforo junto a la fecha) (RN-04). El semáforo **convive** con el borde de "bloqueado" (RN-03) — son dos señales distintas, no se reemplazan entre sí. |
-| `src/components/kpi-strip.tsx` | 5 KPIs, el 5º ("Calidad de datos") con acento `"atencion"` (azul pizarra, no ámbar) y link a `#calidad-datos`. |
-| `src/components/data-quality-panel.tsx` | Panel colapsable de calidad de datos — **solo evalúa los 7 requerimientos con hoja de detalle real**, nunca los 21 heurísticos. |
+| `src/components/kpi-strip.tsx` | 5 KPIs (Requerimientos, Horas ejecutadas/estimadas, En curso, Reabiertos, Con bloqueo activo). **El panel de "Calidad de datos" y su KPI se retiraron por completo** en el refinamiento de Home de 2026-08-11 — no confundir con versiones anteriores de este documento. |
 | `src/components/error-datos-banner.tsx` | `ErrorDatosBanner` — Banner de error + botón Reintentar (llama a `reintentar()`, solo hace `refresh()` — no confundir con el antiguo botón "Sincronizar", que ya no existe), usado standalone (sin datos previos) o embebido en `dashboard-client.tsx` (con datos previos atenuados). |
 | `src/components/pdf-report.tsx` | Reporte para impresión (`hidden print:block`), incluye los 28 requerimientos, sin el panel de calidad, sin numeración de página. |
 | `src/lib/actividades-data.ts` | `getActividades(requirementId)` (Fase C) — consulta `activity_logs` por requerimiento, resuelve el nombre del autor vía `nombre_autor()` (RPC security-definer, visible también para el Viewer). |
@@ -238,7 +243,11 @@ para repetir la verificación: `scripts/verificar_seguridad_fase_b.mjs`
 | `src/app/actions/ui.ts` | Server Action `reintentar()` (`refresh()`) (Unidad C2.5, antes en `src/app/actions.ts`) — usada solo por el banner de error. |
 | `src/app/actions/activity-logs.ts` | Server Action `registrarHoras()` (Fase C, renombrada desde `agregarActividad()` en la fusión tarea/actividad de 2026-08-11) — `requireAdmin()` → valida horas/fecha/nota → `insert` en `activity_logs` con `created_by`/`task_id` → `refresh()`. |
 | `src/app/actions/tasks.ts` | Server Actions `guardarFechasPlaneadas()`/`crearTarea()`/`eliminarTarea()` (Unidad C1.2, reubicadas en Unidad C2.5 desde `src/app/planeacion/[requerimiento]/editar/actions.ts`). |
-| `src/app/actions/requirements.ts` | Stub (`"use server";`, sin exports) creado en la Unidad C2.5 — primer consumidor real: Unidad C2.3 (crear/editar requerimiento). |
+| `src/app/actions/requirements.ts` | Server Actions `crearRequerimiento()`, `actualizarRequerimiento()`, `cerrarPorCambioDeAlcance()` (Unidad C2.3) — consumidas por `src/components/requerimiento-form.tsx` desde las tres rutas de formulario listadas abajo. |
+| `src/components/requerimiento-form.tsx` | Formulario compartido de requerimiento (Unidad C2.3), en modo crear/editar/cambio-de-alcance según la ruta que lo renderiza. |
+| `src/app/requerimiento/nuevo/page.tsx` | Crear requerimiento — `RequerimientoForm` en modo creación (`requireAdmin()`). |
+| `src/app/requerimiento/[item]/editar/page.tsx` | Editar requerimiento existente — `RequerimientoForm` en modo edición (`requireAdmin()`). |
+| `src/app/requerimiento/[item]/cambio-de-alcance/page.tsx` | Cierra el requerimiento actual y crea uno nuevo enlazado (`parent_requirement_id`) — `RequerimientoForm` en modo cambio de alcance (`requireAdmin()`). |
 | `public/fonts/montserrat-{400,500,600,700}.woff2` | Montserrat auto-hospedada (no `next/font/google`) — cargada vía `next/font/local` en `layout.tsx`. |
 
 `src/lib/excel/*` (workbook/dashboard-sheet/detalle-sheet) y la dependencia
@@ -279,5 +288,5 @@ producción. **No hay ningún trabajo pendiente del roadmap** — no se planea n
 documentos versionados ni ninguna otra fase futura. El detalle de ejecución de las fases ya
 cerradas (decisiones tomadas con el PO, pivots de diseño, contradicciones resueltas del diseño
 original) no se conserva como documento aparte en el repo — vive en el historial de git (PRs
-#9–#16) y, para lo aún relevante operativamente, en
+#9–#20) y, para lo aún relevante operativamente, en
 `supabase/RUNBOOK_AUTH.md`/`RUNBOOK_BACKUP.md`/`MIGRACIONES.md`.

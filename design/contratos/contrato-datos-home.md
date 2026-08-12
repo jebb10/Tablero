@@ -1,4 +1,6 @@
-# Contrato de datos — Home (`design/home-resumen-general.dc.html`)
+# Contrato de datos — Home
+
+> El mockup `design/home-resumen-general.dc.html` que originó este contrato ya se retiró del repo (era un artefacto de diseño one-off, no la fuente de verdad). El contrato sigue vigente como documento — la fuente de verdad real es el código listado abajo.
 
 Fuente de verdad del esquema: `src/lib/supabase/database.types.ts` + `supabase/migrations/`. Fuente de verdad de la lógica actual: `src/lib/dashboard-data.ts`, `src/lib/kpis.ts`, `src/components/dashboard-client.tsx`, `src/components/kpi-strip.tsx`.
 

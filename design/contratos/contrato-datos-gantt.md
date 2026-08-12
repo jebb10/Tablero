@@ -1,4 +1,6 @@
-# Contrato de datos — Gantt (`design/fase-c1-gantt-planeacion.dc.html`)
+# Contrato de datos — Gantt
+
+> El mockup `design/fase-c1-gantt-planeacion.dc.html` que originó este contrato ya se retiró del repo (era un artefacto de diseño one-off, no la fuente de verdad). El contrato sigue vigente como documento — la fuente de verdad real es el código listado abajo.
 
 **Actualizado 2026-08-10 tras ejecutar la Unidad C1 completa** (semillado de
 fechas, edición, refinamiento visual, semáforo vencido, extensión de horas
