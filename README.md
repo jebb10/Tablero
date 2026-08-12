@@ -1,14 +1,18 @@
-# Dashboard 414 — Seguimiento de Requerimientos (Positiva Web)
+# Dashboard 414 — Seguimiento de Requerimientos
 
 ## Objetivo
 
-Herramienta de uso diario para el seguimiento del proyecto de software real
-"Positiva Web 414": para cada uno de los 28 requerimientos, muestra en qué
-estado va, cuántas horas se han consumido frente a lo estimado, y el detalle
-de sus tareas por fase (Requerimientos → Diseño → Desarrollo → QA →
+Herramienta de uso diario para el seguimiento de un proyecto de software real:
+para cada requerimiento, muestra en qué estado va, cuántas horas se han
+consumido frente a lo estimado (a nivel de requerimiento y por fase), y el
+detalle de sus tareas por fase (Requerimientos → Diseño → Desarrollo → QA →
 Producción). No es un reporte estático ni un ejercicio de aprendizaje — es
-la única fuente de verdad del PO para saber, en cualquier momento, en qué va
-cada requerimiento y quién ha registrado qué trabajo.
+la fuente de verdad del Product Owner para saber, en cualquier momento, en
+qué va cada requerimiento y quién ha registrado qué trabajo.
+
+Pensado como una base genérica de seguimiento de requerimientos/tareas por
+fase para un proyecto de software — no depende de ningún cliente o dominio
+de negocio en particular.
 
 Next.js (App Router) + TypeScript + Tailwind v4 + shadcn/ui, con Supabase
 (Postgres + API REST + Auth) como fuente de datos y autenticación.
@@ -22,19 +26,21 @@ Next.js (App Router) + TypeScript + Tailwind v4 + shadcn/ui, con Supabase
   por fecha límite.
 - **Detalle de requerimiento** (`/requerimiento/[item]`): link al ambiente
   de desarrollo junto al título; acordeón "Tareas por fase" — encabezado de
-  cada fase con estado, fecha límite, conteo de tareas y horas
-  estimadas/consumidas de esa fase; cada tarea con estado, fechas (límite +
-  planeadas), horas consumidas y bloqueantes, con borde naranja
-  institucional si está "En curso" o rojo si está "Bloqueada"; botón
-  "Añadir tarea" y "Registrar horas" por fase (Admin); bloque aparte para
-  el historial de actividad anterior a la fusión tarea/actividad. Es la
-  única pantalla de edición de tareas/fechas — también se llega aquí desde
-  el botón "Detalle" de Planeación.
+  cada fase con estado (chip de color junto al título), fecha límite de fase,
+  conteo de tareas completadas y horas estimadas/consumidas de esa fase; cada
+  tarea con estado, fechas (límite + planeadas), horas ejecutadas editables
+  directamente y bloqueantes, con borde de color si está "En curso" o
+  "Bloqueada". Es la única pantalla de edición de tareas/fechas — también se
+  llega aquí desde el botón "Detalle" de Planeación.
+- **Crear/editar requerimiento**: horas totales estimadas más un desglose
+  opcional de horas estimadas por fase (no bloqueante frente al total) —
+  las horas consumidas por fase se calculan solas, sumando las horas
+  ejecutadas de las tareas de esa fase.
 - **Planeación** (`/planeacion`): Gantt navegable (mes/semana/14 días,
   botones "< Hoy >"), semáforo por tarea, hito propio por fase (fecha
   límite de fase, independiente de las tareas). El botón "Detalle" por
   requerimiento navega al Detalle del requerimiento (arriba) para
-  crear/editar/eliminar tareas y registrar horas.
+  crear/editar/eliminar tareas y ajustar horas.
 - **Login por roles**: Admin (escribe) / Viewer (solo lectura) vía Supabase
   Auth — `/login`, recuperar/restablecer contraseña. RLS exige sesión para
   leer, y solo Admin para escribir; la UI también oculta los controles de
@@ -42,11 +48,12 @@ Next.js (App Router) + TypeScript + Tailwind v4 + shadcn/ui, con Supabase
 
 ## Estado actual
 
-Fases 0 (fundaciones), B (auth/roles), C (pantallas de escritura), C1 (Gantt real), C2 (CRUD de
-requerimientos y tareas, completa) y C3 (bitácora de horas) **completas y verificadas en
-producción**. No hay trabajo pendiente del roadmap — el proyecto está en ciclo de refinamiento
-visual pantalla por pantalla: Home (2026-08-11) y Detalle de requerimiento (2026-08-12) ya
-refinadas; Planeación/Gantt pendiente.
+Fases 0 (fundaciones), B (auth/roles), C (pantallas de escritura), C1 (Gantt
+real) y C2 (CRUD de requerimientos y tareas) completas y verificadas en
+producción. El proyecto está en ciclo de refinamiento continuo pantalla por
+pantalla (fuera del roadmap de fases): Home, Detalle de requerimiento y el
+modelo de horas (ejecutadas por tarea, estimadas por fase) ya refinados;
+Planeación/Gantt pendiente de refinamiento visual.
 
 **El detalle completo y siempre vigente vive en [`CLAUDE.md`](./CLAUDE.md)
 — léelo antes de tocar el código.**
