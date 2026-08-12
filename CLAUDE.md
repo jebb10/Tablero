@@ -1,14 +1,17 @@
 @AGENTS.md
 
-# Dashboard 414 — Seguimiento de Requerimientos (Positiva Web)
+# Dashboard 414 — Seguimiento de Requerimientos
 
-Dashboard ejecutivo que muestra el estado de los requerimientos del proyecto
-Positiva Web 414: en qué estado va cada uno, horas consumidas vs. estimadas, y
-el detalle de tareas por fase al hacer drill-down. Este es un proyecto **vivo,
-construido por fases** — no asumas que la fase actual es la versión final;
-consulta siempre "Estado actual" abajo antes de proponer cambios grandes.
+Dashboard ejecutivo de seguimiento de requerimientos de un proyecto de
+software: en qué estado va cada uno, horas consumidas vs. estimadas (a nivel
+de requerimiento y por fase), y el detalle de tareas por fase al hacer
+drill-down. Es una herramienta genérica de seguimiento de proyectos — no está
+acoplada a ningún cliente o dominio de negocio particular. Este es un
+proyecto **vivo, construido por fases** — no asumas que la fase actual es la
+versión final; consulta siempre "Estado actual" abajo antes de proponer
+cambios grandes.
 
-## Estado actual: Fases 0, B, C, C1, C2 y C3 completas y verificadas — sin trabajo pendiente
+## Estado actual: Fases 0, B, C, C1 y C2 completas y verificadas — sin trabajo pendiente del roadmap
 
 - Desplegado en Vercel: [tablero-pi.vercel.app](https://tablero-pi.vercel.app/)
   (repo: `https://github.com/jebb10/Tablero.git`). Login real por roles
@@ -32,11 +35,11 @@ consulta siempre "Estado actual" abajo antes de proponer cambios grandes.
   acordeón de tareas por fase (edición de tareas/fechas incluida — pantalla
   única, ver más abajo); vista `/planeacion` (Gantt navegable con sidebar
   colapsable), con un botón "Detalle" por requerimiento que navega al
-  drill-down. Registro de horas por tarea (fusión tarea/actividad) con
-  bitácora append-only.
+  drill-down. Horas ejecutadas editables directamente por tarea; horas
+  estimadas manuales por fase (ver el punto de 2026-08-12 más abajo).
 - Lee y escribe en Supabase (Postgres + API REST), ver "Fuente de datos"
   abajo. **Backup diario verificado** — ver "Backup" abajo.
-- **Todas las fases planificadas (0, B, C, C1, C2, C3) están completas y
+- **Todas las fases planificadas (0, B, C, C1, C2) están completas y
   verificadas en producción — no hay trabajo pendiente del roadmap.** El
   detalle de ejecución de cada una (decisiones tomadas con el PO, pivots de
   diseño, PRs #9–#20) vive en el historial de git — no se conserva como
@@ -44,8 +47,10 @@ consulta siempre "Estado actual" abajo antes de proponer cambios grandes.
   (antes "Fase D") sigue en pie ni como diseño futuro — se descartó por
   completo. **Refinamiento visual pantalla por pantalla en curso desde el
   2026-08-11 (fuera del roadmap de fases, ciclo continuo pedido por el
-  PO)**: Home refinada (PR #19/#24) y Detalle del requerimiento refinado
-  (PR #25, 2026-08-12) — ver el punto siguiente. Pendiente: Planeación/Gantt.
+  PO)**: Home refinada (PR #19/#24), Detalle del requerimiento refinado
+  (PR #25, 2026-08-12) y modelo de horas + encabezado de fase rediseñado
+  (PR #26, 2026-08-12) — ver los dos puntos siguientes. Pendiente:
+  Planeación/Gantt.
 - **Detalle del requerimiento (`/requerimiento/[item]`) es ahora la única
   pantalla de edición de tareas/fechas** — la antigua
   `/planeacion/[requerimiento]/editar` se eliminó (2026-08-12, PR #25) al
@@ -54,10 +59,23 @@ consulta siempre "Estado actual" abajo antes de proponer cambios grandes.
   drill-down (sin `requireAdmin()` bloqueante — mismo patrón de acceso que
   ya tenía Detalle: `RoleGate` oculta controles de edición, cualquier
   usuario autenticado puede ver la pantalla). El link del ambiente de
-  desarrollo vive en el header de Detalle, junto al título; el encabezado
-  de cada fase muestra horas estimadas/consumidas de esa fase; las tareas
-  "En curso"/"Bloqueada" tienen borde de color (naranja institucional/rojo)
-  en su tarjeta individual.
+  desarrollo vive en el header de Detalle, junto al título.
+- **Rediseño del modelo de horas y del encabezado de fase (PR #26,
+  2026-08-12, pedido por el PO)**: se eliminó por completo la bitácora
+  `activity_logs` (y el bloque "Actividades sin fase asignada") — "horas
+  ejecutadas" pasó a ser un campo editable directamente por tarea
+  (`requirement_tasks.executed_hours`, mantenido por la aplicación, no por
+  trigger); `requirements.executed_hours` se recalcula en la Server Action
+  al editar/crear/eliminar una tarea. "Horas estimadas" dejó de calcularse
+  sumando tareas: ahora es un dato manual **por fase**
+  (`requirement_phase_deadlines.estimated_hours`), diligenciado al
+  crear/editar el requerimiento (opcional, no bloqueante frente al total).
+  El encabezado de cada fase en `TareasPorFase` quedó rediseñado: chip de
+  estado junto al título, "N/M completadas · Fase límite: fecha" en su
+  línea, horas Estimadas/Consumidas en la suya (Consumidas en rojo si hay
+  sobrepresupuesto), y a la derecha dos filas alineadas por su borde
+  izquierdo — fecha límite de fase + chevron de expandir arriba, "Guardar"
+  + "Añadir tarea" abajo.
 
 ## Fuente de datos
 
@@ -65,9 +83,10 @@ La fuente de datos es un proyecto Supabase (Postgres + API REST vía
 `@supabase/supabase-js`, cliente `anon`/`publishable`).
 `src/lib/supabase/server.ts` crea el cliente; `src/lib/dashboard-data.ts` y
 `src/app/requerimiento/[item]/page.tsx` hacen las consultas. El proyecto
-activo es un default hardcodeado (`positiva-web-414`) en `src/lib/project.ts`
-— no hay selector de proyecto en la UI todavía porque solo existe un
-proyecto real (el modelo de datos ya soporta multi-proyecto).
+activo es un slug hardcodeado en `src/lib/project.ts` (`PROJECT_SLUG`,
+el único proyecto real sembrado en la tabla `projects`) — no hay selector de
+proyecto en la UI todavía porque solo existe un proyecto real (el modelo de
+datos ya soporta multi-proyecto).
 
 **`SUPABASE_URL`/`SUPABASE_ANON_KEY` están hardcodeadas como constantes en
 `src/lib/supabase/server.ts`, NO como env vars** — mismo patrón que el
@@ -82,15 +101,16 @@ correr `scripts/migrate_to_supabase.py`.
 
 Esquema completo (DDL) versionado en `supabase/migrations/` (aplicado vía
 `npm run db:push`, CLI de Supabase — ver `supabase/MIGRACIONES.md`) — tablas
-`projects`, `requirements`, `requirement_tasks`, `activity_logs` (bitácora de
-horas, ligada a `requirement_tasks.task_id` desde la fusión tarea/actividad
-de 2026-08-11), `requirement_phase_deadlines` (fecha límite por fase de un
-requerimiento, nueva en esa misma fecha). **RLS exige sesión desde la Unidad
-B.4** (2026-08-09): `projects`/`requirements`/`requirement_tasks` solo son
-legibles con `auth.uid()` válido (`to authenticated`); escribir en
-`requirements`/`requirement_tasks` exige además `public.is_admin()`.
-`activity_logs` tiene policies desde la Fase C (`select` autenticado,
-`insert` solo Admin, append-only — sin `update`/`delete`). **`document_versions`
+`projects`, `requirements`, `requirement_tasks`,
+`requirement_phase_deadlines` (una fila por requerimiento+fase: fecha límite
+de fase y, desde el 2026-08-12, `estimated_hours` manual de esa fase).
+**RLS exige sesión desde la Unidad B.4** (2026-08-09):
+`projects`/`requirements`/`requirement_tasks`/`requirement_phase_deadlines`
+solo son legibles con `auth.uid()` válido (`to authenticated`); escribir
+exige además `public.is_admin()`. **`activity_logs`** (la bitácora de horas
+de la Fase C) **se eliminó por completo el 2026-08-12** (tabla, triggers y
+policies) — "horas ejecutadas" pasó a ser un campo editable directamente,
+mantenido por la aplicación (ver "Estado actual"). **`document_versions`
 se eliminó por completo en el cierre técnico pre-refinamiento (2026-08-11)** —
 era scaffolding vacío sin ninguna policy, de un diseño de documentos
 versionados descartado por decisión del PO; no se recreará. El DDL original
@@ -218,12 +238,11 @@ para repetir la verificación: `scripts/verificar_seguridad_fase_b.mjs`
 | `src/components/auth/role-badge.tsx` | `RoleBadge` (Unidad B.3) — badge visual Admin/Viewer en el nav de `layout.tsx`; puramente informativo. |
 | `src/components/auth/role-gate.tsx` | `RoleGate` (Unidad B.5) — Server Component que oculta `children` a quien no tenga el `role` indicado (default `"admin"`), resuelto con `getCurrentProfile()`. Estrenado en `layout.tsx` con un indicador de nav solo-Admin (`data-testid="admin-only"`). |
 | `src/lib/supabase/database.types.ts` | Tipos generados vía `npm run types:db` (CLI de Supabase) — usado por los tres módulos `src/lib/*-data.ts` para tipar las consultas sin `as`. |
-| `src/lib/project.ts` | `PROJECT_SLUG` — default hardcodeado del único proyecto sembrado (`positiva-web-414`). |
+| `src/lib/project.ts` | `PROJECT_SLUG` — default hardcodeado del único proyecto real sembrado en la tabla `projects`. |
 | `src/lib/estados.ts` | Fuente única de estados: `ESTADOS_DB`, `ESTADO_DB_A_ES`/`ESTADO_ES_A_DB`, `dbAEstado()` (con `console.warn` para valores no mapeados). Sustituye el `Record` de 4 claves que antes vivía inline en `dashboard-data.ts`. |
 | `src/lib/estados-tarea.ts` | Equivalente a `estados.ts` para `requirement_tasks.status` (6 valores canónicos de la Unidad C2.1) — `estadoEsCompletada()` es la función más cubierta por tests del repo. |
 | `src/lib/category.ts` | Mapeo de categoría de requerimiento usado por `requerimiento-card.tsx`/`RequerimientoIcono`. |
-| `src/lib/tarea-schema.ts` | Esquemas zod de las Server Actions de `src/app/actions/tasks.ts` (crear/editar tarea, fechas planeadas). |
-| `src/lib/actividad-schema.ts` | Esquema zod de `registrarHoras()` (`src/app/actions/activity-logs.ts`). |
+| `src/lib/tarea-schema.ts` | Esquemas zod de las Server Actions de `src/app/actions/tasks.ts` (crear/editar tarea, fechas planeadas, horas ejecutadas). |
 | `src/lib/planeacion-fechas-schema.ts` | Esquema zod de `guardarFechasPlaneadas()`, consumido por la RPC `rpc_set_planned_dates`. |
 | `src/lib/slug.ts` | `slugify()` — port TS del script de migración one-time ya retirado del repo, verificado contra los 28 códigos reales en `src/lib/__tests__/slug.fixtures.json`. |
 | `src/lib/fases-orden.ts` | `FASES_ORDEN` — antes duplicado en `fases.ts` y `planeacion-data.ts`. |
@@ -243,23 +262,18 @@ para repetir la verificación: `scripts/verificar_seguridad_fase_b.mjs`
 | `src/components/kpi-strip.tsx` | 5 KPIs (Requerimientos, Horas ejecutadas/estimadas, En curso, Reabiertos, Con bloqueo activo). **El panel de "Calidad de datos" y su KPI se retiraron por completo** en el refinamiento de Home de 2026-08-11 — no confundir con versiones anteriores de este documento. |
 | `src/components/error-datos-banner.tsx` | `ErrorDatosBanner` — Banner de error + botón Reintentar (llama a `reintentar()`, solo hace `refresh()` — no confundir con el antiguo botón "Sincronizar", que ya no existe), usado standalone (sin datos previos) o embebido en `dashboard-client.tsx` (con datos previos atenuados). |
 | `src/components/pdf-report.tsx` | Reporte para impresión (`hidden print:block`), incluye los 28 requerimientos, sin el panel de calidad, sin numeración de página. |
-| `src/lib/actividades-data.ts` | `getActividades(requirementId)` (Fase C) — consulta `activity_logs` por requerimiento, resuelve el nombre del autor vía `nombre_autor()` (RPC security-definer, visible también para el Viewer). |
-| `src/lib/actividad-tipos.ts` | `TIPOS_ACTIVIDAD_VALIDOS`/`TIPO_ACTIVIDAD_LABEL` (Fase C) — solo lo usa ya `actividades-sin-fase.tsx`, para el histórico anterior a la fusión tarea/actividad. |
-| `src/components/agregar-tarea-dialog.tsx` | `AgregarTareaDialog` — único botón de registro por fase (fusión tarea/actividad, 2026-08-11): nombre, fecha límite (obligatoria — fix del bug de tareas invisibles en el Gantt), fechas planeadas y horas consumidas iniciales (opcional). |
-| `src/components/registrar-horas-dialog.tsx` | `RegistrarHorasDialog` — registra más horas contra una tarea ya existente (`activity_logs.task_id` + trigger de C1, ver más abajo), acumulables con el tiempo; solo muestra el total, sin desglose. |
-| `src/components/tarea-acciones-admin/` | `TareaAccionesAdmin` (`index.tsx`) — orquesta por tarea: `EstadoTareaSelect`, `FechasPlaneadasForm`, `RegistrarHorasDialog`, `EditarTareaForm` y `EliminarTareaButton` (partido en el cierre técnico de 2026-08-11, antes un solo archivo `tarea-acciones-admin.tsx`). Reemplaza a `editar-fechas-form.tsx` (eliminado). |
+| `src/components/agregar-tarea-dialog.tsx` | `AgregarTareaDialog` — único botón de registro por fase (fusión tarea/actividad, 2026-08-11): nombre, fecha límite (obligatoria — fix del bug de tareas invisibles en el Gantt), fechas planeadas y horas ejecutadas iniciales (opcional). |
+| `src/components/tarea-acciones-admin/` | `TareaAccionesAdmin` (`index.tsx`) — orquesta por tarea: `EstadoTareaSelect`, `FechasPlaneadasForm`, `EditarHorasDialog` (edita `executed_hours` directamente, reemplazó a `RegistrarHorasDialog`/`activity_logs` el 2026-08-12), `EditarTareaForm` y `EliminarTareaButton`. Reemplaza a `editar-fechas-form.tsx` (eliminado). |
 | `src/hooks/use-cerrar-al-exito.ts` | `useCerrarAlExito()` (cierre técnico 2026-08-11) — cierra un diálogo/formulario apenas una Server Action reporta éxito; reemplaza el patrón `successVisto` que estaba duplicado en 3 componentes. |
-| `src/components/fase-fecha-limite-form.tsx` | `FaseFechaLimiteForm` — fecha límite propia de cada fase (`requirement_phase_deadlines`, independiente de las tareas), configurable en el encabezado del acordeón; se dibuja como hito propio en el Gantt. |
-| `src/lib/fase-deadlines.ts` | `getFechasLimiteFase(requirementId)` — lee `requirement_phase_deadlines`, usado por `requerimiento-data.ts`. `planeacion-data.ts` hace su propia consulta batch para todos los requerimientos del Gantt. |
+| `src/components/fase-fecha-limite-form.tsx` | `FaseFechaLimiteForm` — fecha límite propia de cada fase (`requirement_phase_deadlines`, independiente de las tareas). Desde el 2026-08-12 usa `display: contents` en su `<form>` para que el input (fila 1) y el botón "Guardar" (fila 2) caigan en celdas explícitas (`col-start-*`/`row-start-*`) del grid de controles de `TareasPorFase`, alineadas por su borde izquierdo con el chevron/"Añadir tarea". |
+| `src/lib/fase-deadlines.ts` | `getFechasLimiteFase(requirementId)` / `getHorasEstimadasFase(requirementId)` (esta última, 2026-08-12) — leen `requirement_phase_deadlines`, usadas por `requerimiento-data.ts`. `planeacion-data.ts` hace su propia consulta batch de fechas para todos los requerimientos del Gantt. |
 | `src/lib/tareas-controles.tsx` | `construirControlesTareas(fases, requirementId)` — arma los botones/acciones de Admin (`RoleGate` + diálogos) que consume `TareasPorFase`, usado por Detalle del requerimiento. |
-| `src/components/tareas-por-fase.tsx` | `TareasPorFase` — acordeón por fase (tarea = actividad, un solo concepto): encabezado de fase a 2 líneas (nombre/estado/fecha límite + conteo de tareas/horas estimadas-consumidas de la fase), botón "Añadir tarea" y campo de fecha límite de fase (Admin), controles de edición inline por tarea. Cada tarjeta de tarea lleva borde naranja institucional si está "En curso" o rojo si está "Bloqueada" (refinamiento 2026-08-12, PR #25), conviviendo con la advertencia de texto libre existente (`bloqueantes`/`notas`). Usado solo en `/requerimiento/[item]` — desde el PR #25 es la única pantalla de edición de tareas/fechas. |
-| `src/components/actividades-sin-fase.tsx` | `ActividadesSinFase` — bloque colapsable con las actividades históricas SIN tarea asociada (`task_id is null`) — de antes de la fusión tarea/actividad, con su "Tipo" viejo. |
-| `src/app/requerimiento/[item]/page.tsx` | Página de drill-down por requerimiento (RN-04/05). Llama a `getRequerimientoDetalle(slug)` (`src/lib/requerimiento-data.ts`) → `<ErrorDatosBanner soloBanner />` si falla; ídem para `getActividades()` (Fase C). |
+| `src/components/tareas-por-fase.tsx` | `TareasPorFase` — acordeón por fase (tarea = actividad, un solo concepto). Encabezado de fase rediseñado el 2026-08-12: título + chip de estado en una línea, "N/M completadas · Fase límite: fecha" en la siguiente, horas Estimadas/Consumidas en la suya (Consumidas en rojo si hay sobrepresupuesto); a la derecha, grid de 2 columnas con fecha límite+chevron arriba y Guardar+"Añadir tarea" abajo. Cada tarjeta de tarea lleva borde naranja institucional si está "En curso" o rojo si está "Bloqueada", conviviendo con la advertencia de texto libre existente (`bloqueantes`/`notas`); ya no muestra "Horas estimadas" por tarea (ver "Estado actual"). Usado solo en `/requerimiento/[item]` — es la única pantalla de edición de tareas/fechas. |
+| `src/app/requerimiento/[item]/page.tsx` | Página de drill-down por requerimiento (RN-04/05). Llama a `getRequerimientoDetalle(slug)` (`src/lib/requerimiento-data.ts`) → `<ErrorDatosBanner soloBanner />` si falla. |
 | `src/app/actions/ui.ts` | Server Action `reintentar()` (`refresh()`) (Unidad C2.5, antes en `src/app/actions.ts`) — usada solo por el banner de error. |
-| `src/app/actions/activity-logs.ts` | Server Action `registrarHoras()` (Fase C, renombrada desde `agregarActividad()` en la fusión tarea/actividad de 2026-08-11) — `requireAdmin()` → valida horas/fecha/nota → `insert` en `activity_logs` con `created_by`/`task_id` → `refresh()`. |
-| `src/app/actions/tasks.ts` | Server Actions `guardarFechasPlaneadas()`/`crearTarea()`/`eliminarTarea()` (Unidad C1.2, reubicadas en Unidad C2.5 desde `src/app/planeacion/[requerimiento]/editar/actions.ts`). |
-| `src/app/actions/requirements.ts` | Server Actions `crearRequerimiento()`, `actualizarRequerimiento()`, `cerrarPorCambioDeAlcance()` (Unidad C2.3) — consumidas por `src/components/requerimiento-form.tsx` desde las tres rutas de formulario listadas abajo. |
-| `src/components/requerimiento-form.tsx` | Formulario compartido de requerimiento (Unidad C2.3), en modo crear/editar/cambio-de-alcance según la ruta que lo renderiza. |
+| `src/app/actions/tasks.ts` | Server Actions `guardarFechasPlaneadas()`/`crearTarea()`/`eliminarTarea()`/`actualizarTarea()`/`actualizarEstadoTarea()`/`guardarFechaLimiteFase()` y, desde el 2026-08-12, `actualizarHorasTarea()` (edita `executed_hours` de una tarea y recalcula `requirements.executed_hours` en la misma acción, reemplazando al trigger que antes dependía de `activity_logs`). |
+| `src/app/actions/requirements.ts` | Server Actions `crearRequerimiento()`, `actualizarRequerimiento()`, `cerrarPorCambioDeAlcance()` (Unidad C2.3) — consumidas por `src/components/requerimiento-form.tsx` desde las tres rutas de formulario listadas abajo. Desde el 2026-08-12 también hacen `upsert` de las horas estimadas por fase (`requirement_phase_deadlines.estimated_hours`) leídas del mismo formulario. |
+| `src/components/requerimiento-form.tsx` | Formulario compartido de requerimiento (Unidad C2.3), en modo crear/editar/cambio-de-alcance según la ruta que lo renderiza. Desde el 2026-08-12 incluye una sección de 5 campos opcionales "horas estimadas por fase" con un aviso informativo no bloqueante que compara su suma contra el total. |
 | `src/app/requerimiento/nuevo/page.tsx` | Crear requerimiento — `RequerimientoForm` en modo creación (`requireAdmin()`). |
 | `src/app/requerimiento/[item]/editar/page.tsx` | Editar requerimiento existente — `RequerimientoForm` en modo edición (`requireAdmin()`). |
 | `src/app/requerimiento/[item]/cambio-de-alcance/page.tsx` | Cierra el requerimiento actual y crea uno nuevo enlazado (`parent_requirement_id`) — `RequerimientoForm` en modo cambio de alcance (`requireAdmin()`). |
@@ -301,10 +315,12 @@ no hay ningún consumidor de ese código.
 
 ## Historial de fases
 
-Este proyecto se construyó por fases (0, A, B, C, C1, C2, C3), todas completas y verificadas en
-producción. **No hay ningún trabajo pendiente del roadmap** — no se planea ninguna fase de
-documentos versionados ni ninguna otra fase futura. El detalle de ejecución de las fases ya
-cerradas (decisiones tomadas con el PO, pivots de diseño, contradicciones resueltas del diseño
-original) no se conserva como documento aparte en el repo — vive en el historial de git (PRs
-#9–#20) y, para lo aún relevante operativamente, en
+Este proyecto se construyó por fases (0, A, B, C, C1, C2), todas completas y verificadas en
+producción. La Fase C3 (bitácora de horas `activity_logs`) se dio por completa en su momento pero
+se **eliminó por completo el 2026-08-12** al refinar el modelo de horas (ver "Estado actual") —
+no quedó ningún rastro de esa fase en el código actual. **No hay ningún trabajo pendiente del
+roadmap** — no se planea ninguna fase de documentos versionados ni ninguna otra fase futura. El
+detalle de ejecución de las fases ya cerradas (decisiones tomadas con el PO, pivots de diseño,
+contradicciones resueltas del diseño original) no se conserva como documento aparte en el repo —
+vive en el historial de git (PRs #9–#26) y, para lo aún relevante operativamente, en
 `supabase/RUNBOOK_AUTH.md`/`RUNBOOK_BACKUP.md`/`MIGRACIONES.md`.
