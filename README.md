@@ -17,9 +17,9 @@ Next.js (App Router) + TypeScript + Tailwind v4 + shadcn/ui, con Supabase
 
 ## Qué hace hoy
 
-- **Home** (`/`): KPIs (total, por estado, horas, bloqueados, reabiertos,
-  vencidas, "Salud del proyecto"), búsqueda/filtros, 4 bloques de estado,
-  semáforo por fecha límite, panel de calidad de datos.
+- **Home** (`/`): KPIs (total de requerimientos, horas ejecutadas/estimadas,
+  en curso, reabiertos, con bloqueo activo), 4 bloques de estado, semáforo
+  por fecha límite.
 - **Detalle de requerimiento** (`/requerimiento/[item]`): acordeón "Tareas
   por fase" — cada tarea con estado, fechas (límite + planeadas), horas
   consumidas y bloqueantes; botón "Añadir tarea" y "Registrar horas" por
