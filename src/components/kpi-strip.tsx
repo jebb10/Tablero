@@ -1,6 +1,7 @@
 import { AlertTriangle, Clock, ListChecks, RotateCcw, Timer } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { KPIs } from "@/lib/types";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 function Kpi({
   icono: Icono,
@@ -8,12 +9,14 @@ function Kpi({
   valor,
   acento,
   href,
+  nombres,
 }: {
   icono: typeof Clock;
   etiqueta: string;
   valor: string;
   acento?: boolean | "atencion";
   href?: string;
+  nombres?: string[];
 }) {
   const contenido = (
     <div
@@ -46,6 +49,28 @@ function Kpi({
     </div>
   );
 
+  if (nombres && nombres.length > 0) {
+    const trigger = href ? (
+      <a href={href} className="flex flex-1 min-w-[10rem]" />
+    ) : (
+      <div className="flex flex-1 min-w-[10rem]" />
+    );
+    return (
+      <Tooltip>
+        <TooltipTrigger render={trigger} aria-label={`${etiqueta}: ${nombres.join(", ")}`}>
+          {contenido}
+        </TooltipTrigger>
+        <TooltipContent>
+          <ul className="flex flex-col gap-0.5">
+            {nombres.map((nombre, i) => (
+              <li key={i}>{nombre}</li>
+            ))}
+          </ul>
+        </TooltipContent>
+      </Tooltip>
+    );
+  }
+
   if (!href) return contenido;
   return (
     <a href={href} className="flex flex-1 min-w-[10rem]">
@@ -54,7 +79,15 @@ function Kpi({
   );
 }
 
-export function KpiStrip({ kpis }: { kpis: KPIs }) {
+export function KpiStrip({
+  kpis,
+  nombresReabiertos,
+  nombresBloqueados,
+}: {
+  kpis: KPIs;
+  nombresReabiertos?: string[];
+  nombresBloqueados?: string[];
+}) {
   return (
     <div className="flex flex-wrap gap-3">
       <Kpi icono={ListChecks} etiqueta="Requerimientos" valor={String(kpis.total)} />
@@ -69,12 +102,14 @@ export function KpiStrip({ kpis }: { kpis: KPIs }) {
         etiqueta="Reabiertos"
         valor={String(kpis.reabiertos)}
         acento={kpis.reabiertos > 0}
+        nombres={nombresReabiertos}
       />
       <Kpi
         icono={AlertTriangle}
         etiqueta="Con bloqueo activo"
         valor={String(kpis.bloqueados)}
         acento={kpis.bloqueados > 0}
+        nombres={nombresBloqueados}
       />
     </div>
   );

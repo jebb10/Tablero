@@ -24,7 +24,7 @@ export function RequerimientoCard({ req }: { req: Requerimiento }) {
       className={cn(
         "flex h-full min-h-44 flex-col gap-2 rounded-lg border bg-card p-3 transition-colors",
         "hover:border-primary/50 hover:shadow-sm",
-        req.bloqueado && "border-status-bloqueo border-2",
+        req.tieneTareaBloqueda && "border-status-bloqueo border-2",
         !req.tieneDetalle && "bg-muted/40 text-muted-foreground"
       )}
     >
@@ -37,7 +37,7 @@ export function RequerimientoCard({ req }: { req: Requerimiento }) {
             req.tieneDetalle ? "text-primary" : "text-muted-foreground"
           )}
         />
-        {req.bloqueado && (
+        {req.tieneTareaBloqueda && (
           <AlertTriangle className="h-4 w-4 shrink-0 text-status-bloqueo" />
         )}
       </div>

@@ -2,6 +2,7 @@ import type { Database } from "./supabase/database.types";
 import type { EstadoFase, Fase, Tarea } from "./types";
 import { FASES_ORDEN } from "./fases-orden";
 import { estadoEsCompletada, estadoTareaDesdeDb } from "./estados-tarea";
+import { desdeISO } from "./fechas";
 
 export type RequirementTaskRow = Pick<
   Database["public"]["Tables"]["requirement_tasks"]["Row"],
@@ -25,7 +26,7 @@ export type RequirementTaskRow = Pick<
 >;
 
 function toDate(v: string | null): Date | null {
-  return v ? new Date(v) : null;
+  return v ? desdeISO(v) : null;
 }
 
 function estadoDeFase(tareas: Tarea[]): EstadoFase {

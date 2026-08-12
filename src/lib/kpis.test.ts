@@ -15,8 +15,6 @@ function req(overrides: Partial<Requerimiento> = {}): Requerimiento {
     horasPorEjecutar: 5,
     porcentajeAvance: 50,
     overbudget: false,
-    notas: null,
-    bloqueado: false,
     tieneDetalle: true,
     sinTareas: false,
     fechaLimite: null,
@@ -24,7 +22,7 @@ function req(overrides: Partial<Requerimiento> = {}): Requerimiento {
     reabierto: 0,
     faseActual: null,
     tieneTareaBloqueda: false,
-    tieneTareaEnCurso: false,
+    proximaActividadFecha: null,
     ...overrides,
   };
 }
