@@ -20,8 +20,6 @@ export interface Requerimiento {
   horasPorEjecutar: number | null;
   porcentajeAvance: number | null;
   overbudget: boolean;
-  notas: string | null;
-  bloqueado: boolean;
   tieneDetalle: boolean;
   sinTareas: boolean;
   fechaLimite: Date | null;
@@ -29,7 +27,7 @@ export interface Requerimiento {
   reabierto: number;
   faseActual: string | null;
   tieneTareaBloqueda: boolean;
-  tieneTareaEnCurso: boolean;
+  proximaActividadFecha: Date | null;
 }
 
 export interface HitoProximo {

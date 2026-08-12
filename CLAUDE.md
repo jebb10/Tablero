@@ -260,13 +260,16 @@ no hay ningún consumidor de ese código.
   iniciado / Entregado en producción.
 - **RN-02** (overbudget): si horas ejecutadas > estimadas, se resalta en
   rojo (`status-overbudget`).
-- **RN-03** (detección de bloqueos): si `Notas` contiene "Actividad
-  bloqueante" o "Espera de WS" (case-insensitive), la card lleva borde rojo
-  (`status-bloqueo`) e ícono de alerta. **Corrección (2026-08-01, punto de
-  control MVP)**: el texto completo de `Notas` NO se muestra en ningún lado
-  hoy, ni siquiera en el drill-down — es alcance recortado confirmado por el
-  PO, no un pendiente. Lo único visible relacionado es `bloqueantes`/`notas`
-  a nivel de **tarea** individual en `tareas-por-fase.tsx`, que es un campo
+- **RN-03** (detección de bloqueos): la card lleva borde rojo
+  (`status-bloqueo`) e ícono de alerta si el requerimiento tiene alguna
+  tarea individual en estado "Bloqueada" (`tieneTareaBloqueda`) — mismo
+  criterio que ya usaba el KPI "Con bloqueo activo". **Cambio de criterio
+  (refinamiento de Home, 2026-08-12)**: antes se detectaba buscando
+  "Actividad bloqueante"/"Espera de WS" en el campo `Notas` del
+  requerimiento; ese campo (`requirements.notes`) quedó retirado del
+  dashboard por completo (desalineaba el borde del KPI, que ya contaba por
+  tarea bloqueada). Lo visible relacionado sigue siendo `bloqueantes`/`notas`
+  a nivel de **tarea** individual en `tareas-por-fase.tsx`, un campo
   distinto (de la hoja de detalle, no de `Dashboard Principal`).
 - **RN-04** (contenido de card + navegación): ver `requerimiento-card.tsx`.
 - **RN-05** (sync manual, sin polling): **superada desde la Fase A** — ya

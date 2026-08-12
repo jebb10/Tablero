@@ -19,10 +19,10 @@ export default async function Home() {
       <header className="flex items-center justify-between gap-2">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">
-            Dashboard 414 — Bolsas de Horas
+            Positiva - Página Web.
           </h1>
           <p className="text-sm text-muted-foreground">
-            Estado actual de los requerimientos del proyecto Positiva Web 414.
+            Estado actual de los requerimientos del proyecto Positiva Web.
           </p>
         </div>
         <RoleGate role="admin">

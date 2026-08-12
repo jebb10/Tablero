@@ -10,8 +10,9 @@ import { PdfReport } from "@/components/pdf-report";
 import { RequerimientoCard } from "@/components/requerimiento-card";
 import { cn } from "@/lib/utils";
 import type { Estado, HitoProximo, KPIs, Requerimiento } from "@/lib/types";
-import { SEMAFORO_TEXT_CLASS } from "@/lib/semaforo";
+import { calcularSemaforo, SEMAFORO_TEXT_CLASS } from "@/lib/semaforo";
 import { formatearFecha as formatearFechaBase } from "@/lib/fechas";
+import { ESTADOS_ENTREGA_CUMPLIDA } from "@/lib/kpis";
 
 const BLOQUES: { estado: Estado; etiqueta: string; dot: string }[] = [
   { estado: "En curso", etiqueta: "En curso", dot: "bg-status-en-curso" },
@@ -57,11 +58,27 @@ export function DashboardClient({
     [requerimientos]
   );
 
+  const nombresReabiertos = useMemo(
+    () =>
+      requerimientos
+        .filter((r) => r.reabierto > 0 && !ESTADOS_ENTREGA_CUMPLIDA.includes(r.estado))
+        .map((r) => r.nombre),
+    [requerimientos]
+  );
+
+  const nombresBloqueados = useMemo(
+    () =>
+      requerimientos
+        .filter((r) => r.estado === "En curso" && r.tieneTareaBloqueda)
+        .map((r) => r.nombre),
+    [requerimientos]
+  );
+
   const proximasFechas = useMemo(
     () =>
       requerimientos
-        .filter((r) => r.estado === "En curso" && r.tieneTareaEnCurso && r.fechaLimite !== null)
-        .sort(ordenarPorFechaLimite)
+        .filter((r) => r.estado === "En curso" && r.proximaActividadFecha !== null)
+        .sort((a, b) => a.proximaActividadFecha!.getTime() - b.proximaActividadFecha!.getTime())
         .slice(0, 4),
     [requerimientos]
   );
@@ -77,7 +94,11 @@ export function DashboardClient({
         )}
       >
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <KpiStrip kpis={kpis} />
+          <KpiStrip
+            kpis={kpis}
+            nombresReabiertos={nombresReabiertos}
+            nombresBloqueados={nombresBloqueados}
+          />
           <div className="flex items-center gap-2">
             <Button variant="outline" onClick={() => window.print()}>
               <FileDown />
@@ -105,8 +126,13 @@ export function DashboardClient({
                     <p className="text-sm font-medium leading-tight">{r.nombre}</p>
                     <p className="text-xs text-muted-foreground">{r.item}</p>
                   </div>
-                  <span className={cn("text-xs font-semibold whitespace-nowrap", SEMAFORO_TEXT_CLASS[r.semaforo])}>
-                    {formatearFecha(r.fechaLimite)}
+                  <span
+                    className={cn(
+                      "text-xs font-semibold whitespace-nowrap",
+                      SEMAFORO_TEXT_CLASS[calcularSemaforo(r.proximaActividadFecha)]
+                    )}
+                  >
+                    {formatearFecha(r.proximaActividadFecha)}
                   </span>
                 </Link>
               ))

@@ -1,5 +1,5 @@
 import { calcularSemaforo, type Semaforo } from "./semaforo";
-import { hoyLocal } from "./fechas";
+import { hoyLocal, desdeISO } from "./fechas";
 import { PROJECT_SLUG } from "./project";
 import { getSupabaseClient } from "./supabase/server";
 import { FASES_ORDEN } from "./fases-orden";
@@ -99,14 +99,14 @@ export async function getPlaneacionData(): Promise<{
             // (el match por nombre de tarea contra las hojas Gantt ocultas
             // no fue viable). Fallback: due_date como marcador de un día.
             const start = t.planned_start_date
-              ? new Date(t.planned_start_date)
+              ? desdeISO(t.planned_start_date)
               : t.due_date
-                ? new Date(t.due_date)
+                ? desdeISO(t.due_date)
                 : null;
             const end = t.planned_end_date
-              ? new Date(t.planned_end_date)
+              ? desdeISO(t.planned_end_date)
               : t.due_date
-                ? new Date(t.due_date)
+                ? desdeISO(t.due_date)
                 : null;
             return {
               id: t.id,

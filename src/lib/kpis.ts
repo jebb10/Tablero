@@ -1,6 +1,6 @@
 import type { Estado, KPIs, Requerimiento } from "./types";
 
-const ESTADOS_ENTREGA_CUMPLIDA: Estado[] = [
+export const ESTADOS_ENTREGA_CUMPLIDA: Estado[] = [
   "Entregado en producción",
   "Cerrado por cambio de alcance",
 ];

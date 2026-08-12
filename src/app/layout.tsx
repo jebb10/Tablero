@@ -43,7 +43,7 @@ export default async function RootLayout({
         {profile && (
           <nav className="flex items-center gap-4 border-b bg-card px-6 py-2.5 print:hidden">
             <Link href="/" className="text-sm font-semibold">
-              Dashboard 414
+              Dashboard
             </Link>
             <Link
               href="/planeacion"

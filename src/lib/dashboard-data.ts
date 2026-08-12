@@ -7,6 +7,7 @@ import { dbAEstado } from "./estados";
 import { estadoTareaDesdeDb } from "./estados-tarea";
 import { getFechasLimiteFasePorRequerimientos } from "./fase-deadlines";
 import { FASES_ORDEN } from "./fases-orden";
+import { desdeISO } from "./fechas";
 import type { Database } from "./supabase/database.types";
 import type { HitoProximo, KPIs, Requerimiento } from "./types";
 
@@ -26,12 +27,6 @@ type TaskForHome = Pick<
   | "planned_end_date"
 >;
 
-function contieneBloqueo(notas: string | null): boolean {
-  if (!notas) return false;
-  const n = notas.toLowerCase();
-  return n.includes("actividad bloqueante") || n.includes("espera de ws");
-}
-
 type RequirementRow = Pick<
   Database["public"]["Tables"]["requirements"]["Row"],
   | "id"
@@ -44,10 +39,20 @@ type RequirementRow = Pick<
   | "has_detail_tracking"
   | "estimated_hours"
   | "executed_hours"
-  | "notes"
   | "deadline"
   | "reopened_count"
 >;
+
+/** Fecha (due_date) más próxima entre las tareas en estado "En curso" del
+ * requerimiento, sin importar la fase. `null` si ninguna tarea en curso
+ * tiene fecha. Fuente de "Próximas fechas límite" en Home. */
+function proximaFechaDeTareasEnCurso(tareas: TaskForHome[]): Date | null {
+  const fechas = tareas
+    .filter((t) => estadoTareaDesdeDb(t.status) === "En curso" && t.due_date)
+    .map((t) => desdeISO(t.due_date as string));
+  if (fechas.length === 0) return null;
+  return new Date(Math.min(...fechas.map((f) => f.getTime())));
+}
 
 function adaptar(
   row: RequirementRow,
@@ -57,7 +62,7 @@ function adaptar(
 ): Requerimiento {
   const horasEstimadas = row.estimated_hours;
   const horasEjecutadas = row.executed_hours;
-  const fechaLimite = row.deadline ? new Date(row.deadline) : null;
+  const fechaLimite = row.deadline ? desdeISO(row.deadline) : null;
 
   return {
     item: row.code,
@@ -80,8 +85,6 @@ function adaptar(
       horasEstimadas !== null &&
       horasEjecutadas !== null &&
       horasEjecutadas > horasEstimadas,
-    notas: row.notes,
-    bloqueado: contieneBloqueo(row.notes),
     tieneDetalle: row.has_detail_tracking,
     sinTareas: row.has_detail_tracking && !idsConTareas.has(row.id),
     fechaLimite,
@@ -91,9 +94,7 @@ function adaptar(
     tieneTareaBloqueda: tareasDelRequerimiento.some(
       (t) => estadoTareaDesdeDb(t.status) === "Bloqueada"
     ),
-    tieneTareaEnCurso: tareasDelRequerimiento.some(
-      (t) => estadoTareaDesdeDb(t.status) === "En curso"
-    ),
+    proximaActividadFecha: proximaFechaDeTareasEnCurso(tareasDelRequerimiento),
   };
 }
 
@@ -123,7 +124,7 @@ export async function getDashboardData(): Promise<
     const { data: filas, error: errorRequerimientos } = await supabase
       .from("requirements")
       .select(
-        "id, code, slug, title, month_label, complexity, status, has_detail_tracking, estimated_hours, executed_hours, notes, deadline, reopened_count"
+        "id, code, slug, title, month_label, complexity, status, has_detail_tracking, estimated_hours, executed_hours, deadline, reopened_count"
       )
       .eq("project_id", proyecto.id);
     if (errorRequerimientos) throw errorRequerimientos;
@@ -157,7 +158,21 @@ export async function getDashboardData(): Promise<
       .filter((r) => dbAEstado(r.status) === "En curso")
       .map((r) => r.id);
     const fechasFase = await getFechasLimiteFasePorRequerimientos(idsEnCurso);
+
+    // Una fase solo cuenta como "hito próximo" si todavía tiene alguna
+    // tarea en curso — si ya se cerraron todas sus tareas, el hito no debe
+    // listarse aunque la fecha límite de fase siga registrada.
+    const fasesConTareaEnCurso = new Set<string>();
+    for (const [requirementId, tareasReq] of tareasPorRequerimiento.entries()) {
+      for (const t of tareasReq) {
+        if (estadoTareaDesdeDb(t.status) === "En curso") {
+          fasesConTareaEnCurso.add(`${requirementId}-${t.phase_number}`);
+        }
+      }
+    }
+
     const hitosProximos: HitoProximo[] = Array.from(fechasFase.entries())
+      .filter(([clave]) => fasesConTareaEnCurso.has(clave))
       .map(([clave, fecha]) => {
         const separador = clave.lastIndexOf("-");
         const requirementId = clave.slice(0, separador);
