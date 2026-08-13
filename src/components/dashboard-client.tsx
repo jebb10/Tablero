@@ -14,8 +14,8 @@ import { calcularSemaforo, SEMAFORO_TEXT_CLASS } from "@/lib/semaforo";
 import { formatearFecha as formatearFechaBase } from "@/lib/fechas";
 import { ESTADOS_ENTREGA_CUMPLIDA } from "@/lib/kpis";
 
-const BLOQUES: { estado: Estado; etiqueta: string; dot: string }[] = [
-  { estado: "En curso", etiqueta: "En curso", dot: "bg-status-en-curso" },
+const BLOQUES: { estado: Estado; etiqueta: string; dot: string; id?: string }[] = [
+  { estado: "En curso", etiqueta: "En curso", dot: "bg-status-en-curso", id: "en-curso" },
   { estado: "Pausado", etiqueta: "Pausados", dot: "bg-status-pausado" },
   { estado: "No iniciado", etiqueta: "No iniciados", dot: "bg-status-no-iniciado" },
   {
@@ -163,12 +163,12 @@ export function DashboardClient({
           </div>
         </div>
 
-      {BLOQUES.map(({ estado, etiqueta, dot }) => {
+      {BLOQUES.map(({ estado, etiqueta, dot, id }) => {
         const items = requerimientos
           .filter((r) => r.estado === estado)
           .sort(ordenarPorFechaLimite);
         return (
-          <section key={estado} className="flex flex-col gap-3">
+          <section key={estado} id={id} className="flex flex-col gap-3">
             <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
               <span className={`h-2.5 w-2.5 rounded-full ${dot}`} />
               {etiqueta} ({items.length})

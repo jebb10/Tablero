@@ -65,6 +65,7 @@ function adaptar(
   const fechaLimite = row.deadline ? desdeISO(row.deadline) : null;
 
   return {
+    id: row.id,
     item: row.code,
     slug: row.slug,
     nombre: row.title,

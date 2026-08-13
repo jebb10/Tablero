@@ -19,8 +19,8 @@ const montserrat = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Dashboard 414",
-  description: "Seguimiento de requerimientos — Positiva Web 414",
+  title: "Positiva",
+  description: "Seguimiento de requerimientos — Positiva",
 };
 
 function nombreVisible(profile: { email: string; fullName: string | null }): string {
@@ -43,7 +43,7 @@ export default async function RootLayout({
         {profile && (
           <nav className="flex items-center gap-4 border-b bg-card px-3 py-2.5 sm:px-6 print:hidden">
             <Link href="/" className="text-sm font-semibold">
-              Dashboard
+              Positiva
             </Link>
             <Link
               href="/planeacion"

@@ -1,5 +1,5 @@
-import type { Estado, KPIs, Requerimiento } from "@/lib/types";
-import { formatearFecha as formatearFechaBase } from "@/lib/fechas";
+import type { Estado } from "@/lib/types";
+import type { FilaHoras } from "@/lib/horas-reporte";
 
 const BLOQUES: { estado: Estado; etiqueta: string }[] = [
   { estado: "En curso", etiqueta: "En curso" },
@@ -8,10 +8,6 @@ const BLOQUES: { estado: Estado; etiqueta: string }[] = [
   { estado: "Entregado en producción", etiqueta: "Entregados en producción" },
   { estado: "Cerrado por cambio de alcance", etiqueta: "Cerrados por cambio de alcance" },
 ];
-
-function formatearFecha(fecha: Date | null): string {
-  return formatearFechaBase(fecha, { conAño: true }) ?? "—";
-}
 
 function formatearGeneracion(fecha: Date): string {
   return new Intl.DateTimeFormat("es-CO", {
@@ -26,41 +22,20 @@ function formatearGeneracion(fecha: Date): string {
 const th = "border border-[#999] px-2 py-1.5 text-left font-bold";
 const td = "border border-[#999] px-2 py-1.5";
 
-export function PdfReport({
-  requerimientos,
-  kpis,
-}: {
-  requerimientos: Requerimiento[];
-  kpis: KPIs;
-}) {
+export function HorasPdfReport({ filas }: { filas: FilaHoras[] }) {
   return (
     <div className="hidden print:block text-black">
       <div className="mb-4 flex items-baseline justify-between border-b-[3px] border-[#FF7500] pb-3">
         <h1 className="text-lg font-bold text-[#003145]">
-          Positiva — Reporte de requerimientos
+          Positiva — Horas ejecutadas / estimadas
         </h1>
         <span className="text-[11px] text-[#444]">
           Generado: {formatearGeneracion(new Date())}
         </span>
       </div>
 
-      <table className="mb-5 w-full border-collapse text-[11.5px]">
-        <tbody>
-          <tr>
-            <td className={`${td} font-bold`}>Total</td>
-            <td className={td}>{kpis.total}</td>
-            <td className={`${td} font-bold`}>Horas ejec. / est.</td>
-            <td className={td}>
-              {kpis.horasEjecutadasTotal.toFixed(0)} / {kpis.horasEstimadasTotal.toFixed(0)}
-            </td>
-            <td className={`${td} font-bold`}>Bloqueados</td>
-            <td className={td}>{kpis.bloqueados}</td>
-          </tr>
-        </tbody>
-      </table>
-
       {BLOQUES.map(({ estado, etiqueta }) => {
-        const items = requerimientos.filter((r) => r.estado === estado);
+        const items = filas.filter((f) => f.estado === estado);
         if (items.length === 0) return null;
         return (
           <div key={estado} className="mb-[18px]">
@@ -72,23 +47,23 @@ export function PdfReport({
                 <tr>
                   <th className={th}>Item</th>
                   <th className={th}>Requerimiento</th>
-                  <th className={th}>Avance</th>
-                  <th className={th}>Horas</th>
-                  <th className={th}>Fecha límite</th>
+                  <th className={th}>Requerimientos</th>
+                  <th className={th}>Diseño</th>
+                  <th className={th}>Desarrollo</th>
+                  <th className={th}>Total estimado</th>
+                  <th className={th}>Horas ejecutadas</th>
                 </tr>
               </thead>
               <tbody>
-                {items.map((r) => (
-                  <tr key={r.item}>
-                    <td className={td}>{r.item}</td>
-                    <td className={td}>{r.nombre}</td>
-                    <td className={td}>
-                      {r.tieneDetalle ? `${r.porcentajeAvance ?? 0}%` : "—"}
-                    </td>
-                    <td className={td}>
-                      {r.horasEjecutadas ?? "—"}h / {r.horasEstimadas ?? "—"}h
-                    </td>
-                    <td className={td}>{formatearFecha(r.fechaLimite)}</td>
+                {items.map((f) => (
+                  <tr key={f.item}>
+                    <td className={td}>{f.item}</td>
+                    <td className={td}>{f.nombre}</td>
+                    <td className={td}>{f.horasFaseRequerimientos}h</td>
+                    <td className={td}>{f.horasFaseDiseno}h</td>
+                    <td className={td}>{f.horasFaseDesarrollo}h</td>
+                    <td className={td}>{f.horasEstimadasTotal}h</td>
+                    <td className={td}>{f.horasEjecutadas}h</td>
                   </tr>
                 ))}
               </tbody>
