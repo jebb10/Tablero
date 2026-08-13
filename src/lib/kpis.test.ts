@@ -4,6 +4,7 @@ import type { Requerimiento } from "./types";
 
 function req(overrides: Partial<Requerimiento> = {}): Requerimiento {
   return {
+    id: "00000000-0000-0000-0000-000000000000",
     item: "TEST_HU0001",
     slug: "test-hu0001",
     nombre: "Requerimiento de prueba",

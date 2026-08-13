@@ -95,8 +95,14 @@ export function KpiStrip({
         icono={Timer}
         etiqueta="Horas ejecutadas / estimadas"
         valor={`${kpis.horasEjecutadasTotal.toFixed(0)} / ${kpis.horasEstimadasTotal.toFixed(0)}`}
+        href="/horas"
       />
-      <Kpi icono={Clock} etiqueta="En curso" valor={String(kpis.porEstado["En curso"])} />
+      <Kpi
+        icono={Clock}
+        etiqueta="En curso"
+        valor={String(kpis.porEstado["En curso"])}
+        href="#en-curso"
+      />
       <Kpi
         icono={RotateCcw}
         etiqueta="Reabiertos"

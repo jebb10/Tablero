@@ -52,3 +52,22 @@ export async function getFechasLimiteFasePorRequerimientos(
     ])
   );
 }
+
+/** Variante batch de getHorasEstimadasFase para /horas, que necesita las
+ * horas estimadas de fase de muchos requerimientos a la vez.
+ * Clave del Map: `${requirementId}-${phaseNumber}`. */
+export async function getHorasEstimadasFasePorRequerimientos(
+  requirementIds: string[]
+): Promise<Map<string, number>> {
+  const supabase = await getSupabaseClient();
+  const { data } = await supabase
+    .from("requirement_phase_deadlines")
+    .select("requirement_id, phase_number, estimated_hours")
+    .in("requirement_id", requirementIds.length > 0 ? requirementIds : [""]);
+
+  return new Map(
+    (data ?? [])
+      .filter((f) => f.estimated_hours !== null)
+      .map((f) => [`${f.requirement_id}-${f.phase_number}`, f.estimated_hours as number])
+  );
+}

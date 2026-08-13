@@ -9,6 +9,7 @@ export type Estado =
   | "Cerrado por cambio de alcance";
 
 export interface Requerimiento {
+  id: string;
   item: string;
   slug: string;
   nombre: string;
