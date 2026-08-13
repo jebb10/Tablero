@@ -1,6 +1,6 @@
 @AGENTS.md
 
-# Dashboard 414 — Seguimiento de Requerimientos
+# Positiva — Seguimiento de Requerimientos
 
 Dashboard ejecutivo de seguimiento de requerimientos de un proyecto de
 software: en qué estado va cada uno, horas consumidas vs. estimadas (a nivel
@@ -60,6 +60,38 @@ cambios grandes.
   "Añadir tarea" a ancho completo en su propia fila. El layout de
   escritorio no cambió. Planeación/Gantt no se tocó — sigue sin
   refinamiento visual, mobile incluido.
+- **Autoscroll a "En curso", pantalla `/horas` y renombrado del proyecto
+  (PR #29, 2026-08-13, pedido por el PO)**: el KPI "En curso" del Home
+  hace scroll suave hasta su sección (ancla `#en-curso` en el `<section>`
+  de `dashboard-client.tsx` + `scroll-behavior: smooth` en
+  `globals.css`). El KPI "Horas ejecutadas / estimadas" navega a `/horas`
+  (pantalla nueva, independiente, no modal): reporte por requerimiento de
+  horas estimadas de las fases Requerimientos/Diseño/Desarrollo (1/2/3 de
+  `FASES_ORDEN` — QA y Producción se ignoran a propósito ahí), su suma, y
+  el total de horas ejecutadas real (todas las fases, coincide con el KPI
+  del Home); agrupado por estado igual que el Home, exportable a PDF con
+  el mismo mecanismo ya existente (`window.print()` + `hidden
+  print:block`). Además, se retiró "Dashboard 414" de todo texto visible
+  (nav, pestaña del navegador, títulos/pies de los PDF exportados) — el
+  nombre visible del proyecto es ahora simplemente **"Positiva"**;
+  `PROJECT_SLUG` (`"positiva-web-414"`, identificador interno de
+  Supabase) y los nombres de archivo/función internos (`DashboardClient`,
+  `getDashboardData`, etc.) se dejaron intactos a propósito — no son texto
+  visible.
+- **Nota de entorno (2026-08-13)**: el desarrollo local vive dentro de una
+  carpeta sincronizada por OneDrive (`Documents/...`), que inyecta un
+  `desktop.ini` en **cada** carpeta del repo, incluyendo dentro de
+  `.next/` y de `.git/refs/`. Esto rompía dos cosas: (1) el caché
+  persistente de Turbopack en dev crasheaba el servidor con
+  `Failed to open database ... invalid digit found in string` — se
+  desactivó con `experimental.turbopackFileSystemCacheForDev: false` en
+  `next.config.ts` (solo afecta velocidad de recompilación entre
+  reinicios, no el comportamiento de la app); (2) `git fetch`/`pull`
+  fallaban con `fatal: bad object refs/desktop.ini` — se resuelve
+  borrando todos los `desktop.ini` dentro de `.git/` (`find .git -iname
+  desktop.ini -delete`), OneDrive los puede volver a crear con el tiempo,
+  así que si un `git fetch` falla así de nuevo, repetir esa limpieza antes
+  de sospechar de otra causa.
 - **Detalle del requerimiento (`/requerimiento/[item]`) es ahora la única
   pantalla de edición de tareas/fechas** — la antigua
   `/planeacion/[requerimiento]/editar` se eliminó (2026-08-12, PR #25) al
@@ -262,20 +294,24 @@ para repetir la verificación: `scripts/verificar_seguridad_fase_b.mjs`
 | `src/lib/kpis.ts` | `getKPIs()` — puramente sobre el array de `Requerimiento[]` ya adaptado, sin tocar Supabase directamente. |
 | `src/lib/dashboard-data.ts` | `getDashboardData()` — consulta `requirements` por `project_id`, adapta cada fila DB → `Requerimiento` (mismo shape de siempre), con caché in-memory del último resultado bueno si Supabase no responde. Único punto de entrada que usa `src/app/page.tsx`. |
 | `src/lib/requerimiento-data.ts` | `getRequerimientoDetalle(slug)` — consulta `requirements`+`requirement_tasks` en Supabase por `slug`, con su propio try/catch. Único punto de entrada del drill-down, usado por `src/app/requerimiento/[item]/page.tsx`. |
-| `src/lib/types.ts` | Tipos compartidos (`Requerimiento`, `Fase`, `Tarea`, `KPIs`, etc.). `Requerimiento` ganó `semaforo: Semaforo`; perdió `hojaDetalle` (concepto específico de Excel, ya no aplica). |
+| `src/lib/types.ts` | Tipos compartidos (`Requerimiento`, `Fase`, `Tarea`, `KPIs`, etc.). `Requerimiento` ganó `semaforo: Semaforo`; perdió `hojaDetalle` (concepto específico de Excel, ya no aplica); ganó `id` (UUID, 2026-08-13) para poder cruzar con `requirement_phase_deadlines` desde `/horas` sin duplicar la query de `requirements`. |
 | `src/lib/icons.tsx` | `RequerimientoIcono` (componente, no una función que devuelve un componente — así lo exige la regla `react-hooks/static-components` de eslint) que mapea el ícono por patrón en el nombre del requerimiento. |
 | `src/app/page.tsx` | Server Component: llama `getDashboardData()`, muestra solo el banner de error si no hay ningún dato previo bueno. |
 | `src/app/planeacion/page.tsx` + `src/components/planeacion/*` | Vista Gantt: `gantt-sidebar.tsx` (colapsable desktop + drawer mobile vía `Sheet`), `gantt-timeline.tsx` (grid CSS por día, sin librería externa), `planeacion-client.tsx` (orquestador). |
 | `src/components/dashboard-client.tsx` | KPIs, búsqueda/filtros, los 4 bloques de estado, botón Exportar PDF, atenúa el dashboard si `error` es `true`. **Ya no tiene botón "Sincronizar"** (se retiró — ver "Fuente de datos"). |
 | `src/components/requerimiento-card.tsx` | Card individual ampliada (~176px, badge de mes, fila horas/fecha, dot de semáforo junto a la fecha) (RN-04). El semáforo **convive** con el borde de "bloqueado" (RN-03) — son dos señales distintas, no se reemplazan entre sí. |
-| `src/components/kpi-strip.tsx` | 5 KPIs (Requerimientos, Horas ejecutadas/estimadas, En curso, Reabiertos, Con bloqueo activo). **El panel de "Calidad de datos" y su KPI se retiraron por completo** en el refinamiento de Home de 2026-08-11 — no confundir con versiones anteriores de este documento. |
+| `src/components/kpi-strip.tsx` | 5 KPIs (Requerimientos, Horas ejecutadas/estimadas, En curso, Reabiertos, Con bloqueo activo). **El panel de "Calidad de datos" y su KPI se retiraron por completo** en el refinamiento de Home de 2026-08-11 — no confundir con versiones anteriores de este documento. Desde el 2026-08-13, "En curso" enlaza a `#en-curso` (autoscroll) y "Horas ejecutadas / estimadas" enlaza a `/horas`. |
 | `src/components/error-datos-banner.tsx` | `ErrorDatosBanner` — Banner de error + botón Reintentar (llama a `reintentar()`, solo hace `refresh()` — no confundir con el antiguo botón "Sincronizar", que ya no existe), usado standalone (sin datos previos) o embebido en `dashboard-client.tsx` (con datos previos atenuados). |
 | `src/components/pdf-report.tsx` | Reporte para impresión (`hidden print:block`), incluye los 28 requerimientos, sin el panel de calidad, sin numeración de página. |
 | `src/components/agregar-tarea-dialog.tsx` | `AgregarTareaDialog` — único botón de registro por fase (fusión tarea/actividad, 2026-08-11): nombre, fecha límite (obligatoria — fix del bug de tareas invisibles en el Gantt), fechas planeadas y horas ejecutadas iniciales (opcional). |
 | `src/components/tarea-acciones-admin/` | `TareaAccionesAdmin` (`index.tsx`) — orquesta por tarea: `EstadoTareaSelect`, `FechasPlaneadasForm`, `EditarHorasDialog` (edita `executed_hours` directamente, reemplazó a `RegistrarHorasDialog`/`activity_logs` el 2026-08-12), `EditarTareaForm` y `EliminarTareaButton`. Reemplaza a `editar-fechas-form.tsx` (eliminado). |
 | `src/hooks/use-cerrar-al-exito.ts` | `useCerrarAlExito()` (cierre técnico 2026-08-11) — cierra un diálogo/formulario apenas una Server Action reporta éxito; reemplaza el patrón `successVisto` que estaba duplicado en 3 componentes. |
 | `src/components/fase-fecha-limite-form.tsx` | `FaseFechaLimiteForm` — fecha límite propia de cada fase (`requirement_phase_deadlines`, independiente de las tareas). Desde el 2026-08-12 usa `display: contents` en su `<form>` para que el input (fila 1) y el botón "Guardar" (fila 2) caigan en celdas explícitas (`col-start-*`/`row-start-*`) del grid de controles de `TareasPorFase`, alineadas por su borde izquierdo con el chevron/"Añadir tarea". |
-| `src/lib/fase-deadlines.ts` | `getFechasLimiteFase(requirementId)` / `getHorasEstimadasFase(requirementId)` (esta última, 2026-08-12) — leen `requirement_phase_deadlines`, usadas por `requerimiento-data.ts`. `planeacion-data.ts` hace su propia consulta batch de fechas para todos los requerimientos del Gantt. |
+| `src/lib/fase-deadlines.ts` | `getFechasLimiteFase(requirementId)` / `getHorasEstimadasFase(requirementId)` (esta última, 2026-08-12) — leen `requirement_phase_deadlines`, usadas por `requerimiento-data.ts`. `planeacion-data.ts` hace su propia consulta batch de fechas para todos los requerimientos del Gantt; `getHorasEstimadasFasePorRequerimientos(ids)` (2026-08-13) es la variante batch análoga para horas estimadas, usada por `horas-reporte.ts`. |
+| `src/lib/horas-reporte.ts` | `getReporteHoras()` (2026-08-13) — reusa `getDashboardData()` + `getHorasEstimadasFasePorRequerimientos()` para armar el reporte de `/horas`: por requerimiento, horas estimadas de fases 1/2/3 (Requerimientos/Diseño/Desarrollo), su suma, y horas ejecutadas totales reales. |
+| `src/app/horas/page.tsx` | Página `/horas` (2026-08-13, Server Component, mismo patrón que `/planeacion`) — llama a `getReporteHoras()`, sin `requireAdmin()` (solo lectura, protegida por `src/proxy.ts` igual que el resto de rutas no públicas). |
+| `src/components/horas-client.tsx` | `HorasClient` (2026-08-13) — tabla de `/horas` agrupada por estado (mismo orden que `dashboard-client.tsx`), link al Detalle por fila, botón "Exportar PDF" (mismo patrón `window.print()`), renderiza `HorasPdfReport` para la vista de impresión. |
+| `src/components/horas-pdf-report.tsx` | `HorasPdfReport` (2026-08-13) — vista `hidden print:block` de `/horas`, calco de `pdf-report.tsx` con columnas de fase. |
 | `src/lib/tareas-controles.tsx` | `construirControlesTareas(fases, requirementId)` — arma los botones/acciones de Admin (`RoleGate` + diálogos) que consume `TareasPorFase`, usado por Detalle del requerimiento. |
 | `src/components/tareas-por-fase.tsx` | `TareasPorFase` — acordeón por fase (tarea = actividad, un solo concepto). Encabezado de fase rediseñado el 2026-08-12: título + chip de estado en una línea, "N/M completadas · Fase límite: fecha" en la siguiente, horas Estimadas/Consumidas en la suya (Consumidas en rojo si hay sobrepresupuesto); a la derecha, grid de 2 columnas con fecha límite+chevron arriba y Guardar+"Añadir tarea" abajo. Cada tarjeta de tarea lleva borde naranja institucional si está "En curso" o rojo si está "Bloqueada", conviviendo con la advertencia de texto libre existente (`bloqueantes`/`notas`); ya no muestra "Horas estimadas" por tarea (ver "Estado actual"). Usado solo en `/requerimiento/[item]` — es la única pantalla de edición de tareas/fechas. |
 | `src/app/requerimiento/[item]/page.tsx` | Página de drill-down por requerimiento (RN-04/05). Llama a `getRequerimientoDetalle(slug)` (`src/lib/requerimiento-data.ts`) → `<ErrorDatosBanner soloBanner />` si falla. |
@@ -331,5 +367,5 @@ no quedó ningún rastro de esa fase en el código actual. **No hay ningún trab
 roadmap** — no se planea ninguna fase de documentos versionados ni ninguna otra fase futura. El
 detalle de ejecución de las fases ya cerradas (decisiones tomadas con el PO, pivots de diseño,
 contradicciones resueltas del diseño original) no se conserva como documento aparte en el repo —
-vive en el historial de git (PRs #9–#28) y, para lo aún relevante operativamente, en
+vive en el historial de git (PRs #9–#29) y, para lo aún relevante operativamente, en
 `supabase/RUNBOOK_AUTH.md`/`RUNBOOK_BACKUP.md`/`MIGRACIONES.md`.
